@@ -31,33 +31,33 @@
 class QtFileWatcher : public FileWatcher {
   Q_OBJECT
 
-  public:
-    // Create an empty object
-    QtFileWatcher();
-    // Destroy the object
-    ~QtFileWatcher();
+ public:
+  // Create an empty object
+  QtFileWatcher();
+  // Destroy the object
+  ~QtFileWatcher();
 
-    // Adds the file to the list of file to watch
-    // (do nothing if a file is already monitored)
-    void addFile( const QString& fileName );
-    // Removes the file to the list of file to watch
-    // (do nothing if said file is not monitored)
-    void removeFile( const QString& fileName );
+  // Adds the file to the list of file to watch
+  // (do nothing if a file is already monitored)
+  void addFile(const QString& fileName);
+  // Removes the file to the list of file to watch
+  // (do nothing if said file is not monitored)
+  void removeFile(const QString& fileName);
 
-  signals:
-    // Sent when the file on disk has changed in any way.
-    void fileChanged( const QString& );
+ signals:
+  // Sent when the file on disk has changed in any way.
+  void fileChanged(const QString&);
 
-  private slots:
-    void fileChangedOnDisk( const QString& filename );
-    void directoryChangedOnDisk( const QString& filename );
+ private slots:
+  void fileChangedOnDisk(const QString& filename);
+  void directoryChangedOnDisk(const QString& filename);
 
-  private:
-    enum MonitoringState { None, FileExists, FileRemoved };
+ private:
+  enum MonitoringState { None, FileExists, FileRemoved };
 
-    QFileSystemWatcher qtFileWatcher_;
-    QString fileMonitored_;
-    MonitoringState monitoringState_;
+  QFileSystemWatcher qtFileWatcher_;
+  QString fileMonitored_;
+  MonitoringState monitoringState_;
 };
 
 #endif

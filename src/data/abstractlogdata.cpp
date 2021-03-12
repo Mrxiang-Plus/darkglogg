@@ -25,53 +25,40 @@
 
 #include "abstractlogdata.h"
 
-AbstractLogData::AbstractLogData()
-{
+AbstractLogData::AbstractLogData() {}
+
+// Simple wrapper in order to use a clean Template Method
+QString AbstractLogData::getLineString(qint64 line) const {
+  return doGetLineString(line);
 }
 
 // Simple wrapper in order to use a clean Template Method
-QString AbstractLogData::getLineString( qint64 line ) const
-{
-    return doGetLineString(line);
+QString AbstractLogData::getExpandedLineString(qint64 line) const {
+  return doGetExpandedLineString(line);
 }
 
 // Simple wrapper in order to use a clean Template Method
-QString AbstractLogData::getExpandedLineString( qint64 line ) const
-{
-    return doGetExpandedLineString(line);
+QStringList AbstractLogData::getLines(qint64 first_line, int number) const {
+  return doGetLines(first_line, number);
 }
 
 // Simple wrapper in order to use a clean Template Method
-QStringList AbstractLogData::getLines( qint64 first_line, int number ) const
-{
-    return doGetLines( first_line, number );
+QStringList AbstractLogData::getExpandedLines(qint64 first_line,
+                                              int number) const {
+  return doGetExpandedLines(first_line, number);
 }
 
 // Simple wrapper in order to use a clean Template Method
-QStringList AbstractLogData::getExpandedLines( qint64 first_line, int number ) const
-{
-    return doGetExpandedLines( first_line, number );
-}
+qint64 AbstractLogData::getNbLine() const { return doGetNbLine(); }
 
 // Simple wrapper in order to use a clean Template Method
-qint64 AbstractLogData::getNbLine() const
-{
-    return doGetNbLine();
-}
+int AbstractLogData::getMaxLength() const { return doGetMaxLength(); }
 
 // Simple wrapper in order to use a clean Template Method
-int AbstractLogData::getMaxLength() const
-{
-    return doGetMaxLength();
+int AbstractLogData::getLineLength(qint64 line) const {
+  return doGetLineLength(line);
 }
 
-// Simple wrapper in order to use a clean Template Method
-int AbstractLogData::getLineLength( qint64 line ) const
-{
-    return doGetLineLength( line );
-}
-
-void AbstractLogData::setDisplayEncoding( Encoding encoding )
-{
-    doSetDisplayEncoding( encoding );
+void AbstractLogData::setDisplayEncoding(Encoding encoding) {
+  doSetDisplayEncoding(encoding);
 }

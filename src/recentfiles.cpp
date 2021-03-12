@@ -19,8 +19,8 @@
 
 // This file implements class RecentFiles
 
-#include <QSettings>
 #include <QFile>
+#include <QSettings>
 
 #include "log.h"
 #include "recentfiles.h"
@@ -28,75 +28,64 @@
 const int RecentFiles::RECENTFILES_VERSION = 1;
 const int RecentFiles::MAX_NUMBER_OF_FILES = 10;
 
-RecentFiles::RecentFiles() : recentFiles_()
-{
+RecentFiles::RecentFiles() : recentFiles_() {}
+
+void RecentFiles::addRecent(const QString& text) {
+  // First prune non existent files
+  QMutableStringListIterator i(recentFiles_);
+  while (i.hasNext()) {
+    if (!QFile::exists(i.next())) i.remove();
+  }
+
+  // Remove any copy of the about to be added filename
+  recentFiles_.removeAll(text);
+
+  // Add at the front
+  recentFiles_.push_front(text);
+
+  // Trim the list if it's too long
+  while (recentFiles_.size() > MAX_NUMBER_OF_FILES) recentFiles_.pop_back();
 }
 
-void RecentFiles::addRecent( const QString& text )
-{
-    // First prune non existent files
-    QMutableStringListIterator i(recentFiles_);
-    while ( i.hasNext() ) {
-        if ( !QFile::exists(i.next()) )
-            i.remove();
-    }
-
-    // Remove any copy of the about to be added filename
-    recentFiles_.removeAll( text );
-
-    // Add at the front
-    recentFiles_.push_front( text );
-
-    // Trim the list if it's too long
-    while ( recentFiles_.size() > MAX_NUMBER_OF_FILES )
-        recentFiles_.pop_back();
-}
-
-QStringList RecentFiles::recentFiles() const
-{
-    return recentFiles_;
-}
+QStringList RecentFiles::recentFiles() const { return recentFiles_; }
 
 //
 // Persistable virtual functions implementation
 //
 
-void RecentFiles::saveToStorage( QSettings& settings ) const
-{
-    LOG(logDEBUG) << "RecentFiles::saveToStorage";
+void RecentFiles::saveToStorage(QSettings& settings) const {
+  LOG(logDEBUG) << "RecentFiles::saveToStorage";
 
-    settings.beginGroup( "RecentFiles" );
-    settings.setValue( "version", RECENTFILES_VERSION );
-    settings.beginWriteArray( "filesHistory" );
-    for (int i = 0; i < recentFiles_.size(); ++i) {
-        settings.setArrayIndex( i );
-        settings.setValue( "name", recentFiles_.at( i ) );
-    }
-    settings.endArray();
-    settings.endGroup();
+  settings.beginGroup("RecentFiles");
+  settings.setValue("version", RECENTFILES_VERSION);
+  settings.beginWriteArray("filesHistory");
+  for (int i = 0; i < recentFiles_.size(); ++i) {
+    settings.setArrayIndex(i);
+    settings.setValue("name", recentFiles_.at(i));
+  }
+  settings.endArray();
+  settings.endGroup();
 }
 
-void RecentFiles::retrieveFromStorage( QSettings& settings )
-{
-    LOG(logDEBUG) << "RecentFiles::retrieveFromStorage";
+void RecentFiles::retrieveFromStorage(QSettings& settings) {
+  LOG(logDEBUG) << "RecentFiles::retrieveFromStorage";
 
-    recentFiles_.clear();
+  recentFiles_.clear();
 
-    if ( settings.contains( "RecentFiles/version" ) ) {
-        // Unserialise the "new style" stored history
-        settings.beginGroup( "RecentFiles" );
-        if ( settings.value( "version" ) == RECENTFILES_VERSION ) {
-            int size = settings.beginReadArray( "filesHistory" );
-            for (int i = 0; i < size; ++i) {
-                settings.setArrayIndex(i);
-                QString search = settings.value( "name" ).toString();
-                recentFiles_.append( search );
-            }
-            settings.endArray();
-        }
-        else {
-            LOG(logERROR) << "Unknown version of FilterSet, ignoring it...";
-        }
-        settings.endGroup();
+  if (settings.contains("RecentFiles/version")) {
+    // Unserialise the "new style" stored history
+    settings.beginGroup("RecentFiles");
+    if (settings.value("version") == RECENTFILES_VERSION) {
+      int size = settings.beginReadArray("filesHistory");
+      for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        QString search = settings.value("name").toString();
+        recentFiles_.append(search);
+      }
+      settings.endArray();
+    } else {
+      LOG(logERROR) << "Unknown version of FilterSet, ignoring it...";
     }
+    settings.endGroup();
+  }
 }

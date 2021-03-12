@@ -24,9 +24,9 @@
 #include <QPoint>
 #include <QTime>
 
-#include "utils.h"
 #include "qfnotifications.h"
 #include "selection.h"
+#include "utils.h"
 
 class QuickFindPattern;
 class AbstractLogData;
@@ -36,169 +36,169 @@ class Portion;
 // reset() shall be called at the beginning of the search
 // and then ping() should be called periodically during the processing.
 // The notify() signal should be forwarded to the UI.
-class SearchingNotifier : public QObject
-{
+class SearchingNotifier : public QObject {
   Q_OBJECT
 
-  public:
-    SearchingNotifier() {};
+ public:
+  SearchingNotifier(){};
 
-    // Reset internal timers at the beiginning of the processing
-    void reset();
-    // Shall be called frequently during processing, send the notification
-    // and call the event loop when appropriate.
-    // Pass the current line number and total number of line so that
-    // a progress percentage is calculated and displayed.
-    // (line shall be negative if ging in reverse)
-    inline void ping( qint64 line, qint64 nb_lines ) {
-        if ( startTime_.msecsTo( QTime::currentTime() ) > 200 )
-            sendNotification( line, nb_lines );
-    }
+  // Reset internal timers at the beiginning of the processing
+  void reset();
+  // Shall be called frequently during processing, send the notification
+  // and call the event loop when appropriate.
+  // Pass the current line number and total number of line so that
+  // a progress percentage is calculated and displayed.
+  // (line shall be negative if ging in reverse)
+  inline void ping(qint64 line, qint64 nb_lines) {
+    if (startTime_.msecsTo(QTime::currentTime()) > 200)
+      sendNotification(line, nb_lines);
+  }
 
-  signals:
-    // Sent when the UI shall display a message to the user.
-    void notify( const QFNotification& message );
+ signals:
+  // Sent when the UI shall display a message to the user.
+  void notify(const QFNotification& message);
 
-  private:
-    void sendNotification( qint64 current_line, qint64 nb_lines );
+ private:
+  void sendNotification(qint64 current_line, qint64 nb_lines);
 
-    QTime startTime_;
-    int dotToDisplay_;
+  QTime startTime_;
+  int dotToDisplay_;
 };
 
 // Represents a search made with Quick Find (without its results)
 // it keeps a pointer to a set of data and to a QuickFindPattern which
 // are used for the searches. (the caller retains ownership of both).
-class QuickFind : public QObject
-{
+class QuickFind : public QObject {
   Q_OBJECT
 
-  public:
-    // Construct a search
-    QuickFind( const AbstractLogData* const logData, Selection* selection,
-            const QuickFindPattern* const quickFindPattern );
+ public:
+  // Construct a search
+  QuickFind(const AbstractLogData* const logData, Selection* selection,
+            const QuickFindPattern* const quickFindPattern);
 
-    // Set the starting point that will be used by the next search
-    void setSearchStartPoint( QPoint startPoint );
+  // Set the starting point that will be used by the next search
+  void setSearchStartPoint(QPoint startPoint);
 
-    // Used for incremental searches
-    // Return the first occurence of the passed pattern from the starting
-    // point.  These searches don't use the QFP and don't change the
-    // starting point.
-    // TODO Update comment
-    qint64 incrementallySearchForward();
-    qint64 incrementallySearchBackward();
+  // Used for incremental searches
+  // Return the first occurence of the passed pattern from the starting
+  // point.  These searches don't use the QFP and don't change the
+  // starting point.
+  // TODO Update comment
+  qint64 incrementallySearchForward();
+  qint64 incrementallySearchBackward();
 
-    // Stop the currently ongoing incremental search, leave the selection
-    // where it is if a match has been found, restore the old one
-    // if not. Also throw away the start point associated with
-    // the search.
-    void incrementalSearchStop();
+  // Stop the currently ongoing incremental search, leave the selection
+  // where it is if a match has been found, restore the old one
+  // if not. Also throw away the start point associated with
+  // the search.
+  void incrementalSearchStop();
 
-    // Throw away the current search and restore the initial
-    // position/selection
-    void incrementalSearchAbort();
+  // Throw away the current search and restore the initial
+  // position/selection
+  void incrementalSearchAbort();
 
-    // Used for 'repeated' (n/N) QF searches using the current direction
-    // Return the line of the first occurence of the QFP and
-    // update the selection. It returns -1 if nothing is found.
-    /*
-    int searchNext();
-    int searchPrevious();
-    */
+  // Used for 'repeated' (n/N) QF searches using the current direction
+  // Return the line of the first occurence of the QFP and
+  // update the selection. It returns -1 if nothing is found.
+  /*
+  int searchNext();
+  int searchPrevious();
+  */
 
-    // Idem but ignore the direction and always search in the
-    // specified direction
-    qint64 searchForward();
-    qint64 searchBackward();
+  // Idem but ignore the direction and always search in the
+  // specified direction
+  qint64 searchForward();
+  qint64 searchBackward();
 
-    // Make the object forget the 'no more match' flag.
-    void resetLimits();
+  // Make the object forget the 'no more match' flag.
+  void resetLimits();
 
-  signals:
-    // Sent when the UI shall display a message to the user.
-    void notify( const QFNotification& message );
-    // Sent when the UI shall clear the notification.
-    void clearNotification();
+ signals:
+  // Sent when the UI shall display a message to the user.
+  void notify(const QFNotification& message);
+  // Sent when the UI shall clear the notification.
+  void clearNotification();
 
-  private:
-    enum QFDirection {
-        None,
-        Forward,
-        Backward,
-    };
+ private:
+  enum QFDirection {
+    None,
+    Forward,
+    Backward,
+  };
 
-    enum class SearchState {
-        Idle,
-        OnGoing,
-        RestartNeeded,
-    };
+  enum class SearchState {
+    Idle,
+    OnGoing,
+    RestartNeeded,
+  };
 
-    class LastMatchPosition {
-      public:
-        LastMatchPosition() : line_( -1 ), column_( -1 ) {}
-        void set( int line, int column );
-        void set( const FilePosition& position );
-        void reset() { line_ = -1; column_ = -1; }
-        // Does the passed position come after the recorded one
-        bool isLater( int line, int column ) const;
-        bool isLater( const FilePosition& position ) const;
-        // Does the passed position come before the recorded one
-        bool isSooner( int line, int column ) const;
-        bool isSooner( const FilePosition& position ) const;
+  class LastMatchPosition {
+   public:
+    LastMatchPosition() : line_(-1), column_(-1) {}
+    void set(int line, int column);
+    void set(const FilePosition& position);
+    void reset() {
+      line_ = -1;
+      column_ = -1;
+    }
+    // Does the passed position come after the recorded one
+    bool isLater(int line, int column) const;
+    bool isLater(const FilePosition& position) const;
+    // Does the passed position come before the recorded one
+    bool isSooner(int line, int column) const;
+    bool isSooner(const FilePosition& position) const;
 
-      private:
-        int line_;
-        int column_;
-    };
+   private:
+    int line_;
+    int column_;
+  };
 
-    class IncrementalSearchStatus {
-      public:
-        /* Constructors */
-        IncrementalSearchStatus() :
-            ongoing_( None ), position_(), initialSelection_() {}
-        IncrementalSearchStatus(
-                QFDirection direction,
-                const FilePosition& position,
-                const Selection& initial_selection ) :
-            ongoing_( direction ),
-            position_( position ),
-            initialSelection_( initial_selection ) {}
+  class IncrementalSearchStatus {
+   public:
+    /* Constructors */
+    IncrementalSearchStatus()
+        : ongoing_(None), position_(), initialSelection_() {}
+    IncrementalSearchStatus(QFDirection direction, const FilePosition& position,
+                            const Selection& initial_selection)
+        : ongoing_(direction),
+          position_(position),
+          initialSelection_(initial_selection) {}
 
-        bool isOngoing() const { return ( ongoing_ != None ); }
-        QFDirection direction() const { return ongoing_; }
-        FilePosition position() const { return position_; }
-        Selection initialSelection() const { return initialSelection_; }
-      private:
-        QFDirection ongoing_;
-        FilePosition position_;
-        Selection initialSelection_;
-    };
+    bool isOngoing() const { return (ongoing_ != None); }
+    QFDirection direction() const { return ongoing_; }
+    FilePosition position() const { return position_; }
+    Selection initialSelection() const { return initialSelection_; }
 
-    // Pointers to external objects
-    const AbstractLogData* const logData_;
-    Selection* selection_;
-    const QuickFindPattern* const quickFindPattern_;
+   private:
+    QFDirection ongoing_;
+    FilePosition position_;
+    Selection initialSelection_;
+  };
 
-    // Owned objects
+  // Pointers to external objects
+  const AbstractLogData* const logData_;
+  Selection* selection_;
+  const QuickFindPattern* const quickFindPattern_;
 
-    // Position of the last match in the file
-    // (to avoid searching multiple times where there is no result)
-    LastMatchPosition lastMatch_;
-    LastMatchPosition firstMatch_;
+  // Owned objects
 
-    SearchingNotifier searchingNotifier_;
+  // Position of the last match in the file
+  // (to avoid searching multiple times where there is no result)
+  LastMatchPosition lastMatch_;
+  LastMatchPosition firstMatch_;
 
-    // Incremental search status
-    IncrementalSearchStatus incrementalSearchStatus_;
+  SearchingNotifier searchingNotifier_;
 
-    // Flag to request stopping the search
-    // (e.g. on key press)
-    SearchState searchState_;
+  // Incremental search status
+  IncrementalSearchStatus incrementalSearchStatus_;
 
-    // Private functions
-    qint64 doSearchForward( const FilePosition &start_position );
-    qint64 doSearchBackward( const FilePosition &start_position );
+  // Flag to request stopping the search
+  // (e.g. on key press)
+  SearchState searchState_;
+
+  // Private functions
+  qint64 doSearchForward(const FilePosition& start_position);
+  qint64 doSearchBackward(const FilePosition& start_position);
 };
 
 #endif

@@ -20,54 +20,50 @@
 #ifndef QFNOTIFICATIONS_H
 #define QFNOTIFICATIONS_H
 
+#include <QFontMetrics>
 #include <QObject>
 #include <QWidget>
-#include <QFontMetrics>
 
 // Notifications sent by the QF for displaying to the user
 // and their translation in UI text.
 class QFNotification {
-  public:
-    virtual QString message() const = 0;
+ public:
+  virtual QString message() const = 0;
 
-    // Max width of the message (in pixels)
-    static int maxWidth( const QWidget* widget ) {
-        QFontMetrics fm = widget->fontMetrics();
-        return qMax( fm.size( Qt::TextSingleLine, REACHED_BOF ).width(),
-                     fm.size( Qt::TextSingleLine, REACHED_EOF ).width() );
-    }
+  // Max width of the message (in pixels)
+  static int maxWidth(const QWidget* widget) {
+    QFontMetrics fm = widget->fontMetrics();
+    return qMax(fm.size(Qt::TextSingleLine, REACHED_BOF).width(),
+                fm.size(Qt::TextSingleLine, REACHED_EOF).width());
+  }
 
-  protected:
-    static const QString REACHED_EOF;
-    static const QString REACHED_BOF;
+ protected:
+  static const QString REACHED_EOF;
+  static const QString REACHED_BOF;
 };
 
-class QFNotificationReachedEndOfFile : public QFNotification
-{
-    QString message() const {
-        return REACHED_EOF;
-    }
+class QFNotificationReachedEndOfFile : public QFNotification {
+  QString message() const { return REACHED_EOF; }
 };
 
-class QFNotificationReachedBegininningOfFile : public QFNotification
-{
-    QString message() const {
-        return REACHED_BOF;
-    }
+class QFNotificationReachedBegininningOfFile : public QFNotification {
+  QString message() const { return REACHED_BOF; }
 };
 
 class QFNotificationProgress : public QFNotification {
-  public:
-    // Constructor taking the progress (in percent)
-    QFNotificationProgress( int progress_percent )
-    { progressPercent_ = progress_percent; }
+ public:
+  // Constructor taking the progress (in percent)
+  QFNotificationProgress(int progress_percent) {
+    progressPercent_ = progress_percent;
+  }
 
-    QString message() const {
-        return QString( QObject::tr("Searching (position %1 %)")
-                .arg( progressPercent_ ) );
-    }
-  private:
-    int progressPercent_;
+  QString message() const {
+    return QString(
+        QObject::tr("Searching (position %1 %)").arg(progressPercent_));
+  }
+
+ private:
+  int progressPercent_;
 };
 
 #endif

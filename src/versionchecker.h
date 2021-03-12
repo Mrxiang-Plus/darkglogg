@@ -29,58 +29,52 @@
 
 // This class holds the configuration options and persistent
 // data for the version checker
-class VersionCheckerConfig : public Persistable
-{
-  public:
-    VersionCheckerConfig();
+class VersionCheckerConfig : public Persistable {
+ public:
+  VersionCheckerConfig();
 
-    // Accessors
-    bool versionCheckingEnabled() const
-    { return enabled_; }
-    void setVersionCheckingEnabled( bool enabled )
-    { enabled_ = enabled; }
-    std::time_t nextDeadline() const
-    { return next_deadline_; }
-    void setNextDeadline( std::time_t deadline )
-    { next_deadline_ = deadline; }
+  // Accessors
+  bool versionCheckingEnabled() const { return enabled_; }
+  void setVersionCheckingEnabled(bool enabled) { enabled_ = enabled; }
+  std::time_t nextDeadline() const { return next_deadline_; }
+  void setNextDeadline(std::time_t deadline) { next_deadline_ = deadline; }
 
-    // Reads/writes the current config in the QSettings object passed
-    virtual void saveToStorage( QSettings& settings ) const;
-    virtual void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  virtual void saveToStorage(QSettings& settings) const;
+  virtual void retrieveFromStorage(QSettings& settings);
 
-  private:
-    bool enabled_;
-    std::time_t next_deadline_;
+ private:
+  bool enabled_;
+  std::time_t next_deadline_;
 };
 
 // This class compares the current version number with the latest
 // stored on a central server
-class VersionChecker : public QObject
-{
+class VersionChecker : public QObject {
   Q_OBJECT
 
-  public:
-    VersionChecker();
-    ~VersionChecker();
+ public:
+  VersionChecker();
+  ~VersionChecker();
 
-    // Starts an asynchronous check for a newer version if it is needed.
-    // A newVersionFound signal is sent if one is found.
-    // In case of error or if no new version is found, no signal is emitted.
-    void startCheck();
+  // Starts an asynchronous check for a newer version if it is needed.
+  // A newVersionFound signal is sent if one is found.
+  // In case of error or if no new version is found, no signal is emitted.
+  void startCheck();
 
-  signals:
-    // New version "version" is available
-    void newVersionFound( const QString& version );
+ signals:
+  // New version "version" is available
+  void newVersionFound(const QString& version);
 
-  private slots:
-    // Called when download is finished
-    void downloadFinished( QNetworkReply* );
+ private slots:
+  // Called when download is finished
+  void downloadFinished(QNetworkReply*);
 
-  private:
-    static const char* VERSION_URL;
-    static const uint64_t CHECK_INTERVAL_S;
+ private:
+  static const char* VERSION_URL;
+  static const uint64_t CHECK_INTERVAL_S;
 
-    QNetworkAccessManager manager_;
+  QNetworkAccessManager manager_;
 };
 
 #endif

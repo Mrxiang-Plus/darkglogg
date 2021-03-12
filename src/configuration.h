@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2013, 2015 Nicolas Bonnefon and other contributors
+ * Copyright (C) 2009, 2010, 2011, 2013, 2015 Nicolas Bonnefon and other
+ * contributors
  *
  * This file is part of glogg.
  *
@@ -27,94 +28,95 @@
 
 // Type of regexp to use for searches
 enum SearchRegexpType {
-    ExtendedRegexp,
-    Wildcard,           // Disused!
-    FixedString,
+  ExtendedRegexp,
+  Wildcard,  // Disused!
+  FixedString,
 };
 
 // Configuration class containing everything in the "Settings" dialog
 class Configuration : public Persistable {
-  public:
-    Configuration();
+ public:
+  Configuration();
 
-    // Accesses the main font used for display
-    QFont mainFont() const;
-    void setMainFont( QFont newFont );
+  // Accesses the main font used for display
+  QFont mainFont() const;
+  QString repoUrl() const;
+  QString unzipPath() const;
+  void setMainFont(QFont newFont);
+  void setRepoUrl(QString newUrl);
+  void setUnzipPath(QString newPath);
 
-    // Accesses the regexp types
-    SearchRegexpType mainRegexpType() const
-    { return mainRegexpType_; }
-    SearchRegexpType quickfindRegexpType() const
-    { return quickfindRegexpType_; }
-    bool isQuickfindIncremental() const
-    { return quickfindIncremental_; }
-    void setMainRegexpType( SearchRegexpType type )
-    { mainRegexpType_ = type; }
-    void setQuickfindRegexpType( SearchRegexpType type )
-    { quickfindRegexpType_ = type; }
-    void setQuickfindIncremental( bool is_incremental )
-    { quickfindIncremental_ = is_incremental; }
+  // Accesses the regexp types
+  SearchRegexpType mainRegexpType() const { return mainRegexpType_; }
+  SearchRegexpType quickfindRegexpType() const { return quickfindRegexpType_; }
+  bool isQuickfindIncremental() const { return quickfindIncremental_; }
+  void setMainRegexpType(SearchRegexpType type) { mainRegexpType_ = type; }
+  void setQuickfindRegexpType(SearchRegexpType type) {
+    quickfindRegexpType_ = type;
+  }
+  void setQuickfindIncremental(bool is_incremental) {
+    quickfindIncremental_ = is_incremental;
+  }
 
-    // "Advanced" settings
-    bool pollingEnabled() const
-    { return pollingEnabled_; }
-    void setPollingEnabled( bool enabled )
-    { pollingEnabled_ = enabled; }
-    uint32_t pollIntervalMs() const
-    { return pollIntervalMs_; }
-    void setPollIntervalMs( uint32_t interval )
-    { pollIntervalMs_ = interval; }
-    bool loadLastSession() const
-    { return loadLastSession_; }
-    void setLoadLastSession( bool enabled )
-    { loadLastSession_ = enabled; }
+  // "Advanced" settings
+  bool pollingEnabled() const { return pollingEnabled_; }
+  void setPollingEnabled(bool enabled) { pollingEnabled_ = enabled; }
+  uint32_t pollIntervalMs() const { return pollIntervalMs_; }
+  void setPollIntervalMs(uint32_t interval) { pollIntervalMs_ = interval; }
+  void setTransparent(uint32_t transparent) { transparent_ = transparent; }
+  uint32_t transparent() const { return transparent_; }
+  bool loadLastSession() const { return loadLastSession_; }
+  void setLoadLastSession(bool enabled) { loadLastSession_ = enabled; }
 
-    // View settings
-    bool isOverviewVisible() const
-    { return overviewVisible_; }
-    void setOverviewVisible( bool isVisible )
-    { overviewVisible_ = isVisible; }
-    bool mainLineNumbersVisible() const
-    { return lineNumbersVisibleInMain_; }
-    bool filteredLineNumbersVisible() const
-    { return lineNumbersVisibleInFiltered_; }
-    void setMainLineNumbersVisible( bool lineNumbersVisible )
-    { lineNumbersVisibleInMain_ = lineNumbersVisible; }
-    void setFilteredLineNumbersVisible( bool lineNumbersVisible )
-    { lineNumbersVisibleInFiltered_ = lineNumbersVisible; }
+  // View settings
+  bool isOverviewVisible() const { return overviewVisible_; }
+  void setOverviewVisible(bool isVisible) { overviewVisible_ = isVisible; }
+  bool mainLineNumbersVisible() const { return lineNumbersVisibleInMain_; }
+  bool filteredLineNumbersVisible() const {
+    return lineNumbersVisibleInFiltered_;
+  }
+  void setMainLineNumbersVisible(bool lineNumbersVisible) {
+    lineNumbersVisibleInMain_ = lineNumbersVisible;
+  }
+  void setFilteredLineNumbersVisible(bool lineNumbersVisible) {
+    lineNumbersVisibleInFiltered_ = lineNumbersVisible;
+  }
 
-    // Default settings for new views
-    bool isSearchAutoRefreshDefault() const
-    { return searchAutoRefresh_; }
-    void setSearchAutoRefreshDefault( bool auto_refresh )
-    { searchAutoRefresh_ = auto_refresh; }
-    bool isSearchIgnoreCaseDefault() const
-    { return searchIgnoreCase_; }
-    void setSearchIgnoreCaseDefault( bool ignore_case )
-    { searchIgnoreCase_ = ignore_case; }
+  // Default settings for new views
+  bool isSearchAutoRefreshDefault() const { return searchAutoRefresh_; }
+  void setSearchAutoRefreshDefault(bool auto_refresh) {
+    searchAutoRefresh_ = auto_refresh;
+  }
+  bool isSearchIgnoreCaseDefault() const { return searchIgnoreCase_; }
+  void setSearchIgnoreCaseDefault(bool ignore_case) {
+    searchIgnoreCase_ = ignore_case;
+  }
 
-    // Reads/writes the current config in the QSettings object passed
-    virtual void saveToStorage( QSettings& settings ) const;
-    virtual void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  virtual void saveToStorage(QSettings& settings) const;
+  virtual void retrieveFromStorage(QSettings& settings);
 
-  private:
-    // Configuration settings
-    QFont mainFont_;
-    SearchRegexpType mainRegexpType_;
-    SearchRegexpType quickfindRegexpType_;
-    bool quickfindIncremental_;
-    bool pollingEnabled_;
-    uint32_t pollIntervalMs_;
-    bool loadLastSession_;
+ private:
+  // Configuration settings
+  QFont mainFont_;
+  QString repoUrl_;
+  QString unzipPath_;
+  SearchRegexpType mainRegexpType_;
+  SearchRegexpType quickfindRegexpType_;
+  bool quickfindIncremental_;
+  bool pollingEnabled_;
+  uint32_t pollIntervalMs_;
+  uint32_t transparent_;
+  bool loadLastSession_;
 
-    // View settings
-    bool overviewVisible_;
-    bool lineNumbersVisibleInMain_;
-    bool lineNumbersVisibleInFiltered_;
+  // View settings
+  bool overviewVisible_;
+  bool lineNumbersVisibleInMain_;
+  bool lineNumbersVisibleInFiltered_;
 
-    // Default settings for new views
-    bool searchAutoRefresh_;
-    bool searchIgnoreCase_;
+  // Default settings for new views
+  bool searchAutoRefresh_;
+  bool searchIgnoreCase_;
 };
 
 #endif

@@ -29,65 +29,62 @@
 
 #include <QKeyEvent>
 
-LogMainView::LogMainView( const LogData* newLogData,
-        const QuickFindPattern* const quickFindPattern,
-        Overview* overview,
-        OverviewWidget* overview_widget,
-        QWidget* parent)
-    : AbstractLogView( newLogData, quickFindPattern, parent )
-{
-    filteredData_ = NULL;
+LogMainView::LogMainView(const LogData* newLogData,
+                         const QuickFindPattern* const quickFindPattern,
+                         const QuickFindPattern* const quickMarkPattern,
+                         Overview* overview, OverviewWidget* overview_widget,
+                         QWidget* parent)
+    : AbstractLogView(newLogData, quickFindPattern, quickMarkPattern, parent) {
+  filteredData_ = NULL;
 
-    // The main data has a real (non NULL) Overview
-    setOverview( overview, overview_widget );
+  // The main data has a real (non NULL) Overview
+  setOverview(overview, overview_widget);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setIsFilter(false);
+  // verticalScrollBar()->hide();
+  // verticalScrollBar()->resize(0, 0);
 }
 
 // Just update our internal record.
-void LogMainView::useNewFiltering( LogFilteredData* filteredData )
-{
-    filteredData_ = filteredData;
+void LogMainView::useNewFiltering(LogFilteredData* filteredData) {
+  filteredData_ = filteredData;
 
-    if ( getOverview() != NULL )
-        getOverview()->setFilteredData( filteredData_ );
+  if (getOverview() != NULL) getOverview()->setFilteredData(filteredData_);
 }
 
-AbstractLogView::LineType LogMainView::lineType( int lineNumber ) const
-{
-    if ( filteredData_ != NULL ) {
-        LineType line_type;
-        if ( filteredData_->isLineMarked( lineNumber ) )
-            line_type = Marked;
-        else if ( filteredData_->isLineInMatchingList( lineNumber ) )
-            line_type = Match;
-        else
-            line_type = Normal;
-
-        return line_type;
-    }
+AbstractLogView::LineType LogMainView::lineType(int lineNumber) const {
+  if (filteredData_ != NULL) {
+    LineType line_type;
+    if (filteredData_->isLineMarked(lineNumber))
+      line_type = Marked;
+    else if (filteredData_->isLineInMatchingList(lineNumber))
+      line_type = Match;
     else
-        return Normal;
+      line_type = Normal;
+
+    return line_type;
+  } else
+    return Normal;
 }
 
-void LogMainView::keyPressEvent( QKeyEvent* keyEvent )
-{
-    bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
+void LogMainView::keyPressEvent(QKeyEvent* keyEvent) {
+  bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
-    if ( keyEvent->key() == Qt::Key_BracketLeft && noModifier ) {
-        qint64 line = filteredData_->getMarkBefore( getViewPosition() );
-        if ( line >= 0 ) {
-            selectAndDisplayLine( static_cast<LineNumber>( line ) );
-        }
-        keyEvent->accept();
+  if (keyEvent->key() == Qt::Key_BracketLeft && noModifier) {
+    qint64 line = filteredData_->getMarkBefore(getViewPosition());
+    if (line >= 0) {
+      selectAndDisplayLine(static_cast<LineNumber>(line));
     }
-    else if ( keyEvent->key() == Qt::Key_BracketRight && noModifier ) {
-        qint64 line = filteredData_->getMarkAfter( getViewPosition() );
-        if ( line >= 0 ) {
-            selectAndDisplayLine( static_cast<LineNumber>( line ) );
-        }
-        keyEvent->accept();
+    keyEvent->accept();
+  } else if (keyEvent->key() == Qt::Key_BracketRight && noModifier) {
+    qint64 line = filteredData_->getMarkAfter(getViewPosition());
+    if (line >= 0) {
+      selectAndDisplayLine(static_cast<LineNumber>(line));
     }
-    else {
-        keyEvent->ignore();
-        AbstractLogView::keyPressEvent( keyEvent );
-    }
+    keyEvent->accept();
+  } else {
+    keyEvent->ignore();
+    AbstractLogView::keyPressEvent(keyEvent);
+  }
 }

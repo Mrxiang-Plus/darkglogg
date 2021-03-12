@@ -20,78 +20,81 @@
 #ifndef QUICKFINDPATTERN_H
 #define QUICKFINDPATTERN_H
 
-#include <QObject>
-#include <QString>
-#include <QRegularExpression>
 #include <QList>
+#include <QObject>
+#include <QRegularExpression>
+#include <QString>
 
 // Represents a match result for QuickFind
-class QuickFindMatch
-{
-  public:
-    // Construct a match (must be initialised)
-    QuickFindMatch( int start_column, int length )
-    { startColumn_ = start_column; length_ = length; }
+class QuickFindMatch {
+ public:
+  // Construct a match (must be initialised)
+  QuickFindMatch(int start_column, int length, int matchedIndex) {
+    startColumn_ = start_column;
+    length_ = length;
+    matchedIndex_ = matchedIndex;
+  }
 
-    // Accessor functions
-    int startColumn() const { return startColumn_; }
-    int length() const { return length_; }
+  // Accessor functions
+  int startColumn() const { return startColumn_; }
+  int length() const { return length_; }
+  int matchedIndex() const { return matchedIndex_; }
 
-  private:
-    int startColumn_;
-    int length_;
+ private:
+  int matchedIndex_;
+  int startColumn_;
+  int length_;
 };
 
 // Represents a search pattern for QuickFind (without its results)
-class QuickFindPattern : public QObject
-{
+class QuickFindPattern : public QObject {
   Q_OBJECT
 
-  public:
-    // Construct an empty search
-    QuickFindPattern();
+ public:
+  // Construct an empty search
+  QuickFindPattern();
 
-    // Set the search to a new pattern, using the current
-    // case status
-    void changeSearchPattern( const QString& pattern );
+  // Set the search to a new pattern, using the current
+  // case status
+  void changeSearchPattern(const QString& pattern);
 
-    // Set the search to a new pattern, as well as the case status
-    void changeSearchPattern( const QString& pattern, bool ignoreCase );
+  // Set the search to a new pattern, as well as the case status
+  void changeSearchPattern(const QString& pattern, bool ignoreCase);
 
-    // Returns whether the search is active (i.e. valid and non empty regexp)
-    bool isActive() const { return active_; }
+  // Returns whether the search is active (i.e. valid and non empty regexp)
+  bool isActive() const { return active_; }
 
-    // Return the text of the regex
-    QString getPattern() const { return regexp_.pattern(); }
+  // Return the text of the regex
+  QString getPattern() const { return regexp_.pattern(); }
 
-    // Returns whether the passed line match the quick find search.
-    // If so, it populate the passed list with the list of matches
-    // within this particular line.
-    bool matchLine( const QString& line,
-            QList<QuickFindMatch>& matches ) const;
+  // Returns whether the passed line match the quick find search.
+  // If so, it populate the passed list with the list of matches
+  // within this particular line.
+  bool matchLine(const QString& line, QList<QuickFindMatch>& matches) const;
 
-    // Returns whether there is a match in the passed line, starting at
-    // the passed column.
-    // Results are stored internally.
-    bool isLineMatching( const QString& line, int column = 0 ) const;
+  // Returns whether there is a match in the passed line, starting at
+  // the passed column.
+  // Results are stored internally.
+  bool isLineMatching(const QString& line, int column = 0) const;
 
-    // Same as isLineMatching but search backward
-    bool isLineMatchingBackward( const QString& line, int column = -1 ) const;
+  // Same as isLineMatching but search backward
+  bool isLineMatchingBackward(const QString& line, int column = -1) const;
 
-    // Must be called when isLineMatching returns 'true', returns
-    // the position of the first match found.
-    void getLastMatch( int* start_col, int* end_col ) const;
+  // Must be called when isLineMatching returns 'true', returns
+  // the position of the first match found.
+  void getLastMatch(int* start_col, int* end_col) const;
 
-  signals:
-    // Sent when the pattern is changed
-    void patternUpdated();
+ signals:
+  // Sent when the pattern is changed
+  void patternUpdated(QList<int> removedList);
 
-  private:
-    bool active_;
-    QRegularExpression regexp_;
+ private:
+  bool active_;
+  QRegularExpression regexp_;
 
-    mutable int lastMatchStart_;
-    mutable int lastMatchEnd_;
+  QStringList pieces_;
+  mutable int lastMatchStart_;
+  mutable int lastMatchEnd_;
 };
 
 #endif

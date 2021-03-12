@@ -20,8 +20,8 @@
 #ifndef QUICKFINDWIDGET_H
 #define QUICKFINDWIDGET_H
 
-#include <QWidget>
 #include <QTimer>
+#include <QWidget>
 
 class QHBoxLayout;
 class QLineEdit;
@@ -31,73 +31,80 @@ class QCheckBox;
 class QFNotification;
 
 enum QFDirection {
-    Forward,
-    Backward,
+  Forward,
+  Backward,
+  UnKnown,
 };
 
-class QuickFindWidget : public QWidget
-{
+class QuickFindWidget : public QWidget {
   Q_OBJECT
 
-  public:
-    QuickFindWidget( QWidget* parent = 0 );
+ public:
+  QuickFindWidget(QWidget* parent = 0);
 
-    // Show the widget with the given direction
-    // when requested by the user (the widget won't timeout)
-    void userActivate();
+  // Show the widget with the given direction
+  // when requested by the user (the widget won't timeout)
+  void userActivate();
+  void setTitle(const QString& title);
 
-  public slots:
-    // Instructs the widget to change the pattern displayed
-    void changeDisplayedPattern( const QString& newPattern );
+ public slots:
+  // Instructs the widget to change the pattern displayed
+  void changeDisplayedPattern(const QString& newPattern);
 
-    // Show the widget for a notification (will timeout)
-    void notify( const QFNotification& message );
-    // Clear the notification
-    void clearNotification();
+  // Show the widget for a notification (will timeout)
+  void notify(const QFNotification& message);
+  // Clear the notification
+  void clearNotification();
+  void addToQuickSearch(const QString& string);
+  void replaceQuickSearch(const QString& string);
+  void appendToQuickSearch(const QString& string);
 
-  private slots:
-    void doSearchForward();
-    void doSearchBackward();
-    void returnHandler();
-    void closeHandler();
-    void notificationTimeout();
-    void textChanged();
+ private slots:
+  void doSearchForward();
+  void doSearchBackward();
+  void returnHandler();
+  void editingFinishHandler();
+  void closeHandler();
+  void notificationTimeout();
+  void textChanged();
 
-  signals:
-    // Sent when Return is pressed to confirm the pattern
-    // (pattern and ignor_case flag)
-    void patternConfirmed( const QString&, bool );
-    // Sent every time the pattern is modified
-    // (pattern and ignor_case flag)
-    void patternUpdated( const QString&, bool );
-    void close();
-    // Emitted when the user closes the window
-    void cancelSearch();
-    void searchForward();
-    void searchBackward();
-    void searchNext();
+ signals:
+  // Sent when Return is pressed to confirm the pattern
+  // (pattern and ignor_case flag)
+  void patternChanged(const QString&, bool);
+  void patternConfirmed(const QString&, bool, QFDirection);
+  // Sent every time the pattern is modified
+  // (pattern and ignor_case flag)
+  void patternUpdated(const QString&, bool);
+  void close();
+  // Emitted when the user closes the window
+  void cancelSearch();
+  void searchForward();
+  void searchBackward();
+  void searchNext();
 
-  private:
-    const static int NOTIFICATION_TIMEOUT;
+ private:
+  const static int NOTIFICATION_TIMEOUT;
 
-    QHBoxLayout* layout_;
+  QHBoxLayout* layout_;
 
-    QToolButton* closeButton_;
-    QToolButton* nextButton_;
-    QToolButton* previousButton_;
-    QLineEdit*   editQuickFind_;
-    QCheckBox*   ignoreCaseCheck_;
-    QLabel*      notificationText_;
+  QLabel* title_;
+  QToolButton* closeButton_;
+  QToolButton* nextButton_;
+  QToolButton* previousButton_;
+  QLineEdit* editQuickFind_;
+  QCheckBox* ignoreCaseCheck_;
+  QLabel* notificationText_;
 
-    QToolButton* setupToolButton(const QString &text, const QString &icon);
-    bool isIgnoreCase() const;
+  QToolButton* setupToolButton(const QString& text, const QString& icon);
+  bool isIgnoreCase() const;
 
-    QTimer*      notificationTimer_;
+  QTimer* notificationTimer_;
 
-    QFDirection  direction_;
+  QFDirection direction_;
 
-    // Whether the user explicitely wants us on the screen
-    bool         userRequested_;
+  // Whether the user explicitely wants us on the screen
+  bool userRequested_;
 };
 
 #endif

@@ -27,28 +27,28 @@
 #include <QKeyEvent>
 
 // Class implementing the filtered (bottom) view widget.
-class FilteredView : public AbstractLogView
-{
-  public:
-    FilteredView( LogFilteredData* newLogData,
-            const QuickFindPattern* const quickFindPattern,
-            QWidget* parent = 0 );
+class FilteredView : public AbstractLogView {
+ public:
+  FilteredView(LogFilteredData* newLogData,
+               const QuickFindPattern* const quickFindPattern,
+               const QuickFindPattern* const quickMarkPattern,
+               QWidget* parent = 0);
 
-    // What is visible in the view.
-    enum Visibility { MatchesOnly, MarksOnly, MarksAndMatches };
-    void setVisibility( Visibility visi );
+  // What is visible in the view.
+  enum Visibility { MatchesOnly, MarksOnly, MarksAndMatches };
+  void setVisibility(Visibility visi);
 
-  protected:
-    virtual LineType lineType( int lineNumber ) const;
+ protected:
+  virtual LineType lineType(int lineNumber) const;
 
-    // Number of the filtered line relative to the unfiltered source
-    virtual qint64 displayLineNumber( int lineNumber ) const;
-    virtual qint64 maxDisplayLineNumber() const;
+  // Number of the filtered line relative to the unfiltered source
+  virtual qint64 displayLineNumber(int lineNumber) const;
+  virtual qint64 maxDisplayLineNumber() const;
 
-    virtual void keyPressEvent( QKeyEvent* keyEvent );
+  virtual void keyPressEvent(QKeyEvent* keyEvent);
 
-  private:
-    LogFilteredData* logFilteredData_;
+ private:
+  LogFilteredData* logFilteredData_;
 };
 
 #endif

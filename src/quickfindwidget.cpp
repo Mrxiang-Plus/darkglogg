@@ -19,12 +19,13 @@
 
 #include "log.h"
 
-#include <QCoreApplication>
-#include <QToolButton>
-#include <QLabel>
 #include <QCheckBox>
-#include <QLineEdit>
+#include <QCoreApplication>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QRegularExpression>
+#include <QToolButton>
 
 #include "configuration.h"
 #include "qfnotifications.h"
@@ -33,180 +34,230 @@
 
 const int QuickFindWidget::NOTIFICATION_TIMEOUT = 5000;
 
-const QString QFNotification::REACHED_EOF = "Reached end of file, no occurence found.";
-const QString QFNotification::REACHED_BOF = "Reached beginning of file, no occurence found.";
+const QString QFNotification::REACHED_EOF =
+    "Reached end of file, no occurence found.";
+const QString QFNotification::REACHED_BOF =
+    "Reached beginning of file, no occurence found.";
 
-QuickFindWidget::QuickFindWidget( QWidget* parent ) : QWidget( parent )
-{
-    // ui_.setupUi( this );
-    // setFocusProxy(ui_.findEdit);
-    // setProperty("topBorder", true);
-    QHBoxLayout *layout = new QHBoxLayout( this );
+QuickFindWidget::QuickFindWidget(QWidget* parent) : QWidget(parent) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
 
-    layout->setMargin( 0 );
-    layout->setSpacing( 6 );
+  layout->setMargin(0);
+  layout->setSpacing(6);
 
-    closeButton_ = setupToolButton(
-            QLatin1String(""), QLatin1String( ":/images/darkclosebutton.png" ) );
-    layout->addWidget( closeButton_ );
+  title_ = new QLabel("Find");
+  layout->addWidget(title_);
 
-    editQuickFind_ = new QLineEdit( this );
-    // FIXME: set MinimumSize might be to constraining
-    editQuickFind_->setMinimumSize( QSize( 150, 0 ) );
-    layout->addWidget( editQuickFind_ );
+  closeButton_ = setupToolButton(QLatin1String(""),
+                                 QLatin1String(":/images/darkclosebutton.png"));
+  layout->addWidget(closeButton_);
 
-    ignoreCaseCheck_ = new QCheckBox( "Ignore &case" );
-    layout->addWidget( ignoreCaseCheck_ );
+  editQuickFind_ = new QLineEdit(this);
+  // FIXME: set MinimumSize might be to constraining
+  editQuickFind_->setMinimumSize(QSize(150, 0));
+  layout->addWidget(editQuickFind_);
 
-    previousButton_ = setupToolButton( QLatin1String("Previous"),
-            QLatin1String( ":/images/arrowup.png" ) );
-    layout->addWidget( previousButton_ );
+  ignoreCaseCheck_ = new QCheckBox("Ignore &case");
+  layout->addWidget(ignoreCaseCheck_);
 
-    nextButton_ = setupToolButton( QLatin1String("Next"),
-            QLatin1String( ":/images/arrowdown.png" ) );
-    layout->addWidget( nextButton_ );
+  previousButton_ = setupToolButton(QLatin1String("Previous"),
+                                    QLatin1String(":/images/arrowup.png"));
+  layout->addWidget(previousButton_);
 
-    notificationText_ = new QLabel( "" );
-    // FIXME: set MinimumSize might be too constraining
-    int width = QFNotification::maxWidth( notificationText_ );
-    notificationText_->setMinimumSize( width, 0 );
-    layout->addWidget( notificationText_ );
+  nextButton_ = setupToolButton(QLatin1String("Next"),
+                                QLatin1String(":/images/arrowdown.png"));
+  layout->addWidget(nextButton_);
 
-    setMinimumWidth( minimumSizeHint().width() );
+  notificationText_ = new QLabel("");
+  // FIXME: set MinimumSize might be too constraining
+  int width = QFNotification::maxWidth(notificationText_);
+  notificationText_->setMinimumSize(width, 0);
+  layout->addWidget(notificationText_);
 
-    // Behaviour
-    connect( closeButton_, SIGNAL( clicked() ), SLOT( closeHandler() ) );
-    connect( editQuickFind_, SIGNAL( textEdited( QString ) ),
-             this, SLOT( textChanged() ) );
-    connect( ignoreCaseCheck_, SIGNAL( stateChanged( int ) ),
-             this, SLOT( textChanged() ) );
-    /*
-    connect( editQuickFind_. SIGNAL( textChanged( QString ) ), this,
-            SLOT( updateButtons() ) );
-    */
-    connect( editQuickFind_, SIGNAL( returnPressed() ),
-             this, SLOT( returnHandler() ) );
-    connect( previousButton_, SIGNAL( clicked() ),
-            this, SLOT( doSearchBackward() ) );
-    connect( nextButton_, SIGNAL( clicked() ),
-            this, SLOT( doSearchForward() ) );
+  setMinimumWidth(minimumSizeHint().width());
 
-    // Notification timer:
-    notificationTimer_ = new QTimer( this );
-    notificationTimer_->setSingleShot( true );
-    connect( notificationTimer_, SIGNAL( timeout() ),
-            this, SLOT( notificationTimeout() ) );
+  // Behaviour
+  connect(closeButton_, SIGNAL(clicked()), SLOT(closeHandler()));
+  connect(editQuickFind_, SIGNAL(textEdited(QString)), this,
+          SLOT(textChanged()));
+  connect(ignoreCaseCheck_, SIGNAL(stateChanged(int)), this,
+          SLOT(textChanged()));
+  connect(editQuickFind_, SIGNAL(editingFinished()), this,
+          SLOT(editingFinishHandler()));
+  connect(editQuickFind_, SIGNAL(returnPressed()), this, SLOT(returnHandler()));
+  connect(previousButton_, SIGNAL(clicked()), this, SLOT(doSearchBackward()));
+  connect(nextButton_, SIGNAL(clicked()), this, SLOT(doSearchForward()));
+
+  // Notification timer:
+  notificationTimer_ = new QTimer(this);
+  notificationTimer_->setSingleShot(true);
+  connect(notificationTimer_, SIGNAL(timeout()), this,
+          SLOT(notificationTimeout()));
 }
 
-void QuickFindWidget::userActivate()
-{
-    userRequested_ = true;
-    QWidget::show();
-    editQuickFind_->setFocus( Qt::ShortcutFocusReason );
+void QuickFindWidget::setTitle(const QString& string) {
+  title_->setText(string);
+}
+
+void QuickFindWidget::userActivate() {
+  userRequested_ = true;
+  QWidget::show();
+  editQuickFind_->setFocus(Qt::ShortcutFocusReason);
+}
+
+void QuickFindWidget::appendToQuickSearch(const QString& string) {
+  QString text = editQuickFind_->text();
+
+  if (text.isEmpty())
+    text = string;
+  else {
+    text += ('|' + string);
+  }
+
+  editQuickFind_->setText(text);
+
+  // Set the focus to lineEdit so that the user can press 'Return' immediately
+  emit editQuickFind_->editingFinished();
+}
+
+void QuickFindWidget::replaceQuickSearch(const QString& string) {
+  editQuickFind_->setText(string);
+
+  // Set the focus to lineEdit so that the user can press 'Return' immediately
+  emit editQuickFind_->editingFinished();
+}
+
+void QuickFindWidget::addToQuickSearch(const QString& string) {
+  QString text = editQuickFind_->text();
+
+  if (text.isEmpty())
+    text = QRegularExpression::escape(string);
+  else {
+    QString markedString = QRegularExpression::escape(string);
+    if (!text.contains(markedString)) {
+      text += ('|' + markedString);
+    } else {
+      text.remove(markedString + "|");
+      text.remove("|" + markedString);
+      text.remove(markedString);
+    }
+  }
+
+  editQuickFind_->setText(text);
+
+  // Set the focus to lineEdit so that the user can press 'Return' immediately
+  //  editQuickFind_->setFocus();
+  emit editQuickFind_->editingFinished();
 }
 
 //
 // SLOTS
 //
 
-void QuickFindWidget::changeDisplayedPattern( const QString& newPattern )
-{
-    editQuickFind_->setText( newPattern );
+void QuickFindWidget::changeDisplayedPattern(const QString& newPattern) {
+  QString commentString = " //.*";
+  if (newPattern.startsWith(commentString)) {
+    QString subString = newPattern.mid(commentString.size(), newPattern.size());
+    if (subString.startsWith("|")) {
+      editQuickFind_->setText(subString.mid(1, subString.size()));
+    } else {
+      editQuickFind_->setText(subString);
+    }
+  } else {
+    editQuickFind_->setText(newPattern);
+  }
 }
 
-void QuickFindWidget::notify( const QFNotification& message )
-{
-    LOG(logDEBUG) << "QuickFindWidget::notify()";
+void QuickFindWidget::notify(const QFNotification& message) {
+  LOG(logDEBUG) << "QuickFindWidget::notify()";
 
-    notificationText_->setText( message.message() );
-    QWidget::show();
-    notificationTimer_->start( NOTIFICATION_TIMEOUT );
+  notificationText_->setText(message.message());
+  QWidget::show();
+  notificationTimer_->start(NOTIFICATION_TIMEOUT);
 
-    // Poor man's asynchronous op.: check for events!
-    QCoreApplication::processEvents();
+  // Poor man's asynchronous op.: check for events!
+  QCoreApplication::processEvents();
 }
 
-void QuickFindWidget::clearNotification()
-{
-    LOG(logDEBUG) << "QuickFindWidget::clearNotification()";
+void QuickFindWidget::clearNotification() {
+  LOG(logDEBUG) << "QuickFindWidget::clearNotification()";
 
-    notificationText_->setText( "" );
+  notificationText_->setText("");
 }
 
 // User clicks forward arrow
-void QuickFindWidget::doSearchForward()
-{
-    LOG(logDEBUG) << "QuickFindWidget::doSearchForward()";
+void QuickFindWidget::doSearchForward() {
+  LOG(logINFO) << "QuickFindWidget::doSearchForward()";
 
-    // The user has clicked on a button, so we assume she wants
-    // the widget to stay visible.
-    userRequested_ = true;
+  // The user has clicked on a button, so we assume she wants
+  // the widget to stay visible.
+  userRequested_ = true;
 
-    emit patternConfirmed( editQuickFind_->text(), isIgnoreCase() );
-    emit searchForward();
+  emit patternConfirmed(editQuickFind_->text(), isIgnoreCase(),
+                        QFDirection::Forward);
 }
 
 // User clicks backward arrow
-void QuickFindWidget::doSearchBackward()
-{
-    LOG(logDEBUG) << "QuickFindWidget::doSearchBackward()";
+void QuickFindWidget::doSearchBackward() {
+  LOG(logINFO) << "QuickFindWidget::doSearchBackward()";
 
-    // The user has clicked on a button, so we assume she wants
-    // the widget to stay visible.
-    userRequested_ = true;
+  // The user has clicked on a button, so we assume she wants
+  // the widget to stay visible.
+  userRequested_ = true;
 
-    emit patternConfirmed( editQuickFind_->text(), isIgnoreCase() );
-    emit searchBackward();
+  emit patternConfirmed(editQuickFind_->text(), isIgnoreCase(),
+                        QFDirection::Backward);
 }
 
 // Close and search when the user presses Return
-void QuickFindWidget::returnHandler()
-{
-    emit patternConfirmed( editQuickFind_->text(), isIgnoreCase() );
-    // Close the widget
-    userRequested_ = false;
-    this->hide();
-    emit close();
+void QuickFindWidget::returnHandler() {
+  emit patternConfirmed(editQuickFind_->text(), isIgnoreCase(),
+                        QFDirection::UnKnown);
+  // Close the widget
+  userRequested_ = false;
+  this->hide();
+  emit close();
+}
+
+void QuickFindWidget::editingFinishHandler() {
+  emit patternChanged(editQuickFind_->text(), isIgnoreCase());
+  userRequested_ = false;
+  this->hide();
+  emit close();
 }
 
 // Close and reset flag when the user clicks 'close'
-void QuickFindWidget::closeHandler()
-{
-    userRequested_ = false;
-    this->hide();
-    emit close();
-    emit cancelSearch();
+void QuickFindWidget::closeHandler() {
+  userRequested_ = false;
+  this->hide();
+  emit close();
+  emit cancelSearch();
 }
 
-void QuickFindWidget::notificationTimeout()
-{
-    // We close the widget if the user hasn't explicitely requested it.
-    if ( userRequested_ == false )
-        this->hide();
+void QuickFindWidget::notificationTimeout() {
+  // We close the widget if the user hasn't explicitely requested it.
+  if (userRequested_ == false) this->hide();
 }
 
-void QuickFindWidget::textChanged()
-{
-    emit patternUpdated( editQuickFind_->text(), isIgnoreCase() );
+void QuickFindWidget::textChanged() {
+  emit patternUpdated(editQuickFind_->text(), isIgnoreCase());
 }
 
 //
 // Private functions
 //
-QToolButton* QuickFindWidget::setupToolButton(
-        const QString &text, const QString &icon)
-{
-    QToolButton *toolButton = new QToolButton(this);
+QToolButton* QuickFindWidget::setupToolButton(const QString& text,
+                                              const QString& icon) {
+  QToolButton* toolButton = new QToolButton(this);
 
-    toolButton->setText(text);
-    toolButton->setAutoRaise(true);
-    toolButton->setIcon(QIcon(icon));
-    toolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  toolButton->setText(text);
+  toolButton->setAutoRaise(true);
+  toolButton->setIcon(QIcon(icon));
+  toolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-    return toolButton;
+  return toolButton;
 }
 
-bool QuickFindWidget::isIgnoreCase() const
-{
-    return ( ignoreCaseCheck_->checkState() == Qt::Checked );
+bool QuickFindWidget::isIgnoreCase() const {
+  return (ignoreCaseCheck_->checkState() == Qt::Checked);
 }

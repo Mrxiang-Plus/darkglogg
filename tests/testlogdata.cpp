@@ -17,159 +17,151 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QSignalSpy>
-#include <QMutexLocker>
 #include <QFile>
+#include <QMutexLocker>
+#include <QSignalSpy>
 
-#include "testlogdata.h"
 #include "logdata.h"
+#include "testlogdata.h"
 
-#if !defined( TMPDIR )
+#if !defined(TMPDIR)
 #define TMPDIR "/tmp"
 #endif
 
 static const qint64 VBL_NB_LINES = 4999999LL;
 static const int VBL_LINE_PER_PAGE = 70;
-static const char* vbl_format="LOGDATA is a part of glogg, we are going to test it thoroughly, this is line\t\t%07d\n";
-static const int VBL_LINE_LENGTH = (76+2+7) ; // Without the final '\n' !
-static const int VBL_VISIBLE_LINE_LENGTH = (76+8+4+7); // Without the final '\n' !
+static const char* vbl_format =
+    "LOGDATA is a part of glogg, we are going to test it thoroughly, this is "
+    "line\t\t%07d\n";
+static const int VBL_LINE_LENGTH = (76 + 2 + 7);  // Without the final '\n' !
+static const int VBL_VISIBLE_LINE_LENGTH =
+    (76 + 8 + 4 + 7);  // Without the final '\n' !
 
 static const qint64 SL_NB_LINES = 5000LL;
 static const int SL_LINE_PER_PAGE = 70;
-static const char* sl_format="LOGDATA is a part of glogg, we are going to test it thoroughly, this is line %06d\n";
-static const int SL_LINE_LENGTH = 83; // Without the final '\n' !
+static const char* sl_format =
+    "LOGDATA is a part of glogg, we are going to test it thoroughly, this is "
+    "line %06d\n";
+static const int SL_LINE_LENGTH = 83;  // Without the final '\n' !
 
 static const char* partial_line_begin = "123... beginning of line.";
 static const char* partial_line_end = " end of line 123.\n";
 
-void TestLogData::initTestCase()
-{
-    QVERIFY( generateDataFiles() );
+void TestLogData::initTestCase() { QVERIFY(generateDataFiles()); }
+
+void TestLogData::simpleLoad() {
+  LogData logData;
+  QSignalSpy progressSpy(&logData, SIGNAL(loadingProgressed(int)));
+
+  // Register for notification file is loaded
+  connect(&logData, SIGNAL(loadingFinished(bool)), this,
+          SLOT(loadingFinished()));
+
+  QBENCHMARK {
+    logData.attachFile(TMPDIR "/verybiglog.txt");
+    // Wait for the loading to be done
+    { QApplication::exec(); }
+  }
+
+  // Disconnect all signals
+  disconnect(&logData, 0);
 }
 
-void TestLogData::simpleLoad()
-{
-    LogData logData;
-    QSignalSpy progressSpy( &logData, SIGNAL( loadingProgressed( int ) ) );
+void TestLogData::multipleLoad() {
+  LogData logData;
+  QSignalSpy finishedSpy(&logData, SIGNAL(loadingFinished(bool)));
 
-    // Register for notification file is loaded
-    connect( &logData, SIGNAL( loadingFinished( bool ) ),
-            this, SLOT( loadingFinished() ) );
+  // Register for notification file is loaded
+  connect(&logData, SIGNAL(loadingFinished(bool)), this,
+          SLOT(loadingFinished()));
 
-    QBENCHMARK {
-        logData.attachFile( TMPDIR "/verybiglog.txt" );
-        // Wait for the loading to be done
-        {
-            QApplication::exec();
-        }
-    }
+  // Start loading the VBL
+  logData.attachFile(TMPDIR "/verybiglog.txt");
 
-    // Disconnect all signals
-    disconnect( &logData, 0 );
-}
+  // Immediately interrupt the loading
+  logData.interruptLoading();
 
-void TestLogData::multipleLoad()
-{
-    LogData logData;
-    QSignalSpy finishedSpy( &logData, SIGNAL( loadingFinished( bool ) ) );
+  // and wait for the signal
+  QApplication::exec();
 
-    // Register for notification file is loaded
-    connect( &logData, SIGNAL( loadingFinished( bool ) ),
-            this, SLOT( loadingFinished() ) );
+  // Check we have an empty file
+  QCOMPARE(finishedSpy.count(), 1);
+  // TODO: check loadingFinished arg == false
+  QCOMPARE(logData.getNbLine(), 0LL);
+  QCOMPARE(logData.getMaxLength(), 0);
+  QCOMPARE(logData.getFileSize(), 0LL);
 
-    // Start loading the VBL
-    logData.attachFile( TMPDIR "/verybiglog.txt" );
+  // Restart the VBL
+  logData.attachFile(TMPDIR "/verybiglog.txt");
 
-    // Immediately interrupt the loading
-    logData.interruptLoading();
+  // Ensure the counting has started
+  {
+    QMutex mutex;
+    QWaitCondition sleep;
+    // sleep.wait( &mutex, 10 );
+  }
 
-    // and wait for the signal
-    QApplication::exec();
+  // Load the SL (should block until VBL is fully indexed)
+  logData.attachFile(TMPDIR "/smalllog.txt");
 
-    // Check we have an empty file
-    QCOMPARE( finishedSpy.count(), 1 );
-    // TODO: check loadingFinished arg == false
-    QCOMPARE( logData.getNbLine(), 0LL );
-    QCOMPARE( logData.getMaxLength(), 0 );
-    QCOMPARE( logData.getFileSize(), 0LL );
+  // and wait for the 2 signals (one for each file)
+  QApplication::exec();
+  QApplication::exec();
 
-    // Restart the VBL
-    logData.attachFile( TMPDIR "/verybiglog.txt" );
+  // Check we have the small log loaded
+  QCOMPARE(finishedSpy.count(), 3);
+  QCOMPARE(logData.getNbLine(), SL_NB_LINES);
+  QCOMPARE(logData.getMaxLength(), SL_LINE_LENGTH);
+  QCOMPARE(logData.getFileSize(), SL_NB_LINES * (SL_LINE_LENGTH + 1LL));
 
-    // Ensure the counting has started
-    {
-        QMutex mutex;
-        QWaitCondition sleep;
-        // sleep.wait( &mutex, 10 );
-    }
+  // Restart the VBL again
+  logData.attachFile(TMPDIR "/verybiglog.txt");
 
-    // Load the SL (should block until VBL is fully indexed)
-    logData.attachFile( TMPDIR "/smalllog.txt" );
+  // Immediately interrupt the loading
+  logData.interruptLoading();
 
-    // and wait for the 2 signals (one for each file)
-    QApplication::exec();
-    QApplication::exec();
+  // and wait for the signal
+  QApplication::exec();
 
-    // Check we have the small log loaded
-    QCOMPARE( finishedSpy.count(), 3 );
-    QCOMPARE( logData.getNbLine(), SL_NB_LINES );
-    QCOMPARE( logData.getMaxLength(), SL_LINE_LENGTH );
-    QCOMPARE( logData.getFileSize(), SL_NB_LINES * (SL_LINE_LENGTH+1LL) );
+  // Check the small log has been restored
+  QCOMPARE(finishedSpy.count(), 4);
+  QCOMPARE(logData.getNbLine(), SL_NB_LINES);
+  QCOMPARE(logData.getMaxLength(), SL_LINE_LENGTH);
+  QCOMPARE(logData.getFileSize(), SL_NB_LINES * (SL_LINE_LENGTH + 1LL));
 
-    // Restart the VBL again
-    logData.attachFile( TMPDIR "/verybiglog.txt" );
-
-    // Immediately interrupt the loading
-    logData.interruptLoading();
-
-    // and wait for the signal
-    QApplication::exec();
-
-    // Check the small log has been restored
-    QCOMPARE( finishedSpy.count(), 4 );
-    QCOMPARE( logData.getNbLine(), SL_NB_LINES );
-    QCOMPARE( logData.getMaxLength(), SL_LINE_LENGTH );
-    QCOMPARE( logData.getFileSize(), SL_NB_LINES * (SL_LINE_LENGTH+1LL) );
-
-    // Disconnect all signals
-    disconnect( &logData, 0 );
+  // Disconnect all signals
+  disconnect(&logData, 0);
 }
 
 //
 // Private functions
 //
-void TestLogData::loadingFinished()
-{
-    QApplication::quit();
-}
+void TestLogData::loadingFinished() { QApplication::quit(); }
 
-bool TestLogData::generateDataFiles()
-{
-    char newLine[90];
+bool TestLogData::generateDataFiles() {
+  char newLine[90];
 
-    QFile file( TMPDIR "/verybiglog.txt" );
-    if ( file.open( QIODevice::WriteOnly ) ) {
-        for (int i = 0; i < VBL_NB_LINES; i++) {
-            snprintf(newLine, 89, vbl_format, i);
-            file.write( newLine, qstrlen(newLine) );
-        }
+  QFile file(TMPDIR "/verybiglog.txt");
+  if (file.open(QIODevice::WriteOnly)) {
+    for (int i = 0; i < VBL_NB_LINES; i++) {
+      snprintf(newLine, 89, vbl_format, i);
+      file.write(newLine, qstrlen(newLine));
     }
-    else {
-        return false;
-    }
-    file.close();
+  } else {
+    return false;
+  }
+  file.close();
 
-    file.setFileName( TMPDIR "/smalllog.txt" );
-    if ( file.open( QIODevice::WriteOnly ) ) {
-        for (int i = 0; i < SL_NB_LINES; i++) {
-            snprintf(newLine, 89, sl_format, i);
-            file.write( newLine, qstrlen(newLine) );
-        }
+  file.setFileName(TMPDIR "/smalllog.txt");
+  if (file.open(QIODevice::WriteOnly)) {
+    for (int i = 0; i < SL_NB_LINES; i++) {
+      snprintf(newLine, 89, sl_format, i);
+      file.write(newLine, qstrlen(newLine));
     }
-    else {
-        return false;
-    }
-    file.close();
+  } else {
+    return false;
+  }
+  file.close();
 
-    return true;
+  return true;
 }

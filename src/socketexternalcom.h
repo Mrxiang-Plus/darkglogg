@@ -6,36 +6,35 @@
 #include <QLocalServer>
 #include <QSharedMemory>
 
-class SocketExternalInstance : public ExternalInstance
-{
-public:
-    SocketExternalInstance();
+class SocketExternalInstance : public ExternalInstance {
+ public:
+  SocketExternalInstance();
 
-    void loadFile( const QString& file_name ) const override;
-    uint32_t getVersion() const override;
-private:
-    QSharedMemory* memory_;
+  void loadFile(const QString& file_name) const override;
+  uint32_t getVersion() const override;
+
+ private:
+  QSharedMemory* memory_;
 };
 
-class SocketExternalCommunicator : public ExternalCommunicator
-{
-    Q_OBJECT
-public:
-    SocketExternalCommunicator();
-    ~SocketExternalCommunicator();
+class SocketExternalCommunicator : public ExternalCommunicator {
+  Q_OBJECT
+ public:
+  SocketExternalCommunicator();
+  ~SocketExternalCommunicator();
 
-    ExternalInstance* otherInstance() const override;
-    void startListening() override;
+  ExternalInstance* otherInstance() const override;
+  void startListening() override;
 
-public slots:
-    qint32 version() const override;
+ public slots:
+  qint32 version() const override;
 
-private slots:
-    void onConnection();
+ private slots:
+  void onConnection();
 
-private:
-     QSharedMemory* memory_;
-     QLocalServer* server_;
+ private:
+  QSharedMemory* memory_;
+  QLocalServer* server_;
 };
 
-#endif // SOCKETEXTERNALCOM_H
+#endif  // SOCKETEXTERNALCOM_H

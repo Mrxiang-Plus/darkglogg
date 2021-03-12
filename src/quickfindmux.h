@@ -27,34 +27,38 @@
 #include <QString>
 
 #include "quickfindpattern.h"
+#include "quickfindwidget.h"
 
 // Interface representing a widget searchable in both direction.
 class SearchableWidgetInterface {
-  public:
-    virtual void searchForward() = 0;
-    virtual void searchBackward() = 0;
+ public:
+  virtual void searchForward() = 0;
+  virtual void searchBackward() = 0;
 
-    virtual void incrementallySearchForward() = 0;
-    virtual void incrementallySearchBackward() = 0;
-    virtual void incrementalSearchStop() = 0;
-    virtual void incrementalSearchAbort() = 0;
+  virtual void incrementallySearchForward() = 0;
+  virtual void incrementallySearchBackward() = 0;
+  virtual void incrementalSearchStop() = 0;
+  virtual void incrementalSearchAbort() = 0;
 };
 
 // Interface representing the selector. It will be called and asked
 // who the search have to be forwarded to.
 class QuickFindMuxSelectorInterface {
-  public:
-    // Return the searchable widget to use.
-    SearchableWidgetInterface* getActiveSearchable() const
-    { return doGetActiveSearchable(); }
-    // Return the list of all possible searchables, this
-    // is done on registration in order to establish
-    // listeners on all searchables.
-    std::vector<QObject*> getAllSearchables() const
-    { return doGetAllSearchables(); }
-  protected:
-    virtual SearchableWidgetInterface* doGetActiveSearchable() const = 0;
-    virtual std::vector<QObject*> doGetAllSearchables() const = 0;
+ public:
+  // Return the searchable widget to use.
+  SearchableWidgetInterface* getActiveSearchable() const {
+    return doGetActiveSearchable();
+  }
+  // Return the list of all possible searchables, this
+  // is done on registration in order to establish
+  // listeners on all searchables.
+  std::vector<QObject*> getAllSearchables() const {
+    return doGetAllSearchables();
+  }
+
+ protected:
+  virtual SearchableWidgetInterface* doGetActiveSearchable() const = 0;
+  virtual std::vector<QObject*> doGetAllSearchables() const = 0;
 };
 
 class QFNotification;
@@ -63,79 +67,76 @@ class QFNotification;
 // Quick Find search from the UI to the relevant view.
 // It is also its responsability to determine if an incremental search
 // must be performed and to react accordingly.
-class QuickFindMux : public QObject
-{
+class QuickFindMux : public QObject {
   Q_OBJECT
 
-  public:
+ public:
+  // Construct the multiplexer, taking a reference to the pattern
+  QuickFindMux(std::shared_ptr<QuickFindPattern> pattern);
 
-    enum QFDirection {
-        Forward,
-        Backward,
-    };
+  // Register a new selector, which will be called and asked
+  // who the search have to be forwarded to.
+  // The selector is called immediately when registering to get the list of
+  // searchables.
+  // The previous selector and its associated views are automatically
+  // deregistered.
+  // A null selector is accepted, in this case QFM functionalities are
+  // disabled until a valid selector is registered.
+  void registerSelector(const QuickFindMuxSelectorInterface* selector);
 
-    // Construct the multiplexer, taking a reference to the pattern
-    QuickFindMux( std::shared_ptr<QuickFindPattern> pattern );
+  // Set the direction that will be used by the search when searching
+  // forward.
+  void setDirection(QFDirection direction);
 
-    // Register a new selector, which will be called and asked
-    // who the search have to be forwarded to.
-    // The selector is called immediately when registering to get the list of
-    // searchables.
-    // The previous selector and its associated views are automatically
-    // deregistered.
-    // A null selector is accepted, in this case QFM functionalities are
-    // disabled until a valid selector is registered.
-    void registerSelector( const QuickFindMuxSelectorInterface* selector );
+ signals:
+  void patternChanged(const QString&);
+  void notify(const QFNotification&);
+  void clearNotification();
 
-    // Set the direction that will be used by the search when searching
-    // forward.
-    void setDirection( QFDirection direction );
+ public slots:
+  // Signal the current pattern must be altered (will start an incremental
+  // search if the options are configured in such a way).
+  void setNewPattern(const QString& new_pattern, bool ignore_case);
 
-  signals:
-    void patternChanged( const QString& );
-    void notify( const QFNotification& );
-    void clearNotification();
+  // Signal the current pattern must be altered and is confirmed
+  // (will stop an incremental search if needed)
+  void confirmPattern(const QString& new_pattern, bool ignore_case,
+                      QFDirection direction);
 
-  public slots:
-    // Signal the current pattern must be altered (will start an incremental
-    // search if the options are configured in such a way).
-    void setNewPattern( const QString& new_pattern, bool ignore_case );
+  void confirmPatternWithoutSearch(const QString& new_pattern, bool ignore_case,
+                                   QFDirection direction);
+  // Signal the user cancelled the search
+  // (used for incremental only)
+  void cancelSearch();
 
-    // Signal the current pattern must be altered and is confirmed
-    // (will stop an incremental search if needed)
-    void confirmPattern( const QString& new_pattern, bool ignore_case );
+  // Starts a search in the specified direction
+  void searchNext();
+  void searchPrevious();
 
-    // Signal the user cancelled the search
-    // (used for incremental only)
-    void cancelSearch();
+  // Idem but ignore the direction and always search in the
+  // specified direction
+  void searchForward();
+  void searchBackward();
 
-    // Starts a search in the specified direction
-    void searchNext();
-    void searchPrevious();
+ private slots:
+  void changeQuickFind(const QString& new_pattern, QFDirection new_direction);
+  void notifyPatternChanged(QList<int> removedList);
 
-    // Idem but ignore the direction and always search in the
-    // specified direction
-    void searchForward();
-    void searchBackward();
+ private:
+  void searchNext(QFDirection);
+  void searchPrevious(QFDirection);
+  const QuickFindMuxSelectorInterface* selector_;
 
-  private slots:
-    void changeQuickFind( const QString& new_pattern,
-            QuickFindMux::QFDirection new_direction );
-    void notifyPatternChanged();
+  // The (application wide) quick find pattern
+  std::shared_ptr<QuickFindPattern> pattern_;
 
-  private:
-    const QuickFindMuxSelectorInterface* selector_;
+  QFDirection currentDirection_;
 
-    // The (application wide) quick find pattern
-    std::shared_ptr<QuickFindPattern> pattern_;
+  std::vector<QObject*> registeredSearchables_;
 
-    QFDirection currentDirection_;
-
-    std::vector<QObject*> registeredSearchables_;
-
-    SearchableWidgetInterface* getSearchableWidget() const;
-    void registerSearchable( QObject* searchable );
-    void unregisterAllSearchables();
+  SearchableWidgetInterface* getSearchableWidget() const;
+  void registerSearchable(QObject* searchable);
+  void unregisterAllSearchables();
 };
 
 #endif

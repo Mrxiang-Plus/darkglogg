@@ -17,8 +17,8 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 #include "threadprivatestore.h"
 
@@ -68,9 +68,9 @@
  * ...
  * (126 more lines)
  *
- * Absolute addressing has been adopted for line > 16383 to bound memory usage in case
- * of pathologically long (MBs or GBs) lines, even if it is a bit less efficient for
- * long-ish (30 KB) lines.
+ * Absolute addressing has been adopted for line > 16383 to bound memory usage
+ * in case of pathologically long (MBs or GBs) lines, even if it is a bit less
+ * efficient for long-ish (30 KB) lines.
  *
  * The table32 always starts at 0, the table64 starts at first_long_line_
  */
@@ -80,89 +80,91 @@
 
 #define BLOCK_SIZE 256
 
-//template<int BLOCK_SIZE = 128>
-class CompressedLinePositionStorage
-{
-  public:
-    // Default constructor
-    CompressedLinePositionStorage()
-    { nb_lines_ = 0; first_long_line_ = UINT32_MAX;
-      current_pos_ = 0; block_pointer_ = nullptr;
-      previous_block_pointer_ = nullptr; }
-    // Copy constructor would be slow, delete!
-    CompressedLinePositionStorage( const CompressedLinePositionStorage& orig ) = delete;
+// template<int BLOCK_SIZE = 128>
+class CompressedLinePositionStorage {
+ public:
+  // Default constructor
+  CompressedLinePositionStorage() {
+    nb_lines_ = 0;
+    first_long_line_ = UINT32_MAX;
+    current_pos_ = 0;
+    block_pointer_ = nullptr;
+    previous_block_pointer_ = nullptr;
+  }
+  // Copy constructor would be slow, delete!
+  CompressedLinePositionStorage(const CompressedLinePositionStorage& orig) =
+      delete;
 
-    // Move constructor
-    CompressedLinePositionStorage( CompressedLinePositionStorage&& orig );
-    // Move assignement
-    CompressedLinePositionStorage& operator=(
-            CompressedLinePositionStorage&& orig );
-    // Destructor
-    ~CompressedLinePositionStorage();
+  // Move constructor
+  CompressedLinePositionStorage(CompressedLinePositionStorage&& orig);
+  // Move assignement
+  CompressedLinePositionStorage& operator=(
+      CompressedLinePositionStorage&& orig);
+  // Destructor
+  ~CompressedLinePositionStorage();
 
-    // Append the passed end-of-line to the storage
-    void append( uint64_t pos );
-    void push_back( uint64_t pos )
-    { append( pos ); }
-    // Size of the array
-    uint32_t size() const
-    { return nb_lines_; }
-    // Element at index
-    uint64_t at( uint32_t i ) const;
+  // Append the passed end-of-line to the storage
+  void append(uint64_t pos);
+  void push_back(uint64_t pos) { append(pos); }
+  // Size of the array
+  uint32_t size() const { return nb_lines_; }
+  // Element at index
+  uint64_t at(uint32_t i) const;
 
-    // Add one list to the other
-    void append_list( const std::vector<uint64_t>& positions );
+  // Add one list to the other
+  void append_list(const std::vector<uint64_t>& positions);
 
-    // Pop the last element of the storage
-    void pop_back();
+  // Pop the last element of the storage
+  void pop_back();
 
-  private:
-    // Utility for move ctor/assign
-    void move_from( CompressedLinePositionStorage&& orig );
-    void free_blocks();
+ private:
+  // Utility for move ctor/assign
+  void move_from(CompressedLinePositionStorage&& orig);
+  void free_blocks();
 
-    // The two indexes
-    std::vector<char*> block32_index_;
-    std::vector<char*> block64_index_;
+  // The two indexes
+  std::vector<char*> block32_index_;
+  std::vector<char*> block64_index_;
 
-    // Total number of lines in storage
-    uint32_t nb_lines_;
+  // Total number of lines in storage
+  uint32_t nb_lines_;
 
-    // Current position (position of the end of the last line added)
-    uint64_t current_pos_;
-    // Address of the next position (not yet written) within the current
-    // block. nullptr means there is no current block (previous block
-    // finished or no data)
-    char* block_pointer_;
+  // Current position (position of the end of the last line added)
+  uint64_t current_pos_;
+  // Address of the next position (not yet written) within the current
+  // block. nullptr means there is no current block (previous block
+  // finished or no data)
+  char* block_pointer_;
 
-    // The index of the first line whose end is stored in a block64
-    // Initialised at UINT32_MAX, meaning "unset"
-    // this is the origin point for all calculations in block64
-    uint32_t first_long_line_;
+  // The index of the first line whose end is stored in a block64
+  // Initialised at UINT32_MAX, meaning "unset"
+  // this is the origin point for all calculations in block64
+  uint32_t first_long_line_;
 
-    // For pop_back:
+  // For pop_back:
 
-    // Previous pointer to block element, it is restored when we
-    // "pop_back" the last element.
-    // A null pointer here means pop_back need to free the block
-    // that has just been created.
-    char* previous_block_pointer_;
+  // Previous pointer to block element, it is restored when we
+  // "pop_back" the last element.
+  // A null pointer here means pop_back need to free the block
+  // that has just been created.
+  char* previous_block_pointer_;
 
-    // Cache the last position read
-    // This is to speed up consecutive reads (whole page)
-    struct Cache {
-        Cache() {
-            index = UINT32_MAX - 1U;
-            position = 0;
-            ptr = nullptr;
-        }
+  // Cache the last position read
+  // This is to speed up consecutive reads (whole page)
+  struct Cache {
+    Cache() {
+      index = UINT32_MAX - 1U;
+      position = 0;
+      ptr = nullptr;
+    }
 
-        uint32_t index;
-        uint64_t position;
-        char* ptr;
-    };
-    mutable ThreadPrivateStore<Cache,2> last_read_; // = { UINT32_MAX - 1U, 0, nullptr };
-    // mutable Cache last_read;
+    uint32_t index;
+    uint64_t position;
+    char* ptr;
+  };
+  mutable ThreadPrivateStore<Cache, 2>
+      last_read_;  // = { UINT32_MAX - 1U, 0, nullptr };
+                   // mutable Cache last_read;
 };
 
 #endif

@@ -25,52 +25,49 @@
 
 const int SessionInfo::OPENFILES_VERSION = 1;
 
-void SessionInfo::retrieveFromStorage( QSettings& settings )
-{
-    LOG(logDEBUG) << "SessionInfo::retrieveFromStorage";
+void SessionInfo::retrieveFromStorage(QSettings& settings) {
+  LOG(logDEBUG) << "SessionInfo::retrieveFromStorage";
 
-    geometry_     = settings.value("geometry").toByteArray();
+  geometry_ = settings.value("geometry").toByteArray();
 
-    if ( settings.contains( "OpenFiles/version" ) ) {
-        openFiles_.clear();
-        // Unserialise the "new style" stored history
-        settings.beginGroup( "OpenFiles" );
-        if ( settings.value( "version" ) == OPENFILES_VERSION ) {
-            int size = settings.beginReadArray( "openFiles" );
-            LOG(logDEBUG) << "SessionInfo: " << size << " files.";
-            for (int i = 0; i < size; ++i) {
-                settings.setArrayIndex(i);
-                std::string file_name =
-                    settings.value( "fileName" ).toString().toStdString();
-                uint64_t top_line = settings.value( "topLine" ).toInt();
-                std::string view_context =
-                    settings.value( "viewContext" ).toString().toStdString();
-                openFiles_.push_back( { file_name, top_line, view_context } );
-            }
-            settings.endArray();
-        }
-        else {
-            LOG(logERROR) << "Unknown version of OpenFiles, ignoring it...";
-        }
-        settings.endGroup();
+  if (settings.contains("OpenFiles/version")) {
+    openFiles_.clear();
+    // Unserialise the "new style" stored history
+    settings.beginGroup("OpenFiles");
+    if (settings.value("version") == OPENFILES_VERSION) {
+      int size = settings.beginReadArray("openFiles");
+      LOG(logDEBUG) << "SessionInfo: " << size << " files.";
+      for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        std::string file_name =
+            settings.value("fileName").toString().toStdString();
+        uint64_t top_line = settings.value("topLine").toInt();
+        std::string view_context =
+            settings.value("viewContext").toString().toStdString();
+        openFiles_.push_back({file_name, top_line, view_context});
+      }
+      settings.endArray();
+    } else {
+      LOG(logERROR) << "Unknown version of OpenFiles, ignoring it...";
     }
+    settings.endGroup();
+  }
 }
 
-void SessionInfo::saveToStorage( QSettings& settings ) const
-{
-    LOG(logDEBUG) << "SessionInfo::saveToStorage";
+void SessionInfo::saveToStorage(QSettings& settings) const {
+  LOG(logDEBUG) << "SessionInfo::saveToStorage";
 
-    settings.setValue( "geometry", geometry_ );
-    settings.beginGroup( "OpenFiles" );
-    settings.setValue( "version", OPENFILES_VERSION );
-    settings.beginWriteArray( "openFiles" );
-    for ( unsigned i = 0; i < openFiles_.size(); ++i ) {
-        settings.setArrayIndex( i );
-        const OpenFile* open_file = &(openFiles_.at( i ));
-        settings.setValue( "fileName", QString( open_file->fileName.c_str() ) );
-        settings.setValue( "topLine", qint64( open_file->topLine ) );
-        settings.setValue( "viewContext", QString( open_file->viewContext.c_str() ) );
-    }
-    settings.endArray();
-    settings.endGroup();
+  settings.setValue("geometry", geometry_);
+  settings.beginGroup("OpenFiles");
+  settings.setValue("version", OPENFILES_VERSION);
+  settings.beginWriteArray("openFiles");
+  for (unsigned i = 0; i < openFiles_.size(); ++i) {
+    settings.setArrayIndex(i);
+    const OpenFile* open_file = &(openFiles_.at(i));
+    settings.setValue("fileName", QString(open_file->fileName.c_str()));
+    settings.setValue("topLine", qint64(open_file->topLine));
+    settings.setValue("viewContext", QString(open_file->viewContext.c_str()));
+  }
+  settings.endArray();
+  settings.endGroup();
 }

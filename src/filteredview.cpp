@@ -25,84 +25,80 @@
 
 #include "filteredview.h"
 
-FilteredView::FilteredView( LogFilteredData* newLogData,
-        const QuickFindPattern* const quickFindPattern, QWidget* parent )
-    : AbstractLogView( newLogData, quickFindPattern, parent )
-{
-    // We keep a copy of the filtered data for fast lookup of the line type
-    logFilteredData_ = newLogData;
+FilteredView::FilteredView(LogFilteredData* newLogData,
+                           const QuickFindPattern* const quickFindPattern,
+                           const QuickFindPattern* const quickMarkPattern,
+                           QWidget* parent)
+    : AbstractLogView(newLogData, quickFindPattern, quickMarkPattern, parent) {
+  // We keep a copy of the filtered data for fast lookup of the line type
+  logFilteredData_ = newLogData;
+  setIsFilter(true);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
-void FilteredView::setVisibility( Visibility visi )
-{
-    assert( logFilteredData_ );
+void FilteredView::setVisibility(Visibility visi) {
+  assert(logFilteredData_);
 
-    LogFilteredData::Visibility data_visibility =
-        LogFilteredData::MarksAndMatches;
-    switch ( visi ) {
-        case MarksOnly:
-            data_visibility = LogFilteredData::MarksOnly;
-            break;
-        case MatchesOnly:
-            data_visibility = LogFilteredData::MatchesOnly;
-            break;
-        case MarksAndMatches:
-            data_visibility = LogFilteredData::MarksAndMatches;
-            break;
-    };
+  LogFilteredData::Visibility data_visibility =
+      LogFilteredData::MarksAndMatches;
+  switch (visi) {
+    case MarksOnly:
+      data_visibility = LogFilteredData::MarksOnly;
+      break;
+    case MatchesOnly:
+      data_visibility = LogFilteredData::MatchesOnly;
+      break;
+    case MarksAndMatches:
+      data_visibility = LogFilteredData::MarksAndMatches;
+      break;
+  };
 
-    logFilteredData_->setVisibility( data_visibility );
+  logFilteredData_->setVisibility(data_visibility);
 
-    updateData();
+  updateData();
 }
 
 // For the filtered view, a line is always matching!
-AbstractLogView::LineType FilteredView::lineType( int lineNumber ) const
-{
-    LogFilteredData::FilteredLineType type =
-        logFilteredData_->filteredLineTypeByIndex( lineNumber );
-    if ( type == LogFilteredData::Mark )
-        return Marked;
-    else
-        return Match;
+AbstractLogView::LineType FilteredView::lineType(int lineNumber) const {
+  LogFilteredData::FilteredLineType type =
+      logFilteredData_->filteredLineTypeByIndex(lineNumber);
+  if (type == LogFilteredData::Mark)
+    return Marked;
+  else
+    return Match;
 }
 
-qint64 FilteredView::displayLineNumber( int lineNumber ) const
-{
-    // Display a 1-based index
-    return logFilteredData_->getMatchingLineNumber( lineNumber ) + 1;
+qint64 FilteredView::displayLineNumber(int lineNumber) const {
+  // Display a 1-based index
+  return logFilteredData_->getMatchingLineNumber(lineNumber) + 1;
 }
 
-qint64 FilteredView::maxDisplayLineNumber() const
-{
-    return logFilteredData_->getNbTotalLines();
+qint64 FilteredView::maxDisplayLineNumber() const {
+  return logFilteredData_->getNbTotalLines();
 }
 
-void FilteredView::keyPressEvent( QKeyEvent* keyEvent )
-{
-    bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
+void FilteredView::keyPressEvent(QKeyEvent* keyEvent) {
+  bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
-    if ( keyEvent->key() == Qt::Key_BracketLeft && noModifier ) {
-        for ( qint64 i = static_cast<qint64>( getViewPosition() ) - 1; i >= 0; --i ) {
-            if ( lineType( i ) == Marked ) {
-                selectAndDisplayLine( static_cast<LineNumber>( i ) );
-                break;
-            }
-        }
-        keyEvent->accept();
+  if (keyEvent->key() == Qt::Key_BracketLeft && noModifier) {
+    for (qint64 i = static_cast<qint64>(getViewPosition()) - 1; i >= 0; --i) {
+      if (lineType(i) == Marked) {
+        selectAndDisplayLine(static_cast<LineNumber>(i));
+        break;
+      }
     }
-    else if ( keyEvent->key() == Qt::Key_BracketRight && noModifier ) {
-        for ( qint64 i = getViewPosition() + 1;
-                i < logFilteredData_->getNbLine(); ++i ) {
-            if ( lineType( i ) == Marked ) {
-                selectAndDisplayLine( static_cast<LineNumber>( i ) );
-                break;
-            }
-        }
-        keyEvent->accept();
+    keyEvent->accept();
+  } else if (keyEvent->key() == Qt::Key_BracketRight && noModifier) {
+    for (qint64 i = getViewPosition() + 1; i < logFilteredData_->getNbLine();
+         ++i) {
+      if (lineType(i) == Marked) {
+        selectAndDisplayLine(static_cast<LineNumber>(i));
+        break;
+      }
     }
-    else {
-        keyEvent->ignore();
-        AbstractLogView::keyPressEvent( keyEvent );
-    }
+    keyEvent->accept();
+  } else {
+    keyEvent->ignore();
+    AbstractLogView::keyPressEvent(keyEvent);
+  }
 }

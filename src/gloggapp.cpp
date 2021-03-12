@@ -22,13 +22,12 @@
 #include <QFileOpenEvent>
 
 #ifdef __APPLE__
-bool GloggApp::event( QEvent *event )
-{
-    if (event->type() == QEvent::FileOpen) {
-        QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-        emit loadFile( openEvent->file() );
-    }
+bool GloggApp::event(QEvent *event) {
+  if (event->type() == QEvent::FileOpen) {
+    QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
+    emit loadFile(openEvent->file());
+  }
 
-    return QApplication::event(event);
+  return QApplication::event(event);
 }
 #endif

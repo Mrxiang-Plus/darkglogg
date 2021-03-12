@@ -21,133 +21,120 @@
 
 #include "qtfilewatcher.h"
 
-#include <QStringList>
 #include <QFileInfo>
+#include <QStringList>
 
-QtFileWatcher::QtFileWatcher() : FileWatcher(), qtFileWatcher_( this )
-{
+QtFileWatcher::QtFileWatcher() : FileWatcher(), qtFileWatcher_(this) {
+  monitoringState_ = None;
+
+  connect(&qtFileWatcher_, SIGNAL(fileChanged(const QString&)), this,
+          SLOT(fileChangedOnDisk(const QString&)));
+
+  connect(&qtFileWatcher_, SIGNAL(directoryChanged(const QString&)), this,
+          SLOT(directoryChangedOnDisk(const QString&)));
+}
+
+QtFileWatcher::~QtFileWatcher() { disconnect(&qtFileWatcher_); }
+
+void QtFileWatcher::addFile(const QString& fileName) {
+  LOG(logDEBUG) << "QtFileWatcher::addFile " << fileName.toStdString();
+
+  QFileInfo fileInfo = QFileInfo(fileName);
+
+  if (fileMonitored_.isEmpty()) {
+    fileMonitored_ = fileName;
+
+    // Initialise the Qt file watcher
+    qtFileWatcher_.addPath(fileInfo.path());
+
+    if (fileInfo.exists()) {
+      LOG(logDEBUG) << "QtFileWatcher::addFile: file exists.";
+      qtFileWatcher_.addPath(fileName);
+      monitoringState_ = FileExists;
+    } else {
+      LOG(logDEBUG) << "QtFileWatcher::addFile: file doesn't exist.";
+      monitoringState_ = FileRemoved;
+    }
+  } else {
+    LOG(logWARNING) << "QtFileWatcher::addFile " << fileName.toStdString()
+                    << "- Already watching a file ("
+                    << fileMonitored_.toStdString() << ")!";
+  }
+}
+
+void QtFileWatcher::removeFile(const QString& fileName) {
+  LOG(logDEBUG) << "QtFileWatcher::removeFile " << fileName.toStdString();
+
+  QFileInfo fileInfo = QFileInfo(fileName);
+
+  if (fileName == fileMonitored_) {
+    if (monitoringState_ == FileExists) qtFileWatcher_.removePath(fileName);
+    qtFileWatcher_.removePath(fileInfo.path());
+    fileMonitored_.clear();
     monitoringState_ = None;
+  } else {
+    LOG(logWARNING) << "QtFileWatcher::removeFile - The file is not watched!";
+  }
 
-    connect( &qtFileWatcher_, SIGNAL( fileChanged( const QString& ) ),
-            this, SLOT( fileChangedOnDisk( const QString& ) ) );
-
-    connect( &qtFileWatcher_, SIGNAL( directoryChanged( const QString& ) ),
-            this, SLOT( directoryChangedOnDisk( const QString& ) ) );
-}
-
-QtFileWatcher::~QtFileWatcher()
-{
-    disconnect( &qtFileWatcher_ );
-}
-
-void QtFileWatcher::addFile( const QString& fileName )
-{
-    LOG(logDEBUG) << "QtFileWatcher::addFile " << fileName.toStdString();
-
-    QFileInfo fileInfo = QFileInfo( fileName );
-
-    if ( fileMonitored_.isEmpty() ) {
-        fileMonitored_ = fileName;
-
-        // Initialise the Qt file watcher
-        qtFileWatcher_.addPath( fileInfo.path() );
-
-        if ( fileInfo.exists() ) {
-            LOG(logDEBUG) << "QtFileWatcher::addFile: file exists.";
-            qtFileWatcher_.addPath( fileName );
-            monitoringState_ = FileExists;
-        }
-        else {
-            LOG(logDEBUG) << "QtFileWatcher::addFile: file doesn't exist.";
-            monitoringState_ = FileRemoved;
-        }
-    }
-    else {
-        LOG(logWARNING) << "QtFileWatcher::addFile " << fileName.toStdString()
-            << "- Already watching a file (" << fileMonitored_.toStdString()
-            << ")!";
-    }
-}
-
-void QtFileWatcher::removeFile( const QString& fileName )
-{
-    LOG(logDEBUG) << "QtFileWatcher::removeFile " << fileName.toStdString();
-
-    QFileInfo fileInfo = QFileInfo( fileName );
-
-    if ( fileName == fileMonitored_ ) {
-        if ( monitoringState_ == FileExists )
-            qtFileWatcher_.removePath( fileName );
-        qtFileWatcher_.removePath( fileInfo.path() );
-        fileMonitored_.clear();
-        monitoringState_ = None;
-    }
-    else {
-        LOG(logWARNING) << "QtFileWatcher::removeFile - The file is not watched!";
-    }
-
-    // For debug purpose:
-    foreach (QString str, qtFileWatcher_.files()) {
-        LOG(logERROR) << "File still watched: " << str.toStdString();
-    }
-    foreach (QString str, qtFileWatcher_.directories()) {
-        LOG(logERROR) << "Directories still watched: " << str.toStdString();
-    }
+  // For debug purpose:
+  foreach (QString str, qtFileWatcher_.files()) {
+    LOG(logERROR) << "File still watched: " << str.toStdString();
+  }
+  foreach (QString str, qtFileWatcher_.directories()) {
+    LOG(logERROR) << "Directories still watched: " << str.toStdString();
+  }
 }
 
 //
 // Slots
 //
 
-void QtFileWatcher::fileChangedOnDisk( const QString& filename )
-{
-    LOG(logDEBUG) << "QtFileWatcher::fileChangedOnDisk " << filename.toStdString();
+void QtFileWatcher::fileChangedOnDisk(const QString& filename) {
+  LOG(logDEBUG) << "QtFileWatcher::fileChangedOnDisk "
+                << filename.toStdString();
 
-    if ( ( monitoringState_ == FileExists ) && ( filename == fileMonitored_ ) )
-    {
-        emit fileChanged( filename );
+  if ((monitoringState_ == FileExists) && (filename == fileMonitored_)) {
+    emit fileChanged(filename);
 
-        // If the file has been removed...
-        if ( !QFileInfo( filename ).exists() )
-            monitoringState_ = FileRemoved;
-    }
-    else
-        LOG(logWARNING) << "QtFileWatcher::fileChangedOnDisk - call from Qt but no file monitored";
+    // If the file has been removed...
+    if (!QFileInfo(filename).exists()) monitoringState_ = FileRemoved;
+  } else
+    LOG(logWARNING) << "QtFileWatcher::fileChangedOnDisk - call from Qt but no "
+                       "file monitored";
 }
 
-void QtFileWatcher::directoryChangedOnDisk( const QString& filename )
-{
-    LOG(logDEBUG) << "QtFileWatcher::directoryChangedOnDisk " << filename.toStdString();
+void QtFileWatcher::directoryChangedOnDisk(const QString& filename) {
+  LOG(logDEBUG) << "QtFileWatcher::directoryChangedOnDisk "
+                << filename.toStdString();
 
-    if ( monitoringState_ == FileRemoved ) {
-        if ( QFileInfo( fileMonitored_ ).exists() ) {
-            LOG(logDEBUG) << "QtFileWatcher::directoryChangedOnDisk - our file reappeared!";
+  if (monitoringState_ == FileRemoved) {
+    if (QFileInfo(fileMonitored_).exists()) {
+      LOG(logDEBUG)
+          << "QtFileWatcher::directoryChangedOnDisk - our file reappeared!";
 
-            // The file has been recreated, we have to watch it again.
-            monitoringState_ = FileExists;
+      // The file has been recreated, we have to watch it again.
+      monitoringState_ = FileExists;
 
-            // Restore the Qt file watcher (automatically cancelled
-            // when the file is deleted)
-            qtFileWatcher_.addPath( fileMonitored_ );
+      // Restore the Qt file watcher (automatically cancelled
+      // when the file is deleted)
+      qtFileWatcher_.addPath(fileMonitored_);
 
-            emit fileChanged( fileMonitored_ );
-        }
-        else {
-            LOG(logWARNING) << "QtFileWatcher::directoryChangedOnDisk - not the file we are watching";
-        }
+      emit fileChanged(fileMonitored_);
+    } else {
+      LOG(logWARNING) << "QtFileWatcher::directoryChangedOnDisk - not the file "
+                         "we are watching";
     }
-    else if ( monitoringState_ == FileExists )
-    {
-        if ( ! QFileInfo( fileMonitored_ ).exists() ) {
-            LOG(logDEBUG) << "QtFileWatcher::directoryChangedOnDisk - our file disappeared!";
+  } else if (monitoringState_ == FileExists) {
+    if (!QFileInfo(fileMonitored_).exists()) {
+      LOG(logDEBUG)
+          << "QtFileWatcher::directoryChangedOnDisk - our file disappeared!";
 
-            monitoringState_ = FileRemoved;
+      monitoringState_ = FileRemoved;
 
-            emit fileChanged( filename );
-        }
-        else {
-            LOG(logWARNING) << "QtFileWatcher::directoryChangedOnDisk - not the file we are watching";
-        }
+      emit fileChanged(filename);
+    } else {
+      LOG(logWARNING) << "QtFileWatcher::directoryChangedOnDisk - not the file "
+                         "we are watching";
     }
-
+  }
 }

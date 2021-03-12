@@ -9,7 +9,8 @@
 # QTDIR is built -static
 
 QTDIR=$HOME/Sandbox/qt-5.8.0-release-static
-BOOSTDIR=$HOME/Sandbox/boost_1_59_0
+BOOSTDIR=$HOME/work/boost_1_73_0
+#./Library/Preferences/com.glogg.glogg_pattern.plist
 
 make clean
 if [ ! -d "$BOOSTDIR" ]; then

@@ -20,8 +20,8 @@
 #ifndef TABBEDCRAWLERWIDGET_H
 #define TABBEDCRAWLERWIDGET_H
 
-#include <QTabWidget>
 #include <QTabBar>
+#include <QTabWidget>
 
 #include "loadingstatus.h"
 
@@ -29,32 +29,45 @@
 // group of CrawlerWidgets.
 // This is a very slightly customised QTabWidget, with
 // a particular style.
-class TabbedCrawlerWidget : public QTabWidget
-{
+class TabbedCrawlerWidget : public QTabWidget {
   Q_OBJECT
-    public:
-      TabbedCrawlerWidget();
-      virtual ~TabbedCrawlerWidget() {}
+ public:
+  TabbedCrawlerWidget(QWidget *);
+  virtual ~TabbedCrawlerWidget() {}
 
-      // "Overridden" addTab/removeTab that automatically
-      // show/hide the tab bar
-      // The tab is created with the 'old data' icon.
-      int addTab( QWidget* page, const QString& label );
-      void removeTab( int index );
+  // "Overridden" addTab/removeTab that automatically
+  // show/hide the tab bar
+  // The tab is created with the 'old data' icon.
+  int addTab(QWidget *page, const QString &label, const QString &filePath);
+  void removeTab(int index);
 
-      // Set the data status (icon) for the tab number 'index'
-      void setTabDataStatus( int index, DataStatus status );
+  // Set the data status (icon) for the tab number 'index'
+  void setTabDataStatus(const QString &filePath, DataStatus status);
+  void setTabBarVisibility(bool visible);
+  bool getTabBarVisibility();
 
-    protected:
-      void keyPressEvent( QKeyEvent* event );
-      void mouseReleaseEvent( QMouseEvent *event);
+ protected:
+  void keyPressEvent(QKeyEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event);
+  void mousePressEvent(QMouseEvent *event);
+  void mouseMoveEvent(QMouseEvent *event);
+  void mouseDoubleClickEvent(QMouseEvent *event);
+  void paintEvent(QPaintEvent *event);
 
-    private:
-      const QIcon olddata_icon_;
-      const QIcon newdata_icon_;
-      const QIcon newfiltered_icon_;
+ private:
+  const QIcon olddata_icon_;
+  const QIcon newdata_icon_;
+  const QIcon newfiltered_icon_;
 
-      QTabBar myTabBar_;
+  QTabBar myTabBar_;
+
+ signals:
+  void doubleClicked();
+
+ protected:
+  QPoint mousePos;
+  QPoint wndPos;
+  bool mousePressed;
 };
 
 #endif

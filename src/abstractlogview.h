@@ -25,394 +25,466 @@
 #include <QBasicTimer>
 
 #ifdef GLOGG_PERF_MEASURE_FPS
-#  include "perfcounter.h"
+#include "perfcounter.h"
 #endif
 
-#include "selection.h"
-#include "quickfind.h"
 #include "overviewwidget.h"
+#include "quickfind.h"
 #include "quickfindmux.h"
+#include "quickmarkmux.h"
+#include "selection.h"
 #include "viewtools.h"
 
 class QMenu;
 class QAction;
 class AbstractLogData;
 
-class LineChunk
-{
-  public:
-    enum ChunkType {
-        Normal,
-        Highlighted,
-        Selected,
-    };
+class LineChunk {
+ public:
+  enum ChunkType {
+    Normal,
+    Highlighted,
+    Selected,
+    Commented,
+    Mark1,
+    Mark2,
+    Mark3,
+    Mark4,
+    Mark5,
+    Mark6,
+    Mark7,
+    Mark8,
+    Mark9,
+    Mark10,
+    Mark11,
+    Mark12,
+    Mark13,
+    Mark14,
+    Mark15,
+    Mark16,
+    Mark17,
+    Mark18,
+    Mark19,
+    Mark20,
+    Mark21,
+    Mark22,
+    Mark23,
+    Mark24,
+    Mark25,
+    Mark26,
+    Mark27,
+    Mark28,
+    Mark29,
+    Mark30,
+    Mark31,
+    Unknown
+  };
 
-    LineChunk( int first_col, int end_col, ChunkType type );
+  LineChunk(int first_col, int end_col, int type);
 
-    int start() const { return start_; }
-    int end() const { return end_; }
-    ChunkType type() const { return type_; }
+  int start() const { return start_; }
+  int end() const { return end_; }
+  int type() const { return type_; }
 
-    // Returns 'true' if the selection is part of this chunk
-    // (at least partially), if so, it should be replaced by the list returned
-    QList<LineChunk> select( int selection_start, int selection_end ) const;
+  // Returns 'true' if the selection is part of this chunk
+  // (at least partially), if so, it should be replaced by the list returned
+  QList<LineChunk> select(int selection_start, int selection_end) const;
 
-  private:
-    int start_;
-    int end_;
-    ChunkType type_;
+ private:
+  int start_;
+  int end_;
+  int type_;
 };
 
 // Utility class for syntax colouring.
 // It stores the chunks of line to draw
 // each chunk having a different colour
-class LineDrawer
-{
-  public:
-    LineDrawer( const QColor& back_color) :
-        list(), backColor_( back_color ) { };
+class LineDrawer {
+ public:
+  LineDrawer(const QColor& back_color) : list(), backColor_(back_color){};
 
-    // Add a chunk of line using the given colours.
-    // Both first_col and last_col are included
-    // An empty chunk will be ignored.
-    // the first column will be set to 0 if negative
-    // The column are relative to the screen
-    void addChunk( int first_col, int last_col, QColor fore, QColor back );
-    void addChunk( const LineChunk& chunk, QColor fore, QColor back );
+  // Add a chunk of line using the given colours.
+  // Both first_col and last_col are included
+  // An empty chunk will be ignored.
+  // the first column will be set to 0 if negative
+  // The column are relative to the screen
+  void addChunk(int first_col, int last_col, QColor fore, QColor back);
+  void addChunk(const LineChunk& chunk, QColor fore, QColor back);
 
-    // Draw the current line of text using the given painter,
-    // in the passed block (in pixels)
-    // The line must be cut to fit on the screen.
-    // leftExtraBackgroundPx is the an extra margin to start drawing
-    // the coloured // background, going all the way to the element
-    // left of the line looks better.
-    void draw( QPainter& painter, int xPos, int yPos,
-               int line_width, const QString& line,
-               int leftExtraBackgroundPx );
+  // Draw the current line of text using the given painter,
+  // in the passed block (in pixels)
+  // The line must be cut to fit on the screen.
+  // leftExtraBackgroundPx is the an extra margin to start drawing
+  // the coloured // background, going all the way to the element
+  // left of the line looks better.
+  void draw(QPainter& painter, int xPos, int yPos, int line_width,
+            const QString& line, int leftExtraBackgroundPx);
 
-  private:
-    class Chunk {
-      public:
-        // Create a new chunk
-        Chunk( int start, int length, QColor fore, QColor back )
-            : start_( start ), length_( length ),
-            foreColor_ ( fore ), backColor_ ( back ) { };
+ private:
+  class Chunk {
+   public:
+    // Create a new chunk
+    Chunk(int start, int length, QColor fore, QColor back)
+        : start_(start), length_(length), foreColor_(fore), backColor_(back){};
 
-        // Accessors
-        int start() const { return start_; }
-        int length() const { return length_; }
-        const QColor& foreColor() const { return foreColor_; }
-        const QColor& backColor() const { return backColor_; }
+    // Accessors
+    int start() const { return start_; }
+    int length() const { return length_; }
+    const QColor& foreColor() const { return foreColor_; }
+    const QColor& backColor() const { return backColor_; }
 
-      private:
-        int start_;
-        int length_;
-        QColor foreColor_;
-        QColor backColor_;
-    };
-    QList<Chunk> list;
+   private:
+    int start_;
+    int length_;
+    QColor foreColor_;
     QColor backColor_;
+  };
+  QList<Chunk> list;
+  QColor backColor_;
 };
-
 
 // Utility class representing a buffer for number entered on the keyboard
 // The buffer keep at most 7 digits, and reset itself after a timeout.
-class DigitsBuffer : public QObject
-{
+class DigitsBuffer : public QObject {
   Q_OBJECT
 
-  public:
-    DigitsBuffer();
+ public:
+  DigitsBuffer();
 
-    // Reset the buffer.
-    void reset();
-    // Add a single digit to the buffer (discarded if it's not a digit),
-    // the timeout timer is reset.
-    void add( char character );
-    // Get the content of the buffer (0 if empty) and reset it.
-    int content();
+  // Reset the buffer.
+  void reset();
+  // Add a single digit to the buffer (discarded if it's not a digit),
+  // the timeout timer is reset.
+  void add(char character);
+  // Get the content of the buffer (0 if empty) and reset it.
+  int content();
 
-  protected:
-    void timerEvent( QTimerEvent* event );
+ protected:
+  void timerEvent(QTimerEvent* event);
 
-  private:
-    // Duration of the timeout in milliseconds.
-    static const int timeout_;
+ private:
+  // Duration of the timeout in milliseconds.
+  static const int timeout_;
 
-    QString digits_;
+  QString digits_;
 
-    QBasicTimer timer_;
+  QBasicTimer timer_;
 };
 
 class Overview;
 
 // Base class representing the log view widget.
 // It can be either the top (full) or bottom (filtered) view.
-class AbstractLogView :
-    public QAbstractScrollArea, public SearchableWidgetInterface
-{
+class AbstractLogView : public QAbstractScrollArea,
+                        public SearchableWidgetInterface,
+                        public MarkableWidgetInterface {
   Q_OBJECT
 
-  public:
-    // Constructor of the widget, the data set is passed.
-    // The caller retains ownership of the data set.
-    // The pointer to the QFP is used for colouring and QuickFind searches
-    AbstractLogView( const AbstractLogData* newLogData,
-            const QuickFindPattern* const quickFind, QWidget* parent=0 );
-    ~AbstractLogView();
+ public:
+  // Constructor of the widget, the data set is passed.
+  // The caller retains ownership of the data set.
+  // The pointer to the QFP is used for colouring and QuickFind searches
+  AbstractLogView(const AbstractLogData* newLogData,
+                  const QuickFindPattern* const quickFind,
+                  const QuickFindPattern* const quickMark, QWidget* parent = 0);
+  ~AbstractLogView();
 
-    // Refresh the widget when the data set has changed.
-    void updateData();
-    // Instructs the widget to update it's content geometry,
-    // used when the font is changed.
-    void updateDisplaySize();
-    // Return the line number of the top line of the view
-    int getTopLine() const;
-    // Return the text of the current selection.
-    QString getSelection() const;
-    // Instructs the widget to select the whole text.
-    void selectAll();
+  // Refresh the widget when the data set has changed.
+  void updateData();
+  void setIsFilter(bool isFilter);
+  // Instructs the widget to update it's content geometry,
+  // used when the font is changed.
+  void updateDisplaySize();
+  // Return the line number of the top line of the view
+  int getTopLine() const;
+  // Return the text of the current selection.
+  QString getSelection() const;
+  // Instructs the widget to select the whole text.
+  void selectAll();
 
-    bool isFollowEnabled() const { return followMode_; }
+  bool isFollowEnabled() const { return followMode_; }
 
-  protected:
-    virtual void mousePressEvent( QMouseEvent* mouseEvent );
-    virtual void mouseMoveEvent( QMouseEvent* mouseEvent );
-    virtual void mouseReleaseEvent( QMouseEvent* );
-    virtual void mouseDoubleClickEvent( QMouseEvent* mouseEvent );
-    virtual void timerEvent( QTimerEvent* timerEvent );
-    virtual void changeEvent( QEvent* changeEvent );
-    virtual void paintEvent( QPaintEvent* paintEvent );
-    virtual void resizeEvent( QResizeEvent* resizeEvent );
-    virtual void scrollContentsBy( int dx, int dy );
-    virtual void keyPressEvent( QKeyEvent* keyEvent );
-    virtual void wheelEvent( QWheelEvent* wheelEvent );
-    virtual bool event( QEvent * e );
+ protected:
+  virtual void mousePressEvent(QMouseEvent* mouseEvent);
+  virtual void mouseMoveEvent(QMouseEvent* mouseEvent);
+  virtual void mouseReleaseEvent(QMouseEvent*);
+  virtual void mouseDoubleClickEvent(QMouseEvent* mouseEvent);
+  virtual void timerEvent(QTimerEvent* timerEvent);
+  virtual void changeEvent(QEvent* changeEvent);
+  virtual void paintEvent(QPaintEvent* paintEvent);
+  virtual void resizeEvent(QResizeEvent* resizeEvent);
+  virtual void scrollContentsBy(int dx, int dy);
+  virtual void keyPressEvent(QKeyEvent* keyEvent);
+  virtual void wheelEvent(QWheelEvent* wheelEvent);
+  virtual bool event(QEvent* e);
 
-    // Must be implemented to return wether the line number is
-    // a match, a mark or just a normal line (used for coloured bullets)
-    enum LineType { Normal, Marked, Match };
-    virtual LineType lineType( int lineNumber ) const = 0;
+  // Must be implemented to return wether the line number is
+  // a match, a mark or just a normal line (used for coloured bullets)
+  enum LineType { Normal, Marked, Match };
+  virtual LineType lineType(int lineNumber) const = 0;
 
-    // Line number to display for line at the given index
-    virtual qint64 displayLineNumber( int lineNumber ) const;
-    virtual qint64 maxDisplayLineNumber() const;
+  // Line number to display for line at the given index
+  virtual qint64 displayLineNumber(int lineNumber) const;
+  virtual qint64 maxDisplayLineNumber() const;
 
-    // Get the overview associated with this view, or NULL if there is none
-    Overview* getOverview() const { return overview_; }
-    // Set the Overview and OverviewWidget
-    void setOverview( Overview* overview, OverviewWidget* overview_widget );
+  // Get the overview associated with this view, or NULL if there is none
+  Overview* getOverview() const { return overview_; }
+  // Set the Overview and OverviewWidget
+  void setOverview(Overview* overview, OverviewWidget* overview_widget);
 
-    // Returns the current "position" of the view as a line number,
-    // it is either the selected line or the middle of the view.
-    LineNumber getViewPosition() const;
+  // Returns the current "position" of the view as a line number,
+  // it is either the selected line or the middle of the view.
+  LineNumber getViewPosition() const;
 
-  signals:
-    // Sent when a new line has been selected by the user.
-    void newSelection(int line);
-    // Sent up to the MainWindow to enable/disable the follow mode
-    void followModeChanged( bool enabled );
-    // Sent when the view wants the QuickFind widget pattern to change.
-    void changeQuickFind( const QString& newPattern,
-            QuickFindMux::QFDirection newDirection );
-    // Sent up when the current line number is updated
-    void updateLineNumber( int line );
-    // Sent up when quickFind wants to show a message to the user.
-    void notifyQuickFind( const QFNotification& message );
-    // Sent up when quickFind wants to clear the notification.
-    void clearQuickFindNotification();
-    // Sent when the view ask for a line to be marked
-    // (click in the left margin).
-    void markLine( qint64 line );
-    // Sent up when the user wants to add the selection to the search
-    void addToSearch( const QString& selection );
-    // Sent up when the mouse is hovered over a line's margin
-    void mouseHoveredOverLine( qint64 line );
-    // Sent up when the mouse leaves a line's margin
-    void mouseLeftHoveringZone();
-    // Sent up for view initiated quickfind searches
-    void searchNext();
-    void searchPrevious();
-    // Sent up when the user has moved within the view
-    void activity();
-    // Sent up when the user want to exit this view
-    // (switch to the next one)
-    void exitView();
+ signals:
+  // Sent when a new line has been selected by the user.
+  void newSelection(int line);
+  // Sent up to the MainWindow to enable/disable the follow mode
+  void followModeChanged(bool enabled);
+  void followModeChange(bool enabled);
+  // Sent when the view wants the QuickFind widget pattern to change.
+  void changeQuickFind(const QString& newPattern, QFDirection newDirection);
+  void changeQuickMark(const QString& newPattern, QFDirection newDirection);
+  // Sent up when the current line number is updated
+  void updateLineNumber(int line);
+  // Sent up when quickFind wants to show a message to the user.
+  void notifyQuickFind(const QFNotification& message);
+  void notifyQuickMark(const QFNotification& message);
+  // Sent up when quickFind wants to clear the notification.
+  void clearQuickFindNotification();
+  void clearQuickMarkNotification();
+  // Sent when the view ask for a line to be marked
+  // (click in the left margin).
+  void commentLine(qint64 line, QString& commentLine);
+  void markLine(qint64 line);
+  void markLines(QList<int> lines);
+  // Sent up when the user wants to add the selection to the search
+  void addToSearch(const QString& selection);
+  void addToQuickSearch(const QString& selection);
+  void addToQuickMark(const QString& selection);
+  // Sent up when the mouse is hovered over a line's margin
+  void mouseHoveredOverLine(qint64 line);
+  // Sent up when the mouse leaves a line's margin
+  void mouseLeftHoveringZone();
+  // Sent up for view initiated quickfind searches
+  void searchNext();
+  void searchPrevious();
+  void markNext();
+  void markPrevious();
+  // Sent up when the user has moved within the view
+  void activity();
+  // Sent up when the user want to exit this view
+  // (switch to the next one)
+  void exitView();
 
-  public slots:
-    // Makes the widget select and display the passed line.
-    // Scrolling as necessary
-    void selectAndDisplayLine( int line );
+ public slots:
+  // Makes the widget select and display the passed line.
+  // Scrolling as necessary
+  void selectAndDisplayLine(int line);
 
-    // Use the current QFP to go and select the next match.
-    virtual void searchForward();
-    // Use the current QFP to go and select the previous match.
-    virtual void searchBackward();
+  void updateFocus();
 
-    // Use the current QFP to go and select the next match (incremental)
-    virtual void incrementallySearchForward();
-    // Use the current QFP to go and select the previous match (incremental)
-    virtual void incrementallySearchBackward();
-    // Stop the current incremental search (typically when user press return)
-    virtual void incrementalSearchStop();
-    // Abort the current incremental search (typically when user press esc)
-    virtual void incrementalSearchAbort();
+  // Use the current QFP to go and select the next match.
+  virtual void searchForward();
+  // Use the current QFP to go and select the previous match.
+  virtual void searchBackward();
 
-    // Signals the follow mode has been enabled.
-    void followSet( bool checked );
+  // Use the current QFP to go and select the next match (incremental)
+  virtual void incrementallySearchForward();
+  // Use the current QFP to go and select the previous match (incremental)
+  virtual void incrementallySearchBackward();
+  // Stop the current incremental search (typically when user press return)
+  virtual void incrementalSearchStop();
+  // Abort the current incremental search (typically when user press esc)
+  virtual void incrementalSearchAbort();
 
-    // Signal the on/off status of the overview has been changed.
-    void refreshOverview();
+  // Use the current QFP to go and select the next match.
+  virtual void markForward();
+  // Use the current QFP to go and select the previous match.
+  virtual void markBackward();
 
-    // Make the view jump to the specified line, regardless of weither it
-    // is on the screen or not.
-    // (does NOT emit followDisabled() )
-    void jumpToLine( int line );
+  // Use the current QFP to go and select the next match (incremental)
+  virtual void incrementallyMarkForward();
+  // Use the current QFP to go and select the previous match (incremental)
+  virtual void incrementallyMarkBackward();
+  // Stop the current incremental Mark (typically when user press return)
+  virtual void incrementalMarkStop();
+  // Abort the current incremental Mark (typically when user press esc)
+  virtual void incrementalMarkAbort();
 
-    // Configure the setting of whether to show line number margin
-    void setLineNumbersVisible( bool lineNumbersVisible );
+  // Signals the follow mode has been enabled.
+  void followSet(bool checked);
 
-    // Force the next refresh to fully redraw the view by invalidating the cache.
-    // To be used if the data might have changed.
-    void forceRefresh();
+  // Signal the on/off status of the overview has been changed.
+  void refreshOverview();
 
-  private slots:
-    void handlePatternUpdated();
-    void addToSearch();
-    void findNextSelected();
-    void findPreviousSelected();
-    void copy();
+  // Make the view jump to the specified line, regardless of weither it
+  // is on the screen or not.
+  // (does NOT emit followDisabled() )
+  void jumpToLine(int line);
 
-  private:
-    // Graphic parameters
-    static constexpr int OVERVIEW_WIDTH = 27;
-    static constexpr int HOOK_THRESHOLD = 600;
-    static constexpr int PULL_TO_FOLLOW_HOOKED_HEIGHT = 10;
+  // Configure the setting of whether to show line number margin
+  void setLineNumbersVisible(bool lineNumbersVisible);
 
-    // Width of the bullet zone, including decoration
-    int bulletZoneWidthPx_;
+  // Force the next refresh to fully redraw the view by invalidating the cache.
+  // To be used if the data might have changed.
+  void forceRefresh();
 
-    // Total size of all margins and decorations in pixels
-    int leftMarginPx_;
+ private slots:
+  void handlePatternUpdated(QList<int> removedList);
+  void handleMarkPatternUpdated(QList<int> removedList);
+  void addToSearch();
+  void addToQuickSearch();
+  void addToQuickMark();
+  void startLogcat();
+  void stopLogcat();
+  void syncPatterns();
+  void findNextSelected();
+  void findPreviousSelected();
+  void copy();
+  void comment();
 
-    // Digits buffer (for numeric keyboard entry)
-    DigitsBuffer digitsBuffer_;
+ private:
+  // Graphic parameters
+  static constexpr int OVERVIEW_WIDTH = 16; /*overviewWidth*/
+  static constexpr int HOOK_THRESHOLD = 600;
+  static constexpr int PULL_TO_FOLLOW_HOOKED_HEIGHT = 1;
 
-    // Follow mode
-    bool followMode_;
+  // Width of the bullet zone, including decoration
+  int bulletZoneWidthPx_;
 
-    // ElasticHook for follow mode
-    ElasticHook followElasticHook_;
+  // Total size of all margins and decorations in pixels
+  int leftMarginPx_;
 
-    // Whether to show line numbers or not
-    bool lineNumbersVisible_;
+  // Digits buffer (for numeric keyboard entry)
+  DigitsBuffer digitsBuffer_;
 
-    // Pointer to the CrawlerWidget's data set
-    const AbstractLogData* logData;
+  // Follow mode
+  bool followMode_;
 
-    // Pointer to the Overview object
-    Overview* overview_;
+  // ElasticHook for follow mode
+  ElasticHook followElasticHook_;
 
-    // Pointer to the OverviewWidget, this class doesn't own it,
-    // but is responsible for displaying it (for purely aesthetic
-    // reasons).
-    OverviewWidget* overviewWidget_;
+  // Whether to show line numbers or not
+  bool lineNumbersVisible_;
 
-    bool selectionStarted_;
-    // Start of the selection (characters)
-    QPoint selectionStartPos_;
-    // Current end of the selection (characters)
-    QPoint selectionCurrentEndPos_;
-    QBasicTimer autoScrollTimer_;
+  // Pointer to the CrawlerWidget's data set
+  const AbstractLogData* logData;
 
-    // Hovering state
-    // Last line that has been hoovered on, -1 if none
-    qint64 lastHoveredLine_;
+  // Pointer to the Overview object
+  Overview* overview_;
 
-    // Marks (left margin click)
-    bool markingClickInitiated_;
-    qint64 markingClickLine_;
+  // Pointer to the OverviewWidget, this class doesn't own it,
+  // but is responsible for displaying it (for purely aesthetic
+  // reasons).
+  OverviewWidget* overviewWidget_;
 
-    Selection selection_;
+  bool selectionStarted_;
+  // Start of the selection (characters)
+  QPoint selectionStartPos_;
+  // Current end of the selection (characters)
+  QPoint selectionCurrentEndPos_;
+  QBasicTimer autoScrollTimer_;
+  QList<int> colorIndexList_;
 
-    // Position of the view, those are crucial to control drawing
-    // firstLine gives the position of the view,
-    // lastLineAligned == true make the bottom of the last line aligned
-    // rather than the top of the top one.
-    LineNumber firstLine;
-    bool lastLineAligned;
-    int firstCol;
+  // Hovering state
+  // Last line that has been hoovered on, -1 if none
+  qint64 lastHoveredLine_;
 
-    // Text handling
-    int charWidth_;
-    int charHeight_;
+  // Marks (left margin click)
+  bool markingClickInitiated_;
+  qint64 markingClickLine_;
 
-    // Popup menu
-    QMenu* popupMenu_;
-    QAction* copyAction_;
-    QAction* findNextAction_;
-    QAction* findPreviousAction_;
-    QAction* addToSearchAction_;
+  Selection selection_;
 
-    // Pointer to the CrawlerWidget's QFP object
-    const QuickFindPattern* const quickFindPattern_;
-    // Our own QuickFind object
-    QuickFind quickFind_;
+  // Position of the view, those are crucial to control drawing
+  // firstLine gives the position of the view,
+  // lastLineAligned == true make the bottom of the last line aligned
+  // rather than the top of the top one.
+  LineNumber firstLine;
+  bool lastLineAligned;
+  int firstCol;
+  bool isFilterView;
+
+  // Text handling
+  int charWidth_;
+  int charHeight_;
+
+  // Popup menu
+  QMenu* popupMenu_;
+  QAction* copyAction_;
+  QAction* commentAction_;
+  QAction* findNextAction_;
+  QAction* findPreviousAction_;
+  QAction* addToSearchAction_;
+  QAction* addToMarkAction_;
+  QAction* startLogcatAction_;
+  QAction* stopLogcatAction_;
+  QAction* syncPatternsAction_;
+
+  // Pointer to the CrawlerWidget's QFP object
+  const QuickFindPattern* const quickFindPattern_;
+  const QuickFindPattern* const quickMarkPattern_;
+  // Our own QuickFind object
+  QuickFind quickFind_;
+  QuickFind quickMark_;
 
 #ifdef GLOGG_PERF_MEASURE_FPS
-    // Performance measurement
-    PerfCounter perfCounter_;
+  // Performance measurement
+  PerfCounter perfCounter_;
 #endif
 
-    // Vertical offset (in pixels) at which the first line of text is written
-    int drawingTopOffset_ = 0;
+  // Vertical offset (in pixels) at which the first line of text is written
+  int drawingTopOffset_ = 0;
 
-    // Cache pixmap and associated info
-    struct TextAreaCache {
-        QPixmap pixmap_;
-        bool invalid_;
-        int first_line_;
-        int last_line_;
-        int first_column_;
-    };
-    struct PullToFollowCache {
-        QPixmap pixmap_;
-        int nb_columns_;
-    };
-    TextAreaCache textAreaCache_ = { {}, true, 0, 0, 0 };
-    PullToFollowCache pullToFollowCache_ = { {}, 0 };
+  // Cache pixmap and associated info
+  struct TextAreaCache {
+    QPixmap pixmap_;
+    bool invalid_;
+    int first_line_;
+    int last_line_;
+    int first_column_;
+  };
+  struct PullToFollowCache {
+    QPixmap pixmap_;
+    int nb_columns_;
+  };
+  TextAreaCache textAreaCache_ = {{}, true, 0, 0, 0};
+  PullToFollowCache pullToFollowCache_ = {{}, 0};
 
-    LineNumber getNbVisibleLines() const;
-    int getNbVisibleCols() const;
-    QPoint convertCoordToFilePos( const QPoint& pos ) const;
-    int convertCoordToLine( int yPos ) const;
-    int convertCoordToColumn( int xPos ) const;
-    void displayLine( LineNumber line );
-    void moveSelection( int y );
-    void jumpToStartOfLine();
-    void jumpToEndOfLine();
-    void jumpToRightOfScreen();
-    void jumpToTop();
-    void jumpToBottom();
-    void selectWordAtPosition( const QPoint& pos );
+  LineNumber getNbVisibleLines() const;
+  int getNbVisibleCols() const;
+  QPoint convertCoordToFilePos(const QPoint& pos) const;
+  int convertCoordToLine(int yPos) const;
+  int convertCoordToColumn(int xPos) const;
+  void displayLine(LineNumber line);
+  void displayLine2(LineNumber line);
+  void moveSelection(int y);
+  void jumpToStartOfLine();
+  void jumpToEndOfLine();
+  void jumpToRightOfScreen();
+  void jumpToTop();
+  void jumpToBottom();
+  void selectWordAtPosition(const QPoint& pos);
 
-    void createMenu();
+  void createMenu();
 
-    void considerMouseHovering( int x_pos, int y_pos );
+  void considerMouseHovering(int x_pos, int y_pos);
 
-    // Search functions (for n/N)
-    void searchUsingFunction( qint64 (QuickFind::*search_function)() );
+  // Search functions (for n/N)
+  void searchUsingFunction(qint64 (QuickFind::*search_function)());
+  void markUsingFunction(qint64 (QuickFind::*search_function)());
 
-    void updateScrollBars();
+  void updateScrollBars();
 
-    void drawTextArea( QPaintDevice* paint_device, int32_t delta_y );
-    QPixmap drawPullToFollowBar( int width, float pixel_ratio );
+  void drawTextArea(QPaintDevice* paint_device, int32_t delta_y);
+  QPixmap drawPullToFollowBar(int width, float pixel_ratio);
 
-    void disableFollow();
+  void disableFollow();
 
-    // Utils functions
-    bool isCharWord( char c );
-    void updateGlobalSelection();
+  // Utils functions
+  bool isCharWord(char c);
+  void updateGlobalSelection();
 };
 
 #endif

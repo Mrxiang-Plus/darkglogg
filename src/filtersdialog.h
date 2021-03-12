@@ -22,44 +22,60 @@
 
 #include <memory>
 
+#include <frqfilterset.h>
 #include <QDialog>
 
 #include "filterset.h"
 #include "ui_filtersdialog.h"
 
-class FiltersDialog : public QDialog, public Ui::FiltersDialog
-{
+class FiltersDialog : public QDialog, public Ui::FiltersDialog {
   Q_OBJECT
 
-  public:
-    FiltersDialog( QWidget* parent = 0 );
+ public:
+  FiltersDialog(QWidget* parent = 0);
 
-  signals:
-    // Is emitted when new settings must be used
-    void optionsChanged();
+ signals:
+  // Is emitted when new settings must be used
+  void optionsChanged();
 
-  private slots:
-    void on_addFilterButton_clicked();
-    void on_removeFilterButton_clicked();
-    void on_buttonBox_clicked( QAbstractButton* button );
-    void on_upFilterButton_clicked();
-    void on_downFilterButton_clicked();
-    // Update the property (pattern, color...) fields from the
-    // selected Filter.
-    void updatePropertyFields();
-    // Update the selected Filter from the values in the property fields.
-    void updateFilterProperties();
+ private slots:
+  void on_addFilterButton_clicked();
+  void on_removeFilterButton_clicked();
+  void on_buttonBox_clicked(QAbstractButton* button);
+  void on_upFilterButton_clicked();
+  void on_downFilterButton_clicked();
+  // Update the property (pattern, color...) fields from the
+  // selected Filter.
+  void updatePropertyFields();
+  // Update the selected Filter from the values in the property fields.
+  void updateFilterProperties();
 
-  private:
-    // Temporary filterset modified by the dialog
-    // it is copied from the one in Config()
-    std::shared_ptr<FilterSet> filterSet;
+  void on_pinnedButton_clicked();
 
-    // Index of the row currently selected or -1 if none.
-    int selectedRow_;
+  void on_removeFilterButton_4_clicked();
 
-    void populateColors();
-    void populateFilterList();
+  void on_addFilterButton_4_clicked();
+
+  void on_upFilterButton_4_clicked();
+
+  void on_downFilterButton_4_clicked();
+
+  void on_filterListWidget_clicked(const QModelIndex& index);
+
+  void on_pinnedListWidget_clicked(const QModelIndex& index);
+
+ private:
+  QListWidget* focusedListWidget_;
+  // Temporary filterset modified by the dialog
+  // it is copied from the one in Config()
+  std::shared_ptr<FilterSet> filterSet;
+  std::shared_ptr<FrqFilterSet> frqFilterSet;
+
+  // Index of the row currently selected or -1 if none.
+  int selectedRow_;
+
+  void populateColors();
+  void populateFilterList();
 };
 
 #endif

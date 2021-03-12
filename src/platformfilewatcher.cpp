@@ -21,41 +21,35 @@
 
 #include "log.h"
 
-std::shared_ptr<PlatformFileWatcher::PlatformWatchTower> PlatformFileWatcher::watch_tower_;
+std::shared_ptr<PlatformFileWatcher::PlatformWatchTower>
+    PlatformFileWatcher::watch_tower_;
 
-PlatformFileWatcher::PlatformFileWatcher() : FileWatcher()
-{
-    // Caution, this is NOT thread-safe or re-entrant!
-    if ( !watch_tower_ )
-    {
-        watch_tower_ = std::make_shared<PlatformWatchTower>();
-    }
+PlatformFileWatcher::PlatformFileWatcher() : FileWatcher() {
+  // Caution, this is NOT thread-safe or re-entrant!
+  if (!watch_tower_) {
+    watch_tower_ = std::make_shared<PlatformWatchTower>();
+  }
 }
 
-PlatformFileWatcher::~PlatformFileWatcher()
-{
+PlatformFileWatcher::~PlatformFileWatcher() {}
+
+void PlatformFileWatcher::addFile(const QString& fileName) {
+  LOG(logDEBUG) << "FileWatcher::addFile " << fileName.toStdString();
+
+  watched_file_name_ = fileName;
+
+  removeFile(fileName);
+  notification_ = std::make_shared<Registration>(
+      watch_tower_->addFile(fileName.toStdString(),
+                            [this, fileName] { emit fileChanged(fileName); }));
 }
 
-void PlatformFileWatcher::addFile( const QString& fileName )
-{
-    LOG(logDEBUG) << "FileWatcher::addFile " << fileName.toStdString();
+void PlatformFileWatcher::removeFile(const QString& fileName) {
+  LOG(logDEBUG) << "FileWatcher::removeFile " << fileName.toStdString();
 
-    watched_file_name_ = fileName;
-
-    removeFile( fileName );
-    notification_ = std::make_shared<Registration>(
-            watch_tower_->addFile( fileName.toStdString(), [this, fileName] {
-                emit fileChanged( fileName ); } ) );
+  notification_ = nullptr;
 }
 
-void PlatformFileWatcher::removeFile( const QString& fileName )
-{
-    LOG(logDEBUG) << "FileWatcher::removeFile " << fileName.toStdString();
-
-    notification_ = nullptr;
-}
-
-void PlatformFileWatcher::setPollingInterval( uint32_t interval_ms )
-{
-    watch_tower_->setPollingInterval( interval_ms );
+void PlatformFileWatcher::setPollingInterval(uint32_t interval_ms) {
+  watch_tower_->setPollingInterval(interval_ms);
 }

@@ -5,55 +5,54 @@
 class LogData;
 class LogFilteredData;
 
-class TestLogFilteredData: public QObject
-{
-    Q_OBJECT
+class TestLogFilteredData : public QObject {
+  Q_OBJECT
 
-    public:
-        TestLogFilteredData();
+ public:
+  TestLogFilteredData();
 
-    private slots:
-        void initTestCase();
+ private slots:
+  void initTestCase();
 
-        void simpleSearch();
-        void multipleSearch();
-        void marks();
-        void lineLength();
-        void updateSearch();
+  void simpleSearch();
+  void multipleSearch();
+  void marks();
+  void lineLength();
+  void updateSearch();
 
-    public slots:
-        void loadingFinished();
-        void searchProgressed( int completion, int nbMatches );
+ public slots:
+  void loadingFinished();
+  void searchProgressed(int completion, int nbMatches);
 
-    private:
-        bool generateDataFiles();
+ private:
+  bool generateDataFiles();
 
-        void simpleSearchTest();
-        void multipleSearchTest();
-        void updateSearchTest();
-        void marksTest();
-        void lineLengthTest();
+  void simpleSearchTest();
+  void multipleSearchTest();
+  void updateSearchTest();
+  void marksTest();
+  void lineLengthTest();
 
-        std::pair<int,int> waitSearchProgressed();
-        void waitLoadingFinished();
-        void signalSearchProgressedRead();
-        void signalLoadingFinishedRead();
+  std::pair<int, int> waitSearchProgressed();
+  void waitLoadingFinished();
+  void signalSearchProgressedRead();
+  void signalLoadingFinishedRead();
 
-        LogData* logData_;
-        LogFilteredData* filteredData_;
+  LogData* logData_;
+  LogFilteredData* filteredData_;
 
-        // Synchronisation variables (protected by the two mutexes)
-        bool loadingFinished_received_;
-        bool loadingFinished_read_;
-        bool searchProgressed_received_;
-        bool searchProgressed_read_;
+  // Synchronisation variables (protected by the two mutexes)
+  bool loadingFinished_received_;
+  bool loadingFinished_read_;
+  bool searchProgressed_received_;
+  bool searchProgressed_read_;
 
-        int searchLastMatches_;
-        int searchLastProgress_;
+  int searchLastMatches_;
+  int searchLastProgress_;
 
-        QMutex loadingFinishedMutex_;
-        QMutex searchProgressedMutex_;
+  QMutex loadingFinishedMutex_;
+  QMutex searchProgressedMutex_;
 
-        QWaitCondition loadingFinishedCondition_;
-        QWaitCondition searchProgressedCondition_;
+  QWaitCondition loadingFinishedCondition_;
+  QWaitCondition searchProgressedCondition_;
 };

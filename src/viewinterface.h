@@ -25,58 +25,71 @@
 class LogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedPatterns;
 class QuickFindPattern;
 
 // ViewContextInterface represents the private information
 // the concrete view will be able to save and restore.
 // It can be marshalled to persistent storage.
 class ViewContextInterface {
-  public:
-    virtual ~ViewContextInterface() {}
+ public:
+  virtual ~ViewContextInterface() {}
 
-    virtual std::string toString() const = 0;
+  virtual std::string toString() const = 0;
 };
 
 // ViewInterface represents a high-level view on a log file.
 // This a pure virtual class (interface) which is subclassed
 // for each type of view.
 class ViewInterface {
-  public:
-    // Set the log data and filtered data to associate to this view
-    // Ownership stay with the caller but is shared
-    void setData( std::shared_ptr<LogData> log_data,
-            std::shared_ptr<LogFilteredData> filtered_data )
-    { doSetData( log_data, filtered_data ); }
+ public:
+  // Set the log data and filtered data to associate to this view
+  // Ownership stay with the caller but is shared
+  void setData(std::shared_ptr<LogData> log_data,
+               std::shared_ptr<LogFilteredData> filtered_data) {
+    doSetData(log_data, filtered_data);
+  }
 
-    // Set the (shared) quickfind pattern object
-    void setQuickFindPattern( std::shared_ptr<QuickFindPattern> qfp )
-    { doSetQuickFindPattern( qfp ); }
+  // Set the (shared) quickfind pattern object
+  void setQuickFindPattern(std::shared_ptr<QuickFindPattern> qfp) {
+    doSetQuickFindPattern(qfp);
+  }
+  void setQuickMarkPattern(std::shared_ptr<QuickFindPattern> qfp) {
+    doSetQuickMarkPattern(qfp);
+  }
 
-    // Set the (shared) search history object
-    void setSavedSearches( std::shared_ptr<SavedSearches> saved_searches )
-    { doSetSavedSearches( saved_searches ); }
+  // Set the (shared) search history object
+  void setSavedSearches(std::shared_ptr<SavedSearches> saved_searches) {
+    doSetSavedSearches(saved_searches);
+  }
+  void setSavedPatterns(std::shared_ptr<SavedPatterns> saved_patterns) {
+    doSetSavedPatterns(saved_patterns);
+  }
 
-    // For save/restore of the context
-    void setViewContext( const char* view_context )
-    { doSetViewContext( view_context ); }
-    // (returned object ownership is transferred to the caller)
-    std::shared_ptr<const ViewContextInterface> context( void ) const
-    { return doGetViewContext(); }
+  // For save/restore of the context
+  void setViewContext(const char* view_context) {
+    doSetViewContext(view_context);
+  }
+  // (returned object ownership is transferred to the caller)
+  std::shared_ptr<const ViewContextInterface> context(void) const {
+    return doGetViewContext();
+  }
 
-    // To allow polymorphic destruction
-    virtual ~ViewInterface() {}
+  // To allow polymorphic destruction
+  virtual ~ViewInterface() {}
 
-  protected:
-    // Virtual functions (using NVI)
-    virtual void doSetData( std::shared_ptr<LogData> log_data,
-            std::shared_ptr<LogFilteredData> filtered_data ) = 0;
-    virtual void doSetQuickFindPattern(
-            std::shared_ptr<QuickFindPattern> qfp ) = 0;
-    virtual void doSetSavedSearches(
-            std::shared_ptr<SavedSearches> saved_searches ) = 0;
-    virtual void doSetViewContext(
-            const char* view_context ) = 0;
-    virtual std::shared_ptr<const ViewContextInterface>
-        doGetViewContext( void ) const = 0;
+ protected:
+  // Virtual functions (using NVI)
+  virtual void doSetData(std::shared_ptr<LogData> log_data,
+                         std::shared_ptr<LogFilteredData> filtered_data) = 0;
+  virtual void doSetQuickFindPattern(std::shared_ptr<QuickFindPattern> qfp) = 0;
+  virtual void doSetQuickMarkPattern(std::shared_ptr<QuickFindPattern> qfp) = 0;
+  virtual void doSetSavedSearches(
+      std::shared_ptr<SavedSearches> saved_searches) = 0;
+  virtual void doSetSavedPatterns(
+      std::shared_ptr<SavedPatterns> saved_patterns) = 0;
+  virtual void doSetViewContext(const char* view_context) = 0;
+  virtual std::shared_ptr<const ViewContextInterface> doGetViewContext(
+      void) const = 0;
 };
 #endif

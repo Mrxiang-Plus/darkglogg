@@ -8,7 +8,7 @@
 TARGET = glogg
 TEMPLATE = app
 
-QT += network
+QT += network core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += core widgets
 
@@ -19,7 +19,10 @@ win32:Release:QMAKE_LFLAGS += "-Wl,-subsystem,windows"
 
 # Input
 SOURCES += \
+    src/frqfilterset.cpp \
+    src/frqframe.cpp \
     src/main.cpp \
+    src/persistentPattern.cpp \
     src/session.cpp \
     src/data/abstractlogdata.cpp \
     src/data/logdata.cpp \
@@ -38,6 +41,7 @@ SOURCES += \
     src/filtersdialog.cpp \
     src/filterset.cpp \
     src/savedsearches.cpp \
+    src/savedpatterns.cpp \
     src/infoline.cpp \
     src/menuactiontooltipbehavior.cpp \
     src/selection.cpp \
@@ -50,13 +54,21 @@ SOURCES += \
     src/overviewwidget.cpp \
     src/marks.cpp \
     src/quickfindmux.cpp \
+    src/quickmarkmux.cpp \
     src/signalmux.cpp \
     src/tabbedcrawlerwidget.cpp \
     src/viewtools.cpp \
     src/encodingspeculator.cpp \
     src/gloggapp.cpp \
+    src/boxpopupmenu.cpp \
+    src/poplistview.cpp \
+    framelesswindow/framelesswindow.cpp \
+    framelesswindow/windowdragger.cpp \
+    src/DarkStyle.cpp \
+    src/pinedbutton.cpp
 
-INCLUDEPATH += src/
+INCLUDEPATH += src/ \
+               framelesswindow/
 
 HEADERS += \
     src/data/abstractlogdata.h \
@@ -67,7 +79,10 @@ HEADERS += \
     src/data/threadprivatestore.h \
     src/data/compressedlinestorage.h \
     src/data/linepositionarray.h \
+    src/frqfilterset.h \
+    src/frqframe.h \
     src/mainwindow.h \
+    src/persistentpattern.h \
     src/session.h \
     src/viewinterface.h \
     src/crawlerwidget.h \
@@ -81,6 +96,7 @@ HEADERS += \
     src/filtersdialog.h \
     src/filterset.h \
     src/savedsearches.h \
+    src/savedpatterns.h \
     src/infoline.h \
     src/filewatcher.h \
     src/selection.h \
@@ -96,6 +112,7 @@ HEADERS += \
     src/marks.h \
     src/qfnotifications.h \
     src/quickfindmux.h \
+    src/quickmarkmux.h \
     src/signalmux.h \
     src/tabbedcrawlerwidget.h \
     src/loadingstatus.h \
@@ -103,6 +120,16 @@ HEADERS += \
     src/viewtools.h \
     src/encodingspeculator.h \
     src/gloggapp.h \
+    src/boxpopupmenu.h \
+    src/poplistview.h \
+    framelesswindow/framelesswindow.h \
+    framelesswindow/windowdragger.h \
+    src/DarkStyle.h \
+    src/pinedbutton.h
+
+//https://github.com/nickbnf/glogg/blob/master/release-osx.sh
+//BOOST_PATH = /Users/xu/work/boost_1_73_0
+BOOST_PATH = ../boost_1_71_0
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)
@@ -132,8 +159,10 @@ else {
     INCLUDEPATH += $$BOOST_PATH
 }
 
-FORMS += src/optionsdialog.ui
-FORMS += src/filtersdialog.ui
+FORMS += src/optionsdialog.ui \
+         src/frqframe.ui
+FORMS += src/filtersdialog.ui \
+         framelesswindow/framelesswindow.ui
 
 macx {
     # Icon for Mac
@@ -146,7 +175,9 @@ else {
     QMAKE_TARGET_DESCRIPTION = "glogg - the fast, smart log explorer"
 }
 
-RESOURCES = glogg.qrc
+RESOURCES = glogg.qrc \
+            darkstyle.qrc \
+            framelesswindow.qrc
 
 # Build HTML documentation (if 'markdown' is available)
 system(type markdown >/dev/null) {
@@ -198,12 +229,17 @@ MOC_DIR = $${OUT_PWD}/.moc/$${DESTDIR}-shared
 UI_DIR = $${OUT_PWD}/.ui/$${DESTDIR}-shared
 
 # Debug symbols even in release build
-QMAKE_CXXFLAGS = -g
+# QMAKE_CXXFLAGS = -g
 
 CONFIG += c++11
+#CONFIG += static
+#QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++
+#QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++  -L/pc2/work/Qt/Tools/QtCreator/lib/Qt/lib
+#DEFINES += STATIC
 
 # Extra compiler arguments
 # QMAKE_CXXFLAGS += -Weffc++
+#QMAKE_CXXFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++ -L/pc2/work/Qt/Tools/QtCreator/lib/Qt/lib
 QMAKE_CXXFLAGS += -Wextra
 
 GPROF {
@@ -213,9 +249,9 @@ GPROF {
 
 isEmpty(LOG_LEVEL) {
     CONFIG(debug, debug|release) {
-        DEFINES += FILELOG_MAX_LEVEL=\"logDEBUG4\"
+        DEFINES += FILELOG_MAX_LEVEL=\"logERROR\"
     } else {
-        DEFINES += FILELOG_MAX_LEVEL=\"logDEBUG\"
+        DEFINES += FILELOG_MAX_LEVEL=\"logERROR\"
     }
 }
 else {

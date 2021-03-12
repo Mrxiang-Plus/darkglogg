@@ -26,27 +26,26 @@
 #include "persistable.h"
 
 // Manage the list of recently opened files
-class RecentFiles : public Persistable
-{
-  public:
-    // Creates an empty set of recent files
-    RecentFiles();
+class RecentFiles : public Persistable {
+ public:
+  // Creates an empty set of recent files
+  RecentFiles();
 
-    // Adds the passed filename to the list of recently used searches
-    void addRecent( const QString& text );
+  // Adds the passed filename to the list of recently used searches
+  void addRecent(const QString& text);
 
-    // Returns a list of recent files (latest loaded first)
-    QStringList recentFiles() const;
+  // Returns a list of recent files (latest loaded first)
+  QStringList recentFiles() const;
 
-    // Reads/writes the current config in the QSettings object passed
-    virtual void saveToStorage( QSettings& settings ) const;
-    virtual void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  virtual void saveToStorage(QSettings& settings) const;
+  virtual void retrieveFromStorage(QSettings& settings);
 
-  private:
-    static const int RECENTFILES_VERSION;
-    static const int MAX_NUMBER_OF_FILES;
+ private:
+  static const int RECENTFILES_VERSION;
+  static const int MAX_NUMBER_OF_FILES;
 
-    QStringList recentFiles_;
+  QStringList recentFiles_;
 };
 
 #endif

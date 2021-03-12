@@ -27,44 +27,44 @@
 #include "ui_optionsdialog.h"
 
 // Implements the main option dialog box
-class OptionsDialog : public QDialog, public Ui::OptionsDialog
-{
-    Q_OBJECT
+class OptionsDialog : public QDialog, public Ui::OptionsDialog {
+  Q_OBJECT
 
-  public:
-    OptionsDialog(QWidget* parent = 0);
+ public:
+  OptionsDialog(QWidget* parent = 0);
 
-  signals:
-    // Is emitted when new settings must be used
-    void optionsChanged();
+ signals:
+  // Is emitted when new settings must be used
+  void optionsChanged();
 
-  private slots:
-    // Clears and updates the font size box with the sizes allowed
-    // by the passed font family.
-    void updateFontSize(const QString& fontFamily);
-    // Update the content of the global Config() using parameters
-    // from the dialog box.
-    void updateConfigFromDialog();
-    // Called when a ok/cancel/apply button is clicked.
-    void onButtonBoxClicked( QAbstractButton* button );
-    // Called when the 'incremental' button is toggled.
-    void onIncrementalChanged();
-    // Called when the 'polling' checkbox is toggled.
-    void onPollingChanged();
+ private slots:
+  // Clears and updates the font size box with the sizes allowed
+  // by the passed font family.
+  void updateFontSize(const QString& fontFamily);
+  // Update the content of the global Config() using parameters
+  // from the dialog box.
+  void updateConfigFromDialog();
+  // Called when a ok/cancel/apply button is clicked.
+  void onButtonBoxClicked(QAbstractButton* button);
+  void onPathButtonClicked();
+  // Called when the 'incremental' button is toggled.
+  void onIncrementalChanged();
+  // Called when the 'polling' checkbox is toggled.
+  void onPollingChanged();
 
-  private:
-    void setupTabs();
-    void setupFontList();
-    void setupRegexp();
-    void setupIncremental();
-    void setupPolling();
+ private:
+  void setupTabs();
+  void setupFontList();
+  void setupRegexp();
+  void setupIncremental();
+  void setupPolling();
 
-    int getRegexpIndex( SearchRegexpType syntax ) const;
-    SearchRegexpType getRegexpTypeFromIndex( int index ) const;
+  int getRegexpIndex(SearchRegexpType syntax) const;
+  SearchRegexpType getRegexpTypeFromIndex(int index) const;
 
-    void updateDialogFromConfig();
+  void updateDialogFromConfig();
 
-    QValidator* polling_interval_validator_;
+  QValidator* polling_interval_validator_;
 };
 
 #endif

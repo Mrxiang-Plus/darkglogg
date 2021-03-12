@@ -17,123 +17,160 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDir>
 #include <QFontInfo>
 
 #include "log.h"
 
 #include "configuration.h"
 
-Configuration::Configuration()
-{
-    // Should have some sensible default values.
-    mainFont_ = QFont("monaco", 10);
-    mainFont_.setStyleHint( QFont::Courier, QFont::PreferOutline );
+Configuration::Configuration() {
+  // Should have some sensible default values.
+  mainFont_ = QFont("Monospace", 10);
+  mainFont_.setStyleHint(QFont::System, QFont::PreferOutline);
 
-    mainRegexpType_               = ExtendedRegexp;
-    quickfindRegexpType_          = FixedString;
-    quickfindIncremental_         = true;
+  repoUrl_ = "git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git";
+
+#ifdef _WIN32
+  unzipPath_ = QDir::currentPath();
+#else
+  unzipPath_ = "~/.glogg/";
+#endif
+  mainRegexpType_ = ExtendedRegexp;
+  quickfindRegexpType_ = FixedString;
+  quickfindIncremental_ = true;
 
 #ifdef GLOGG_SUPPORTS_POLLING
-    pollingEnabled_               = true;
+  pollingEnabled_ = true;
 #else
-    pollingEnabled_               = false;
+  pollingEnabled_ = false;
 #endif
-    pollIntervalMs_               = 2000;
+  pollIntervalMs_ = 2000;
+  transparent_ = 255;
 
-    loadLastSession_              = true;
+  loadLastSession_ = true;
 
-    overviewVisible_              = true;
-    lineNumbersVisibleInMain_     = false;
-    lineNumbersVisibleInFiltered_ = true;
+  overviewVisible_ = true;
+  lineNumbersVisibleInMain_ = false;
+  lineNumbersVisibleInFiltered_ = true;
 
-    QFontInfo fi(mainFont_);
-    LOG(logDEBUG) << "Default font is " << fi.family().toStdString();
+  QFontInfo fi(mainFont_);
+  LOG(logDEBUG) << "Default font is " << fi.family().toStdString();
 
-    searchAutoRefresh_ = false;
-    searchIgnoreCase_  = false;
+  searchAutoRefresh_ = false;
+  searchIgnoreCase_ = false;
 }
 
 // Accessor functions
-QFont Configuration::mainFont() const
-{
-    return mainFont_;
+QFont Configuration::mainFont() const { return mainFont_; }
+QString Configuration::repoUrl() const { return repoUrl_; }
+QString Configuration::unzipPath() const { return unzipPath_; }
+
+void Configuration::setMainFont(QFont newFont) {
+  LOG(logDEBUG) << "Configuration::setMainFont";
+
+  mainFont_ = newFont;
 }
 
-void Configuration::setMainFont( QFont newFont )
-{
-    LOG(logDEBUG) << "Configuration::setMainFont";
+void Configuration::setRepoUrl(QString newUrl) {
+  LOG(logDEBUG) << "Configuration::setRepoUrl";
 
-    mainFont_ = newFont;
+  repoUrl_ = newUrl;
 }
 
-void Configuration::retrieveFromStorage( QSettings& settings )
-{
-    LOG(logDEBUG) << "Configuration::retrieveFromStorage";
+void Configuration::setUnzipPath(QString newPath) {
+  LOG(logDEBUG) << "Configuration::setUnzipPath";
 
-    // Fonts
-    QString family = settings.value( "mainFont.family" ).toString();
-    int size = settings.value( "mainFont.size" ).toInt();
-
-    // If no config read, keep the default
-    if ( !family.isNull() )
-        mainFont_ = QFont( family, size );
-
-    // Regexp types
-    mainRegexpType_ = static_cast<SearchRegexpType>(
-            settings.value( "regexpType.main", mainRegexpType_ ).toInt() );
-    quickfindRegexpType_ = static_cast<SearchRegexpType>(
-            settings.value( "regexpType.quickfind", quickfindRegexpType_ ).toInt() );
-    if ( settings.contains( "quickfind.incremental" ) )
-        quickfindIncremental_ = settings.value( "quickfind.incremental" ).toBool();
-
-    // "Advanced" settings
-    if ( settings.contains( "polling.enabled" ) )
-        pollingEnabled_ = settings.value( "polling.enabled" ).toBool();
-    if ( settings.contains( "polling.intervalMs" ) )
-        pollIntervalMs_ = settings.value( "polling.intervalMs" ).toInt();
-
-    if ( settings.contains( "session.loadLast" ) )
-        loadLastSession_ = settings.value( "session.loadLast" ).toBool();
-
-    // View settings
-    if ( settings.contains( "view.overviewVisible" ) )
-        overviewVisible_ = settings.value( "view.overviewVisible" ).toBool();
-    if ( settings.contains( "view.lineNumbersVisibleInMain" ) )
-        lineNumbersVisibleInMain_ =
-            settings.value( "view.lineNumbersVisibleInMain" ).toBool();
-    if ( settings.contains( "view.lineNumbersVisibleInFiltered" ) )
-        lineNumbersVisibleInFiltered_ =
-            settings.value( "view.lineNumbersVisibleInFiltered" ).toBool();
-
-    // Some sanity check (mainly for people upgrading)
-    if ( quickfindIncremental_ )
-        quickfindRegexpType_ = FixedString;
-
-    // Default crawler settings
-    if ( settings.contains( "defaultView.searchAutoRefresh" ) )
-        searchAutoRefresh_ = settings.value( "defaultView.searchAutoRefresh" ).toBool();
-    if ( settings.contains( "defaultView.searchIgnoreCase" ) )
-        searchIgnoreCase_ = settings.value( "defaultView.searchIgnoreCase" ).toBool();
+  unzipPath_ = newPath;
 }
 
-void Configuration::saveToStorage( QSettings& settings ) const
-{
-    LOG(logDEBUG) << "Configuration::saveToStorage";
+void Configuration::retrieveFromStorage(QSettings& settings) {
+  LOG(logDEBUG) << "Configuration::retrieveFromStorage";
 
-    QFontInfo fi(mainFont_);
+  // Fonts
+  QString family = settings.value("mainFont.family").toString();
+  int size = settings.value("mainFont.size").toInt();
 
-    settings.setValue( "mainFont.family", fi.family() );
-    settings.setValue( "mainFont.size", fi.pointSize() );
-    settings.setValue( "regexpType.main", static_cast<int>( mainRegexpType_ ) );
-    settings.setValue( "regexpType.quickfind", static_cast<int>( quickfindRegexpType_ ) );
-    settings.setValue( "quickfind.incremental", quickfindIncremental_ );
-    settings.setValue( "polling.enabled", pollingEnabled_ );
-    settings.setValue( "polling.intervalMs", pollIntervalMs_ );
-    settings.setValue( "session.loadLast", loadLastSession_);
+  // If no config read, keep the default
+  if (!family.isNull()) mainFont_ = QFont(family, size);
 
-    settings.setValue( "view.overviewVisible", overviewVisible_ );
-    settings.setValue( "view.lineNumbersVisibleInMain", lineNumbersVisibleInMain_ );
-    settings.setValue( "view.lineNumbersVisibleInFiltered", lineNumbersVisibleInFiltered_ );
-    settings.setValue( "defaultView.searchAutoRefresh", searchAutoRefresh_ );
-    settings.setValue( "defaultView.searchIgnoreCase", searchIgnoreCase_ );
+  repoUrl_ = settings.value("repo.url").toString();
+  if (repoUrl_.isEmpty()) {
+    repoUrl_ = "git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git";
+  }
+
+  unzipPath_ = settings.value("unzip.path").toString();
+  if (unzipPath_.isEmpty()) {
+#ifdef _WIN32
+  unzipPath_ = QDir::currentPath();
+#else
+  unzipPath_ = "~/.glogg/";
+#endif
+  }
+
+  // Regexp types
+  mainRegexpType_ = static_cast<SearchRegexpType>(
+      settings.value("regexpType.main", mainRegexpType_).toInt());
+  quickfindRegexpType_ = static_cast<SearchRegexpType>(
+      settings.value("regexpType.quickfind", quickfindRegexpType_).toInt());
+  if (settings.contains("quickfind.incremental"))
+    quickfindIncremental_ = settings.value("quickfind.incremental").toBool();
+
+  // "Advanced" settings
+  if (settings.contains("polling.enabled"))
+    pollingEnabled_ = settings.value("polling.enabled").toBool();
+  if (settings.contains("polling.intervalMs"))
+    pollIntervalMs_ = settings.value("polling.intervalMs").toInt();
+
+  if (settings.contains("transparent"))
+    transparent_ = settings.value("transparent").toInt();
+
+  if (settings.contains("session.loadLast"))
+    loadLastSession_ = settings.value("session.loadLast").toBool();
+
+  // View settings
+  if (settings.contains("view.overviewVisible"))
+    overviewVisible_ = settings.value("view.overviewVisible").toBool();
+  if (settings.contains("view.lineNumbersVisibleInMain"))
+    lineNumbersVisibleInMain_ =
+        settings.value("view.lineNumbersVisibleInMain").toBool();
+  if (settings.contains("view.lineNumbersVisibleInFiltered"))
+    lineNumbersVisibleInFiltered_ =
+        settings.value("view.lineNumbersVisibleInFiltered").toBool();
+
+  // Some sanity check (mainly for people upgrading)
+  if (quickfindIncremental_) quickfindRegexpType_ = FixedString;
+
+  // Default crawler settings
+  if (settings.contains("defaultView.searchAutoRefresh"))
+    searchAutoRefresh_ =
+        settings.value("defaultView.searchAutoRefresh").toBool();
+  if (settings.contains("defaultView.searchIgnoreCase"))
+    searchIgnoreCase_ = settings.value("defaultView.searchIgnoreCase").toBool();
+}
+
+void Configuration::saveToStorage(QSettings& settings) const {
+  LOG(logDEBUG) << "Configuration::saveToStorage";
+
+  QFontInfo fi(mainFont_);
+
+  settings.setValue("mainFont.family", fi.family());
+  settings.setValue("mainFont.size", fi.pointSize());
+  settings.setValue("repo.url", repoUrl_);
+  settings.setValue("unzip.path", unzipPath_);
+  settings.setValue("regexpType.main", static_cast<int>(mainRegexpType_));
+  settings.setValue("regexpType.quickfind",
+                    static_cast<int>(quickfindRegexpType_));
+  settings.setValue("quickfind.incremental", quickfindIncremental_);
+  settings.setValue("polling.enabled", pollingEnabled_);
+  settings.setValue("polling.intervalMs", pollIntervalMs_);
+  settings.setValue("transparent", transparent_);
+  settings.setValue("session.loadLast", loadLastSession_);
+
+  settings.setValue("view.overviewVisible", overviewVisible_);
+  settings.setValue("view.lineNumbersVisibleInMain", lineNumbersVisibleInMain_);
+  settings.setValue("view.lineNumbersVisibleInFiltered",
+                    lineNumbersVisibleInFiltered_);
+  settings.setValue("defaultView.searchAutoRefresh", searchAutoRefresh_);
+  settings.setValue("defaultView.searchIgnoreCase", searchIgnoreCase_);
 }

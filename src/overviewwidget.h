@@ -20,54 +20,53 @@
 #ifndef OVERVIEWWIDGET_H
 #define OVERVIEWWIDGET_H
 
-#include <QWidget>
 #include <QBasicTimer>
+#include <QWidget>
 
 class Overview;
 
-class OverviewWidget : public QWidget
-{
+class OverviewWidget : public QWidget {
   Q_OBJECT
 
-  public:
-    OverviewWidget( QWidget* parent = 0 );
+ public:
+  OverviewWidget(QWidget* parent = 0);
 
-    // Associate the widget with an Overview object.
-    void setOverview( Overview* overview ) { overview_ = overview; }
+  // Associate the widget with an Overview object.
+  void setOverview(Overview* overview) { overview_ = overview; }
 
-  public slots:
-    // Sent when a match at the line passed must be highlighted in
-    // the overview
-    void highlightLine( qint64 line );
-    void removeHighlight();
+ public slots:
+  // Sent when a match at the line passed must be highlighted in
+  // the overview
+  void highlightLine(qint64 line);
+  void removeHighlight();
 
-  protected:
-    void paintEvent( QPaintEvent* paintEvent );
-    void mousePressEvent( QMouseEvent* mouseEvent );
-    void mouseMoveEvent( QMouseEvent* mouseEvent );
-    void timerEvent( QTimerEvent* event );
+ protected:
+  void paintEvent(QPaintEvent* paintEvent);
+  void mousePressEvent(QMouseEvent* mouseEvent);
+  void mouseMoveEvent(QMouseEvent* mouseEvent);
+  void timerEvent(QTimerEvent* event);
 
-  signals:
-    // Sent when the user click on a line in the Overview.
-    void lineClicked( int line );
+ signals:
+  // Sent when the user click on a line in the Overview.
+  void lineClicked(int line);
 
-  private:
-    // Constants
-    static const int LINE_MARGIN;
-    static const int STEP_DURATION_MS;
-    static const int INITIAL_TTL_VALUE;
+ private:
+  // Constants
+  static const int LINE_MARGIN;
+  static const int STEP_DURATION_MS;
+  static const int INITIAL_TTL_VALUE;
 
-    Overview* overview_;
+  Overview* overview_;
 
-    // Highlight:
-    // Which line is higlighted, or -1 if none
-    int highlightedLine_;
-    // Number of step until the highlight become static
-    int highlightedTTL_;
+  // Highlight:
+  // Which line is higlighted, or -1 if none
+  int highlightedLine_;
+  // Number of step until the highlight become static
+  int highlightedTTL_;
 
-    QBasicTimer highlightTimer_;
+  QBasicTimer highlightTimer_;
 
-    void handleMousePress( int position );
+  void handleMousePress(int position);
 };
 
 #endif

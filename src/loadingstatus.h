@@ -23,20 +23,12 @@
 #include <QMetaType>
 
 // Loading status of a file
-enum class LoadingStatus {
-    Successful,
-    Interrupted,
-    NoMemory
-};
+enum class LoadingStatus { Successful, Interrupted, NoMemory };
 
 // Data status (whether new, not seen, data is available)
-enum class DataStatus {
-    OLD_DATA,
-    NEW_DATA,
-    NEW_FILTERED_DATA
-};
+enum class DataStatus { OLD_DATA, NEW_DATA, NEW_FILTERED_DATA };
 
-Q_DECLARE_METATYPE( DataStatus )
-Q_DECLARE_METATYPE( LoadingStatus )
+Q_DECLARE_METATYPE(DataStatus)
+Q_DECLARE_METATYPE(LoadingStatus)
 
 #endif

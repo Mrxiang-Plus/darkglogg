@@ -27,124 +27,110 @@
 
 #include "overview.h"
 
-Overview::Overview() : matchLines_(), markLines_()
-{
-    logFilteredData_ = NULL;
-    linesInFile_     = 0;
-    topLine_         = 0;
-    nbLines_         = 0;
-    height_          = 0;
-    dirty_           = true;
-    visible_         = false;
+Overview::Overview() : matchLines_(), markLines_() {
+  logFilteredData_ = NULL;
+  linesInFile_ = 0;
+  topLine_ = 0;
+  nbLines_ = 0;
+  height_ = 0;
+  dirty_ = true;
+  visible_ = false;
 }
 
-Overview::~Overview()
-{
+Overview::~Overview() {}
+
+void Overview::setFilteredData(const LogFilteredData* logFilteredData) {
+  logFilteredData_ = logFilteredData;
 }
 
-void Overview::setFilteredData( const LogFilteredData* logFilteredData )
-{
-    logFilteredData_ = logFilteredData;
+void Overview::updateData(int totalNbLine) {
+  LOG(logDEBUG) << "OverviewWidget::updateData " << totalNbLine;
+
+  linesInFile_ = totalNbLine;
+  dirty_ = true;
 }
 
-void Overview::updateData( int totalNbLine )
-{
-    LOG(logDEBUG) << "OverviewWidget::updateData " << totalNbLine;
+void Overview::updateView(int height) {
+  // We don't touch the cache if the height hasn't changed
+  if ((height != height_) || (dirty_ == true)) {
+    height_ = height;
 
-    linesInFile_ = totalNbLine;
-    dirty_ = true;
+    recalculatesLines();
+  }
 }
 
-void Overview::updateView( int height )
-{
-    // We don't touch the cache if the height hasn't changed
-    if ( ( height != height_ ) || ( dirty_ == true ) ) {
-        height_ = height;
-
-        recalculatesLines();
-    }
+const QVector<Overview::WeightedLine>* Overview::getMatchLines() const {
+  return &matchLines_;
 }
 
-const QVector<Overview::WeightedLine>* Overview::getMatchLines() const
-{
-    return &matchLines_;
+const QVector<Overview::WeightedLine>* Overview::getMarkLines() const {
+  return &markLines_;
 }
 
-const QVector<Overview::WeightedLine>* Overview::getMarkLines() const
-{
-    return &markLines_;
+std::pair<int, int> Overview::getViewLines() const {
+  int top = 0;
+  int bottom = height_ - 1;
+
+  if (linesInFile_ > 0) {
+    top = (int)((qint64)topLine_ * height_ / linesInFile_);
+    bottom = (int)((qint64)top + nbLines_ * height_ / linesInFile_);
+  }
+
+  return std::pair<int, int>(top, bottom);
 }
 
-std::pair<int,int> Overview::getViewLines() const
-{
-    int top = 0;
-    int bottom = height_ - 1;
+int Overview::fileLineFromY(int position) const {
+  int line = (int)((qint64)position * linesInFile_ / height_);
 
-    if ( linesInFile_ > 0 ) {
-        top = (int)((qint64)topLine_ * height_ / linesInFile_);
-        bottom = (int)((qint64)top + nbLines_ * height_ / linesInFile_);
-    }
-
-    return std::pair<int,int>(top, bottom);
+  return line;
 }
 
-int Overview::fileLineFromY( int position ) const
-{
-    int line = (int)((qint64)position * linesInFile_ / height_);
+int Overview::yFromFileLine(int file_line) const {
+  int position = 0;
 
-    return line;
-}
+  if (linesInFile_ > 0)
+    position = (int)((qint64)file_line * height_ / linesInFile_);
 
-int Overview::yFromFileLine( int file_line ) const
-{
-    int position = 0;
-
-    if ( linesInFile_ > 0 )
-        position =  (int)((qint64)file_line * height_ / linesInFile_);
-
-    return position;
+  return position;
 }
 
 // Update the internal cache
-void Overview::recalculatesLines()
-{
-    LOG(logDEBUG) << "OverviewWidget::recalculatesLines";
+void Overview::recalculatesLines() {
+  LOG(logDEBUG) << "OverviewWidget::recalculatesLines";
 
-    if ( logFilteredData_ != NULL ) {
-        matchLines_.clear();
-        markLines_.clear();
+  if (logFilteredData_ != NULL) {
+    matchLines_.clear();
+    markLines_.clear();
 
-        if ( linesInFile_ > 0 ) {
-            for ( int i = 0; i < logFilteredData_->getNbLine(); i++ ) {
-                LogFilteredData::FilteredLineType line_type =
-                    logFilteredData_->filteredLineTypeByIndex( i );
-                int line = (int) logFilteredData_->getMatchingLineNumber( i );
-                int position = (int)( (qint64)line * height_ / linesInFile_ );
-                if ( line_type == LogFilteredData::Match ) {
-                    if ( ( ! matchLines_.isEmpty() ) && matchLines_.last().position() == position ) {
-                        // If the line is already there, we increase its weight
-                        matchLines_.last().load();
-                    }
-                    else {
-                        // If not we just add it
-                        matchLines_.append( WeightedLine( position ) );
-                    }
-                }
-                else {
-                    if ( ( ! markLines_.isEmpty() ) && markLines_.last().position() == position ) {
-                        // If the line is already there, we increase its weight
-                        markLines_.last().load();
-                    }
-                    else {
-                        // If not we just add it
-                        markLines_.append( WeightedLine( position ) );
-                    }
-                }
-            }
+    if (linesInFile_ > 0) {
+      for (int i = 0; i < logFilteredData_->getNbLine(); i++) {
+        LogFilteredData::FilteredLineType line_type =
+            logFilteredData_->filteredLineTypeByIndex(i);
+        int line = (int)logFilteredData_->getMatchingLineNumber(i);
+        int position = (int)((qint64)line * height_ / linesInFile_);
+        if (line_type == LogFilteredData::Match) {
+          if ((!matchLines_.isEmpty()) &&
+              matchLines_.last().position() == position) {
+            // If the line is already there, we increase its weight
+            matchLines_.last().load();
+          } else {
+            // If not we just add it
+            matchLines_.append(WeightedLine(position));
+          }
+        } else {
+          if ((!markLines_.isEmpty()) &&
+              markLines_.last().position() == position) {
+            // If the line is already there, we increase its weight
+            markLines_.last().load();
+          } else {
+            // If not we just add it
+            markLines_.append(WeightedLine(position));
+          }
         }
+      }
     }
-    else
-        LOG(logDEBUG) << "Overview::recalculatesLines: logFilteredData_ == NULL";
+  } else
+    LOG(logDEBUG) << "Overview::recalculatesLines: logFilteredData_ == NULL";
 
-    dirty_ = false;
+  dirty_ = false;
 }

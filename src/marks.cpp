@@ -28,61 +28,47 @@
 // not done very often anyway.  Oh and we need to iterate through the
 // list, disqualifying a straight heap.
 
-Marks::Marks() : marks_()
-{
+Marks::Marks() : marks_() {}
+
+void Marks::addMark(qint64 line, QChar mark) {
+  // Look for the index immediately before
+  int index;
+  if (!lookupLineNumber<QList<Mark> >(marks_, line, &index)) {
+    // If a mark is not already set for this line
+    LOG(logDEBUG) << "Inserting mark at line " << line << " (index " << index
+                  << ")";
+    marks_.insert(index, Mark(line));
+  } else {
+    LOG(logERROR) << "Trying to add an existing mark at line " << line;
+  }
+
+  // 'mark' is not used yet
+  mark = mark;
 }
 
-void Marks::addMark( qint64 line, QChar mark )
-{
-    // Look for the index immediately before
-    int index;
-    if ( ! lookupLineNumber< QList<Mark> >( marks_, line, &index ) )
-    {
-        // If a mark is not already set for this line
-        LOG(logDEBUG) << "Inserting mark at line " << line
-            << " (index " << index << ")";
-        marks_.insert( index, Mark( line ) );
-    }
-    else
-    {
-        LOG(logERROR) << "Trying to add an existing mark at line " << line;
-    }
+qint64 Marks::getMark(QChar mark) const {
+  // 'mark' is not used yet
+  mark = mark;
 
-    // 'mark' is not used yet
-    mark = mark;
+  return 0;
 }
 
-qint64 Marks::getMark( QChar mark ) const
-{
-    // 'mark' is not used yet
-    mark = mark;
-
-    return 0;
+bool Marks::isLineMarked(qint64 line) const {
+  int index;
+  return lookupLineNumber<QList<Mark> >(marks_, line, &index);
 }
 
-bool Marks::isLineMarked( qint64 line ) const
-{
-    int index;
-    return lookupLineNumber< QList<Mark> >( marks_, line, &index );
+void Marks::deleteMark(QChar mark) {
+  // 'mark' is not used yet
+  mark = mark;
 }
 
-void Marks::deleteMark( QChar mark )
-{
-    // 'mark' is not used yet
-    mark = mark;
+void Marks::deleteMark(qint64 line) {
+  int index;
+
+  if (lookupLineNumber<QList<Mark> >(marks_, line, &index)) {
+    marks_.removeAt(index);
+  }
 }
 
-void Marks::deleteMark( qint64 line )
-{
-    int index;
-
-    if ( lookupLineNumber< QList<Mark> >( marks_, line, &index ) )
-    {
-        marks_.removeAt( index );
-    }
-}
-
-void Marks::clear()
-{
-    marks_.clear();
-}
+void Marks::clear() { marks_.clear(); }

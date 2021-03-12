@@ -22,59 +22,57 @@
 
 #include "externalcom.h"
 
-#include <memory>
 #include <QObject>
 #include <QtDBus/QtDBus>
+#include <memory>
 
 // An implementation of ExternalInstance using D-Bus via Qt
 class DBusExternalInstance : public ExternalInstance {
-  public:
-    DBusExternalInstance();
-    ~DBusExternalInstance() {}
+ public:
+  DBusExternalInstance();
+  ~DBusExternalInstance() {}
 
-    virtual void loadFile( const QString& file_name ) const;
-    virtual uint32_t getVersion() const;
+  virtual void loadFile(const QString& file_name) const;
+  virtual uint32_t getVersion() const;
 
-  private:
-    std::shared_ptr<QDBusInterface> dbusInterface_;
+ private:
+  std::shared_ptr<QDBusInterface> dbusInterface_;
 };
 
-class DBusInterfaceExternalCommunicator : public QObject
-{
+class DBusInterfaceExternalCommunicator : public QObject {
   Q_OBJECT
 
-  public:
-    DBusInterfaceExternalCommunicator() : QObject() {}
-    ~DBusInterfaceExternalCommunicator() {}
+ public:
+  DBusInterfaceExternalCommunicator() : QObject() {}
+  ~DBusInterfaceExternalCommunicator() {}
 
-  public slots:
-    void loadFile( const QString& file_name );
-    qint32 version() const;
+ public slots:
+  void loadFile(const QString& file_name);
+  qint32 version() const;
 
-  signals:
-    void signalLoadFile( const QString& file_name );
+ signals:
+  void signalLoadFile(const QString& file_name);
 };
 
 // An implementation of ExternalCommunicator using D-Bus via Qt
-class DBusExternalCommunicator : public ExternalCommunicator
-{
+class DBusExternalCommunicator : public ExternalCommunicator {
   Q_OBJECT
 
-  public:
-    // Constructor: initialise the D-Bus connection,
-    // can throw if D-Bus is not available
-    DBusExternalCommunicator();
-    ~DBusExternalCommunicator() {}
+ public:
+  // Constructor: initialise the D-Bus connection,
+  // can throw if D-Bus is not available
+  DBusExternalCommunicator();
+  ~DBusExternalCommunicator() {}
 
-    virtual void startListening();
+  virtual void startListening();
 
-    virtual ExternalInstance* otherInstance() const;
+  virtual ExternalInstance* otherInstance() const;
 
-  public slots:
-    qint32 version() const;
+ public slots:
+  qint32 version() const;
 
-  private:
-    std::shared_ptr<DBusInterfaceExternalCommunicator> dbus_iface_object_;
+ private:
+  std::shared_ptr<DBusInterfaceExternalCommunicator> dbus_iface_object_;
 };
 
 #endif

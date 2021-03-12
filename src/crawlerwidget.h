@@ -21,27 +21,32 @@
 #ifndef CRAWLERWIDGET_H
 #define CRAWLERWIDGET_H
 
-#include <QSplitter>
-#include <QComboBox>
-#include <QPushButton>
+#include <frqframe.h>
+#include <pinedbutton.h>
 #include <QCheckBox>
-#include <QToolButton>
-#include <QVBoxLayout>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QSplitter>
+#include <QToolButton>
+#include <QVBoxLayout>
 
-#include "logmainview.h"
-#include "filteredview.h"
+#include "boxpopupmenu.h"
 #include "data/logdata.h"
 #include "data/logfiltereddata.h"
-#include "viewinterface.h"
-#include "signalmux.h"
-#include "overview.h"
+#include "filteredview.h"
 #include "loadingstatus.h"
+#include "logmainview.h"
+#include "overview.h"
+#include "signalmux.h"
+#include "viewinterface.h"
 
 class InfoLine;
 class QuickFindPattern;
 class SavedSearches;
+class SavedPatterns;
 class QStandardItemModel;
 class OverviewWidget;
 
@@ -49,252 +54,313 @@ class OverviewWidget;
 // It includes both windows, the search line, the info
 // lines and various buttons.
 class CrawlerWidget : public QSplitter,
-    public QuickFindMuxSelectorInterface, public ViewInterface,
-    public MuxableDocumentInterface
-{
+                      public QuickMarkMuxSelectorInterface,
+                      public QuickFindMuxSelectorInterface,
+                      public ViewInterface,
+                      public MuxableDocumentInterface {
   Q_OBJECT
 
-  public:
-    CrawlerWidget( QWidget *parent=0 );
+ public:
+  CrawlerWidget(QWidget* parent = 0);
 
-    // Get the line number of the first line displayed.
-    int getTopLine() const;
-    // Get the selected text as a string (from the main window)
-    QString getSelectedText() const;
+  // Get the line number of the first line displayed.
+  int getTopLine() const;
+  // Get the selected text as a string (from the main window)
+  QString getSelectedText() const;
 
-    // Display the QFB at the bottom, remembering where the focus was
-    void displayQuickFindBar( QuickFindMux::QFDirection direction );
+  // Display the QFB at the bottom, remembering where the focus was
+  void displayQuickFindBar(QFDirection direction);
 
-    // Instructs the widget to select all the text in the window the user
-    // is interacting with
-    void selectAll();
+  // Instructs the widget to select all the text in the window the user
+  // is interacting with
+  void selectAll();
 
-    Encoding encodingSetting() const;
+  Encoding encodingSetting() const;
 
-    // Returns whether follow is enabled in this crawler
-    bool isFollowEnabled() const;
+  // Returns whether follow is enabled in this crawler
+  bool isFollowEnabled() const;
 
-    // Get the text description of the encoding effectively used,
-    // suitable to display to the user.
-    QString encodingText() const;
+  // Get the text description of the encoding effectively used,
+  // suitable to display to the user.
+  QString encodingText() const;
+  int viewSizeMax_;
 
-  public slots:
-    // Stop the asynchoronous loading of the file if one is in progress
-    // The file is identified by the view attached to it.
-    void stopLoading();
-    // Reload the displayed file
-    void reload();
-    // Set the encoding
-    void setEncoding( Encoding encoding );
+ public slots:
+  // Stop the asynchoronous loading of the file if one is in progress
+  // The file is identified by the view attached to it.
+  void stopLoading();
+  void resetButton(int except);
+  void resetButtonWithoutSearch(int except);
+  void forceToggleButton(int index);
+  // Reload the displayed file
+  void reload2();
+  void reload();
+  void setT();
+  // Set the encoding
+  void setEncoding(Encoding encoding);
 
-  protected:
-    // Implementation of the ViewInterface functions
-    virtual void doSetData(
-            std::shared_ptr<LogData> log_data,
-            std::shared_ptr<LogFilteredData> filtered_data );
-    virtual void doSetQuickFindPattern(
-            std::shared_ptr<QuickFindPattern> qfp );
-    virtual void doSetSavedSearches(
-            std::shared_ptr<SavedSearches> saved_searches );
-    virtual void doSetViewContext( const char* view_context );
-    virtual std::shared_ptr<const ViewContextInterface>
-        doGetViewContext( void ) const;
+ protected:
+  // Implementation of the ViewInterface functions
+  virtual void doSetData(std::shared_ptr<LogData> log_data,
+                         std::shared_ptr<LogFilteredData> filtered_data);
+  virtual void doSetQuickFindPattern(std::shared_ptr<QuickFindPattern> qfp);
+  virtual void doSetQuickMarkPattern(std::shared_ptr<QuickFindPattern> qfp);
+  virtual void doSetSavedSearches(
+      std::shared_ptr<SavedSearches> saved_searches);
+  virtual void doSetSavedPatterns(
+      std::shared_ptr<SavedPatterns> saved_patterns);
+  virtual void doSetViewContext(const char* view_context);
+  virtual std::shared_ptr<const ViewContextInterface> doGetViewContext(
+      void) const;
 
-    // Implementation of the mux selector interface
-    // (for dispatching QuickFind to the right widget)
-    virtual SearchableWidgetInterface* doGetActiveSearchable() const;
-    virtual std::vector<QObject*> doGetAllSearchables() const;
+  // Implementation of the mux selector interface
+  // (for dispatching QuickFind to the right widget)
+  virtual SearchableWidgetInterface* doGetActiveSearchable() const;
+  virtual std::vector<QObject*> doGetAllSearchables() const;
+  virtual MarkableWidgetInterface* doGetActiveMarkable() const;
+  virtual std::vector<QObject*> doGetAllMarkables() const;
 
-    // Implementation of the MuxableDocumentInterface
-    virtual void doSendAllStateSignals();
+  // Implementation of the MuxableDocumentInterface
+  virtual void doSendAllStateSignals();
 
-    virtual void keyPressEvent( QKeyEvent* keyEvent );
+  virtual void keyPressEvent(QKeyEvent* keyEvent);
 
-  signals:
-    // Sent to signal the client load has progressed,
-    // passing the completion percentage.
-    void loadingProgressed( int progress );
-    // Sent to the client when the loading has finished
-    // weither succesfull or not.
-    void loadingFinished( LoadingStatus status );
-    // Sent when follow mode is enabled/disabled
-    void followSet( bool checked );
-    // Sent up to the MainWindow to enable/disable the follow mode
-    void followModeChanged( bool follow );
-    // Sent up when the current line number is updated
-    void updateLineNumber( int line );
+ signals:
+  // Sent to signal the client load has progressed,
+  // passing the completion percentage.
+  void loadingProgressed(int progress);
+  void copyToClipboard();
+  void openFile();
+  void exitApp();
+  // Sent to the client when the loading has finished
+  // weither succesfull or not.
+  void loadingFinished(LoadingStatus status);
+  // Sent when follow mode is enabled/disabled
+  void followSet(bool checked);
+  // Sent up to the MainWindow to enable/disable the follow mode
+  void followModeChanged(bool follow);
+  void addToQuickSearch(const QString& string);
+  void addToQuickMark(const QString& string);
+  void replaceQuickMark(const QString& string);
+  // Sent up when the current line number is updated
+  void updateLineNumber(int line);
+  void updateFocus();
 
-    // "auto-refresh" check has been changed
-    void searchRefreshChanged( int state );
-    // "ignore case" check has been changed
-    void ignoreCaseChanged( int state );
+  // "auto-refresh" check has been changed
+  void searchRefreshChanged(int state);
+  // "ignore case" check has been changed
+  void ignoreCaseChanged(int state);
 
-    // Sent when the data status (whether new not seen data are
-    // available) has changed
-    void dataStatusChanged( DataStatus status );
+  // Sent when the data status (whether new not seen data are
+  // available) has changed
+  void dataStatusChanged(DataStatus status);
 
-  private slots:
-    // Instructs the widget to start a search using the current search line.
-    void startNewSearch();
-    // Stop the currently ongoing search (if one exists)
-    void stopSearch();
-    // Instructs the widget to reconfigure itself because Config() has changed.
-    void applyConfiguration();
-    // QuickFind is being entered, save the focus for incremental qf.
-    void enteringQuickFind();
-    // QuickFind is being closed.
-    void exitingQuickFind();
-    // Called when new data must be displayed in the filtered window.
-    void updateFilteredView( int nbMatches, int progress, qint64 initial_position );
-    // Called when a new line has been selected in the filtered view,
-    // to instruct the main view to jump to the matching line.
-    void jumpToMatchingLine( int filteredLineNb );
-    // Called when the main view is on a new line number
-    void updateLineNumberHandler( int line );
-    // Mark a line that has been clicked on the main (top) view.
-    void markLineFromMain( qint64 line );
-    // Mark a line that has been clicked on the filtered (bottom) view.
-    void markLineFromFiltered( qint64 line );
+ private slots:
+  void doSearch(int patternIndex);
+  void updateSearchPattern(int patternIndex);
+  // Instructs the widget to start a search using the current search line.
+  void startNewSearch();
+  void startNewSearch(QString& filter);
+  // Stop the currently ongoing search (if one exists)
+  void stopSearch();
+  void saveNewPattern();
+  // Instructs the widget to reconfigure itself because Config() has changed.
+  void applyConfiguration();
+  // QuickFind is being entered, save the focus for incremental qf.
+  void enteringQuickFind();
+  void enteringQuickMark();
+  void dropDownSearchEdit();
+  // QuickFind is being closed.
+  void focusingFilterBar();
+  void focusingLogBar();
+  void hidingLogBar();
+  void focusingMainView();
+  void exitingQuickFind();
+  void exitingQuickMark();
+  // Called when new data must be displayed in the filtered window.
+  void updateFilteredView(int nbMatches, int progress, qint64 initial_position);
+  // Called when a new line has been selected in the filtered view,
+  // to instruct the main view to jump to the matching line.
+  void jumpToMatchingLine(int filteredLineNb);
+  // Called when the main view is on a new line number
+  void updateLineNumberHandler(int line);
+  // Mark a line that has been clicked on the main (top) view.
+  void markLineFromMain(qint64 line);
+  // Mark a line that has been clicked on the filtered (bottom) view.
+  void markLineFromFiltered(qint64 line);
 
-    void loadingFinishedHandler( LoadingStatus status );
-    // Manages the info lines to inform the user the file has changed.
-    void fileChangedHandler( LogData::MonitoredFileStatus );
+  void markLineFromMain(QList<int> lines);
+  void markLineFromFiltered(QList<int> line);
 
-    void searchForward();
-    void searchBackward();
+  void commentLineFromMain(qint64 line, QString& commentLine);
+  void commentLineFromFiltered(qint64 line, QString& commentLine);
 
-    // Called when the checkbox for search auto-refresh is changed
-    void searchRefreshChangedHandler( int state );
+  void loadingFinishedHandler(LoadingStatus status);
+  // Manages the info lines to inform the user the file has changed.
+  void fileChangedHandler(LogData::MonitoredFileStatus);
+  void fileCommentedHandler(LogData::MonitoredFileStatus);
 
-    // Called when the text on the search line is modified
-    void searchTextChangeHandler();
+  void searchForward();
+  void searchBackward();
 
-    // Called when the user change the visibility combobox
-    void changeFilteredViewVisibility( int index );
+  void markForward();
+  void markBackward();
 
-    // Called when the user add the string to the search
-    void addToSearch( const QString& string );
+  // Called when the checkbox for search auto-refresh is changed
+  void searchRefreshChangedHandler(int state);
 
-    // Called when a match is hovered on in the filtered view
-    void mouseHoveredOverMatch( qint64 line );
+  // Called when the text on the search line is modified
+  void searchTextChangeHandler();
 
-    // Called when there was activity in the views
-    void activityDetected();
+  // Called when the user change the visibility combobox
+  void changeFilteredViewVisibility(int index);
 
-  private:
-    // State machine holding the state of the search, used to allow/disallow
-    // auto-refresh and inform the user via the info line.
-    class SearchState {
-      public:
-        enum State {
-            NoSearch,
-            Static,
-            Autorefreshing,
-            FileTruncated,
-            TruncatedAutorefreshing,
-        };
+  // Called when the user add the string to the search
+  void addToSearch(const QString& string);
 
-        SearchState() { state_ = NoSearch; autoRefreshRequested_ = false; }
+  // Called when a match is hovered on in the filtered view
+  void mouseHoveredOverMatch(qint64 line);
 
-        // Reset the state (no search active)
-        void resetState();
-        // The user changed auto-refresh request
-        void setAutorefresh( bool refresh );
-        // The file has been truncated (stops auto-refresh)
-        void truncateFile();
-        // The expression has been changed (stops auto-refresh)
-        void changeExpression();
-        // The search has been stopped (stops auto-refresh)
-        void stopSearch();
-        // The search has been started (enable auto-refresh)
-        void startSearch();
+  // Called when there was activity in the views
+  void activityDetected();
+  void followModeChange(bool);
 
-        // Get the state in order to display the proper message
-        State getState() const { return state_; }
-        // Is auto-refresh allowed
-        bool isAutorefreshAllowed() const
-        { return ( state_ == Autorefreshing || state_ == TruncatedAutorefreshing ); }
-        bool isFileTruncated() const
-        { return ( state_ == FileTruncated || state_ == TruncatedAutorefreshing ); }
-
-      private:
-        State state_;
-        bool autoRefreshRequested_;
+ private:
+  QMutex mutex;
+  // State machine holding the state of the search, used to allow/disallow
+  // auto-refresh and inform the user via the info line.
+  class SearchState {
+   public:
+    enum State {
+      NoSearch,
+      Static,
+      Autorefreshing,
+      CameraError,
+      FileTruncated,
+      TruncatedAutorefreshing,
     };
 
-    // Private functions
-    void setup();
-    void replaceCurrentSearch( const QString& searchText );
-    void updateSearchCombo();
-    AbstractLogView* activeView() const;
-    void printSearchInfoMessage( int nbMatches = 0 );
-    void changeDataStatus( DataStatus status );
-    void updateEncoding();
-    void changeTopViewSize( int32_t delta );
+    SearchState() {
+      state_ = NoSearch;
+      autoRefreshRequested_ = false;
+    }
 
-    // Palette for error notification (yellow background)
-    static const QPalette errorPalette;
+    // Reset the state (no search active)
+    void resetState();
+    // The user changed auto-refresh request
+    void setAutorefresh(bool refresh);
+    // The file has been truncated (stops auto-refresh)
+    void truncateFile();
+    // The expression has been changed (stops auto-refresh)
+    void changeExpression();
+    // The search has been stopped (stops auto-refresh)
+    void stopSearch();
+    // The search has been started (enable auto-refresh)
+    void startSearch();
 
-    LogMainView*    logMainView;
-    QWidget*        bottomWindow;
-    QLabel*         searchLabel;
-    QComboBox*      searchLineEdit;
-    QToolButton*    searchButton;
-    QToolButton*    stopButton;
-    FilteredView*   filteredView;
-    QComboBox*      visibilityBox;
-    InfoLine*       searchInfoLine;
-    QCheckBox*      ignoreCaseCheck;
-    QCheckBox*      searchRefreshCheck;
-    OverviewWidget* overviewWidget_;
+    // Get the state in order to display the proper message
+    State getState() const { return state_; }
+    // Is auto-refresh allowed
+    bool isAutorefreshAllowed() const {
+      return (state_ == Autorefreshing || state_ == TruncatedAutorefreshing);
+    }
+    bool isFileTruncated() const {
+      return (state_ == FileTruncated || state_ == TruncatedAutorefreshing);
+    }
 
-    QVBoxLayout*    bottomMainLayout;
-    QHBoxLayout*    searchLineLayout;
-    QHBoxLayout*    searchInfoLineLayout;
+   private:
+    State state_;
+    bool autoRefreshRequested_;
+  };
 
-    // Default palette to be remembered
-    QPalette        searchInfoLineDefaultPalette;
+  // Private functions
+  void setup();
+  void replaceCurrentSearch(const QString& searchText);
+  void updateSearchCombo();
+  void updateButtons();
+  AbstractLogView* activeView() const;
+  void printSearchInfoMessage(int nbMatches = 0);
+  void changeDataStatus(DataStatus status);
+  void updateEncoding();
+  void changeTopViewSize(int32_t delta);
 
-    std::shared_ptr<SavedSearches> savedSearches_;
+  // Palette for error notification (yellow background)
+  static const QPalette errorPalette;
 
-    // Reference to the QuickFind Pattern (not owned)
-    std::shared_ptr<QuickFindPattern> quickFindPattern_;
+  LogMainView* logMainView;
+  QWidget* bottomWindow;
+  QLabel* searchLabel;
+  BoxPopupMenu* searchLineEdit;
+  QWidget* lineB;
+  FrqFrame* frqFrame;
+  BoxPopupMenu* patternLineEdit;
+  QToolButton* searchButton;
+  QToolButton* stopButton;
+  FilteredView* filteredView;
+  QComboBox* visibilityBox;
+  InfoLine* searchInfoLine;
+  QCheckBox* ignoreCaseCheck;
+  QCheckBox* searchRefreshCheck;
+  OverviewWidget* overviewWidget_;
+  QHBoxLayout* pinnedPatternsLayout_;
+  QScrollArea* scrollArea_;
+  QWidget* container_;
 
-    LogData*        logData_;
-    LogFilteredData* logFilteredData_;
+  QVBoxLayout* bottomMainLayout;
+  QHBoxLayout* searchLineLayout;
+  QHBoxLayout* searchInfoLineLayout;
 
-    qint64          logFileSize_;
+  // Default palette to be remembered
+  QPalette searchInfoLineDefaultPalette;
 
-    QWidget*        qfSavedFocus_;
+  std::shared_ptr<SavedSearches> savedSearches_;
+  std::shared_ptr<SavedPatterns> savedPatterns_;
 
-    // Search state (for auto-refresh and truncation)
-    SearchState     searchState_;
+  // Reference to the QuickFind Pattern (not owned)
+  std::shared_ptr<QuickFindPattern> quickFindPattern_;
+  std::shared_ptr<QuickFindPattern> quickMarkPattern_;
 
-    // Matches overview
-    Overview        overview_;
+  LogData* logData_;
+  uint32_t pollIntervalMs_;
+  LogFilteredData* logFilteredData_;
 
-    // Model for the visibility selector
-    QStandardItemModel* visibilityModel_;
+  qint64 logFileSize_;
 
-    // Last main line number received
-    qint64 currentLineNumber_;
+  QWidget* qfSavedFocus_;
 
-    // Are we loading something?
-    // Set to false when we receive a completion message from the LogData
-    bool            loadingInProgress_;
+  // Search state (for auto-refresh and truncation)
+  SearchState searchState_;
 
-    // Is it not the first time we are loading something?
-    bool            firstLoadDone_;
+  // Matches overview
+  Overview overview_;
 
-    // Current number of matches
-    int             nbMatches_;
+  // Model for the visibility selector
+  QStandardItemModel* visibilityModel_;
 
-    // the current dataStatus (whether we have new, not seen, data)
-    DataStatus      dataStatus_;
+  // Last main line number received
+  qint64 currentLineNumber_;
 
-    // Current encoding setting;
-    Encoding        encodingSetting_ = Encoding::ENCODING_AUTO;
-    QString         encoding_text_;
+  // Are we loading something?
+  // Set to false when we receive a completion message from the LogData
+  bool loadingInProgress_;
+
+  // Is it not the first time we are loading something?
+  bool firstLoadDone_;
+  int currentSearchIndex_;
+  QList<PinedButton*> buttonList_;
+
+  QString currentSearchTitle_;
+  QString currentSearchColor_;
+  QString currentSearchString_;
+  // Current number of matches
+  int nbMatches_;
+
+  // the current dataStatus (whether we have new, not seen, data)
+  DataStatus dataStatus_;
+
+  // Current encoding setting;
+  Encoding encodingSetting_ = Encoding::ENCODING_AUTO;
+  QString encoding_text_;
 };
 
 #endif

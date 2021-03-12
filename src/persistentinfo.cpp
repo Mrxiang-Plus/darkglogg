@@ -22,96 +22,90 @@
 
 #include "persistentinfo.h"
 
-#include <cassert>
 #include <QStringList>
+#include <QTextCodec>
+#include <cassert>
 
 #include "log.h"
 #include "persistable.h"
 
-PersistentInfo::PersistentInfo()
-{
-    settings_    = NULL;
-    initialised_ = false;
+PersistentInfo::PersistentInfo() {
+  settings_ = NULL;
+  initialised_ = false;
 }
 
-PersistentInfo::~PersistentInfo()
-{
-    if ( initialised_ )
-        delete settings_;
+PersistentInfo::~PersistentInfo() {
+  if (initialised_) delete settings_;
 }
 
-void PersistentInfo::migrateAndInit()
-{
-    assert( initialised_ == false );
+void PersistentInfo::migrateAndInit() {
+  assert(initialised_ == false);
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-    // On Windows, we use .ini files and import from the registry if no
-    // .ini file is found (glogg <= 0.9 used the registry).
+  // On Windows, we use .ini files and import from the registry if no
+  // .ini file is found (glogg <= 0.9 used the registry).
 
-    // This store the config file in %appdata%
-    settings_ = new QSettings( QSettings::IniFormat,
-            QSettings::UserScope, "glogg", "glogg" );
+  // This store the config file in %appdata%
+  settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
+                            "glogg");
 
-    if ( settings_->childKeys().count() == 0 ) {
-        LOG(logWARNING) << "INI file empty, trying to import from registry";
-        QSettings registry( "glogg", "glogg" );
-        foreach ( QString key, registry.allKeys() ) {
-            settings_->setValue( key, registry.value( key ) );
-        }
+  settings_->setIniCodec(QTextCodec::codecForName("GB2312"));
+  if (settings_->childKeys().count() == 0) {
+    LOG(logWARNING) << "INI file empty, trying to import from registry";
+    QSettings registry("glogg", "glogg");
+    foreach (QString key, registry.allKeys()) {
+      settings_->setValue(key, registry.value(key));
     }
+  }
 #else
-    // We use default Qt storage on proper OSes
-    settings_ = new QSettings( "glogg", "glogg" );
+  // We use default Qt storage on proper OSes
+  settings_ = new QSettings("glogg", "glogg");
+  settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
-    initialised_ = true;
+  initialised_ = true;
 }
 
-void PersistentInfo::registerPersistable( std::shared_ptr<Persistable> object,
-        const QString& name )
-{
-    assert( initialised_ );
+void PersistentInfo::registerPersistable(std::shared_ptr<Persistable> object,
+                                         const QString& name) {
+  assert(initialised_);
 
-    objectList_.insert( name, object );
+  objectList_.insert(name, object);
 }
 
-std::shared_ptr<Persistable> PersistentInfo::getPersistable( const QString& name )
-{
-    assert( initialised_ );
+std::shared_ptr<Persistable> PersistentInfo::getPersistable(
+    const QString& name) {
+  assert(initialised_);
 
-    std::shared_ptr<Persistable> object = objectList_.value( name, NULL );
+  std::shared_ptr<Persistable> object = objectList_.value(name, NULL);
 
-    return object;
+  return object;
 }
 
-void PersistentInfo::save( const QString& name )
-{
-    assert( initialised_ );
+void PersistentInfo::save(const QString& name) {
+  assert(initialised_);
 
-    if ( objectList_.contains( name ) )
-        objectList_.value( name )->saveToStorage( *settings_ );
-    else
-        LOG(logERROR) << "Unregistered persistable " << name.toStdString();
+  if (objectList_.contains(name))
+    objectList_.value(name)->saveToStorage(*settings_);
+  else
+    LOG(logERROR) << "Unregistered persistable " << name.toStdString();
 
-    // Sync to ensure it is propagated to other processes
-    settings_->sync();
+  // Sync to ensure it is propagated to other processes
+  settings_->sync();
 }
 
-void PersistentInfo::retrieve( const QString& name )
-{
-    assert( initialised_ );
+void PersistentInfo::retrieve(const QString& name) {
+  assert(initialised_);
 
-    // Sync to ensure it has been propagated from other processes
-    settings_->sync();
+  // Sync to ensure it has been propagated from other processes
+  settings_->sync();
 
-    if ( objectList_.contains( name ) )
-        objectList_.value( name )->retrieveFromStorage( *settings_ );
-    else
-        LOG(logERROR) << "Unregistered persistable " << name.toStdString();
+  if (objectList_.contains(name))
+    objectList_.value(name)->retrieveFromStorage(*settings_);
+  else
+    LOG(logERROR) << "Unregistered persistable " << name.toStdString();
 }
 
 // Friend function to construct/get the singleton
-PersistentInfo& GetPersistentInfo()
-{
-    static PersistentInfo pInfo;
-    return pInfo;
+PersistentInfo& GetPersistentInfo() {
+  static PersistentInfo pInfo;
+  return pInfo;
 }
-

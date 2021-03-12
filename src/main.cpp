@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2013, 2014 Nicolas Bonnefon and other contributors
+ * Copyright (C) 2009, 2010, 2011, 2013, 2014 Nicolas Bonnefon and other
+ * contributors
  *
  * This file is part of glogg.
  *
@@ -24,24 +25,27 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-#include <iostream>
+#include <frqfilterset.h>
 #include <iomanip>
+#include <iostream>
 using namespace std;
 
 #ifdef _WIN32
 #include "unistd.h"
 #endif
 
-#include "gloggapp.h"
-#include "persistentinfo.h"
-#include "sessioninfo.h"
 #include "configuration.h"
 #include "filterset.h"
-#include "recentfiles.h"
-#include "session.h"
-#include "mainwindow.h"
-#include "savedsearches.h"
+#include "gloggapp.h"
 #include "loadingstatus.h"
+#include "mainwindow.h"
+#include "persistentinfo.h"
+#include "persistentpattern.h"
+#include "recentfiles.h"
+#include "savedpatterns.h"
+#include "savedsearches.h"
+#include "session.h"
+#include "sessioninfo.h"
 
 #include "externalcom.h"
 
@@ -50,239 +54,245 @@ using namespace std;
 #elif GLOGG_SUPPORTS_SOCKETIPC
 #include "socketexternalcom.h"
 #endif
-
+#include "DarkStyle.h"
+#include "framelesswindow/framelesswindow.h"
 
 #include "log.h"
 
 static void print_version();
 
-int main(int argc, char *argv[])
-{
-    GloggApp app(argc, argv);
+int main(int argc, char* argv[]) {
+  GloggApp app(argc, argv);
+  vector<string> filenames;
 
-    vector<string> filenames;
-
-    // Configuration
-    bool new_session = false;
-    bool load_session = false;
-    bool multi_instance = false;
+  // Configuration
+  bool new_session = false;
+  bool load_session = false;
+  bool multi_instance = false;
 #ifdef _WIN32
-    bool log_to_file = false;
+  bool log_to_file = false;
 #endif
 
-    TLogLevel logLevel = logWARNING;
+  TLogLevel logLevel = logWARNING;
 
-    try {
-        po::options_description desc("Usage: glogg [options] [files]");
-        desc.add_options()
-            ("help,h", "print out program usage (this message)")
-            ("version,v", "print glogg's version information")
-            ("multi,m", "allow multiple instance of glogg to run simultaneously (use together with -s)")
-            ("load-session,s", "load the previous session (default when no file is passed)")
-            ("new-session,n", "do not load the previous session (default when a file is passed)")
+  try {
+    po::options_description desc("Usage: glogg [options] [files]");
+    desc.add_options()("help,h", "print out program usage (this message)")(
+        "version,v", "print glogg's version information")(
+        "multi,m",
+        "allow multiple instance of glogg to run simultaneously (use together "
+        "with -s)")(
+        "load-session,s",
+        "load the previous session (default when no file is passed)")(
+        "new-session,n",
+        "do not load the previous session (default when a file is passed)")
 #ifdef _WIN32
-            ("log,l", "save the log to a file (Windows only)")
+        ("log,l", "save the log to a file (Windows only)")
 #endif
-            ("debug,d", "output more debug (include multiple times for more verbosity e.g. -dddd)")
-            ;
-        po::options_description desc_hidden("Hidden options");
-        // For -dd, -ddd...
-        for ( string s = "dd"; s.length() <= 10; s.append("d") )
-            desc_hidden.add_options()(s.c_str(), "debug");
+            ("debug,d",
+             "output more debug (include multiple times for more verbosity "
+             "e.g. -dddd)");
+    po::options_description desc_hidden("Hidden options");
+    // For -dd, -ddd...
+    for (string s = "dd"; s.length() <= 10; s.append("d"))
+      desc_hidden.add_options()(s.c_str(), "debug");
 
-        desc_hidden.add_options()
-            ("input-file", po::value<vector<string>>(), "input file")
-            ;
+    desc_hidden.add_options()("input-file", po::value<vector<string>>(),
+                              "input file");
 
-        po::options_description all_options("all options");
-        all_options.add(desc).add(desc_hidden);
+    po::options_description all_options("all options");
+    all_options.add(desc).add(desc_hidden);
 
-        po::positional_options_description positional;
-        positional.add("input-file", -1);
+    po::positional_options_description positional;
+    positional.add("input-file", -1);
 
-        int command_line_style = (((po::command_line_style::unix_style ^
-                po::command_line_style::allow_guessing) |
-                po::command_line_style::allow_long_disguise) ^
-                po::command_line_style::allow_sticky);
+    int command_line_style = (((po::command_line_style::unix_style ^
+                                po::command_line_style::allow_guessing) |
+                               po::command_line_style::allow_long_disguise) ^
+                              po::command_line_style::allow_sticky);
 
-        po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).
-                options(all_options).
-                positional(positional).
-                style(command_line_style).run(),
-                vm);
-        po::notify(vm);
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv)
+                  .options(all_options)
+                  .positional(positional)
+                  .style(command_line_style)
+                  .run(),
+              vm);
+    po::notify(vm);
 
-        if ( vm.count("help") ) {
-            desc.print(cout);
-            return 0;
-        }
-
-        if ( vm.count("version") ) {
-            print_version();
-            return 0;
-        }
-
-        if ( vm.count( "debug" ) )
-            logLevel = logINFO;
-
-        if ( vm.count( "multi" ) )
-            multi_instance = true;
-
-        if ( vm.count( "new-session" ) )
-            new_session = true;
-
-        if ( vm.count( "load-session" ) )
-            load_session = true;
-
-#ifdef _WIN32
-        if ( vm.count( "log" ) )
-            log_to_file = true;
-#endif
-
-        for ( string s = "dd"; s.length() <= 10; s.append("d") )
-            if ( vm.count( s ) )
-                logLevel = (TLogLevel) (logWARNING + s.length());
-
-        if ( vm.count("input-file") ) {
-            filenames = vm["input-file"].as<vector<string>>();
-        }
+    if (vm.count("help")) {
+      desc.print(cout);
+      return 0;
     }
-    catch(exception& e) {
-        cerr << "Option processing error: " << e.what() << endl;
-        return 1;
+
+    if (vm.count("version")) {
+      print_version();
+      return 0;
     }
-    catch(...) {
-        cerr << "Exception of unknown type!\n";
-    }
+
+    if (vm.count("debug")) logLevel = logINFO;
+
+    if (vm.count("multi")) multi_instance = true;
+
+    if (vm.count("new-session")) new_session = true;
+
+    if (vm.count("load-session")) load_session = true;
 
 #ifdef _WIN32
-    if ( log_to_file )
-    {
-        char file_name[255];
-        snprintf( file_name, sizeof file_name, "glogg_%d.log", getpid() );
-        FILE* file = fopen(file_name, "w");
-        Output2FILE::Stream() = file;
-    }
+    if (vm.count("log")) log_to_file = true;
 #endif
 
-    FILELog::setReportingLevel( logLevel );
+    for (string s = "dd"; s.length() <= 10; s.append("d"))
+      if (vm.count(s)) logLevel = (TLogLevel)(logWARNING + s.length());
 
-    for ( auto& filename: filenames ) {
-        if ( ! filename.empty() ) {
-            // Convert to absolute path
-            QFileInfo file( QString::fromLocal8Bit( filename.c_str() ) );
-            filename = file.absoluteFilePath().toStdString();
-            LOG( logDEBUG ) << "Filename: " << filename;
-        }
+    if (vm.count("input-file")) {
+      filenames = vm["input-file"].as<vector<string>>();
     }
+  } catch (exception& e) {
+    cerr << "Option processing error: " << e.what() << endl;
+    return 1;
+  } catch (...) {
+    cerr << "Exception of unknown type!\n";
+  }
 
-    // External communicator
-    shared_ptr<ExternalCommunicator> externalCommunicator = nullptr;
-    shared_ptr<ExternalInstance> externalInstance = nullptr;
+#ifdef _WIN32
+  if (log_to_file) {
+    char file_name[255];
+    snprintf(file_name, sizeof file_name, "glogg_%d.log", getpid());
+    FILE* file = fopen(file_name, "w");
+    Output2FILE::Stream() = file;
+  }
+#endif
 
-    try {
+  FILELog::setReportingLevel(logDEBUG);
+
+  for (auto& filename : filenames) {
+    if (!filename.empty()) {
+      // Convert to absolute path
+      QFileInfo file(QString::fromLocal8Bit(filename.c_str()));
+      filename = file.absoluteFilePath().toStdString();
+      LOG(logDEBUG) << "Filename: " << filename;
+    }
+  }
+
+  // External communicator
+  shared_ptr<ExternalCommunicator> externalCommunicator = nullptr;
+  shared_ptr<ExternalInstance> externalInstance = nullptr;
+
+  try {
 #ifdef GLOGG_SUPPORTS_DBUS
-        externalCommunicator = make_shared<DBusExternalCommunicator>();
-        externalInstance = shared_ptr<ExternalInstance>(
-                externalCommunicator->otherInstance() );
+    externalCommunicator = make_shared<DBusExternalCommunicator>();
+    externalInstance =
+        shared_ptr<ExternalInstance>(externalCommunicator->otherInstance());
 #elif GLOGG_SUPPORTS_SOCKETIPC
-        externalCommunicator = make_shared<SocketExternalCommunicator>();
-        auto ptr = externalCommunicator->otherInstance();
-        externalInstance = shared_ptr<ExternalInstance>( ptr );
+    externalCommunicator = make_shared<SocketExternalCommunicator>();
+    auto ptr = externalCommunicator->otherInstance();
+    externalInstance = shared_ptr<ExternalInstance>(ptr);
 #endif
-    }
-    catch(CantCreateExternalErr& e) {
-        LOG(logWARNING) << "Cannot initialise external communication.";
-    }
+  } catch (CantCreateExternalErr& e) {
+    LOG(logWARNING) << "Cannot initialise external communication.";
+  }
 
-    LOG(logDEBUG) << "externalInstance = " << externalInstance;
-    if ( ( ! multi_instance ) && externalInstance ) {
-        uint32_t version = externalInstance->getVersion();
-        LOG(logINFO) << "Found another glogg (version = "
-            << std::setbase(16) << version << ")";
+  LOG(logDEBUG) << "externalInstance = " << externalInstance;
+  if ((!multi_instance) && externalInstance) {
+    uint32_t version = externalInstance->getVersion();
+    LOG(logINFO) << "Found another glogg (version = " << std::setbase(16)
+                 << version << ")";
 
-        for ( const auto& filename: filenames ) {
-            externalInstance->loadFile( QString::fromStdString( filename ) );
-        }
-
-        return 0;
-    }
-    else {
-        // FIXME: there is a race condition here. One glogg could start
-        // between the declaration of externalInstance and here,
-        // is it a problem?
-        if ( externalCommunicator )
-            externalCommunicator->startListening();
+    for (const auto& filename : filenames) {
+      externalInstance->loadFile(QString::fromStdString(filename));
     }
 
-    // Register types for Qt
-    qRegisterMetaType<LoadingStatus>("LoadingStatus");
+    return 0;
+  } else {
+    // FIXME: there is a race condition here. One glogg could start
+    // between the declaration of externalInstance and here,
+    // is it a problem?
+    if (externalCommunicator) externalCommunicator->startListening();
+  }
 
-    // Register the configuration items
-    GetPersistentInfo().migrateAndInit();
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<SessionInfo>(), QString( "session" ) );
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<Configuration>(), QString( "settings" ) );
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<FilterSet>(), QString( "filterSet" ) );
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<SavedSearches>(), QString( "savedSearches" ) );
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<RecentFiles>(), QString( "recentFiles" ) );
+  // Register types for Qt
+  qRegisterMetaType<LoadingStatus>("LoadingStatus");
+
+  // Register the configuration items
+  GetPersistentInfo().migrateAndInit();
+  GetPersistentPattern().migrateAndInit();
+  GetPersistentInfo().registerPersistable(std::make_shared<SessionInfo>(),
+                                          QString("session"));
+  GetPersistentInfo().registerPersistable(std::make_shared<Configuration>(),
+                                          QString("settings"));
+  GetPersistentInfo().registerPersistable(std::make_shared<FilterSet>(),
+                                          QString("filterSet"));
+  GetPersistentInfo().registerPersistable(std::make_shared<FrqFilterSet>(),
+                                          QString("frqFilterSet"));
+  GetPersistentInfo().registerPersistable(std::make_shared<SavedSearches>(),
+                                          QString("savedSearches"));
+  GetPersistentPattern().registerPersistable(std::make_shared<SavedPatterns>(),
+                                             QString("savedPatterns"));
+  GetPersistentInfo().registerPersistable(std::make_shared<RecentFiles>(),
+                                          QString("recentFiles"));
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING
-    GetPersistentInfo().registerPersistable(
-            std::make_shared<VersionCheckerConfig>(), QString( "versionChecker" ) );
+  GetPersistentInfo().registerPersistable(
+      std::make_shared<VersionCheckerConfig>(), QString("versionChecker"));
 #endif
 
 #ifdef _WIN32
-    // Allow the app to raise it's own windows (in case an external
-    // glogg send us a file to open)
-    AllowSetForegroundWindow(ASFW_ANY);
+  // Allow the app to raise it's own windows (in case an external
+  // glogg send us a file to open)
+  AllowSetForegroundWindow(ASFW_ANY);
 #endif
 
-    // We support high-dpi (aka Retina) displays
-    app.setAttribute( Qt::AA_UseHighDpiPixmaps );
+  // We support high-dpi (aka Retina) displays
+  app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    // No icon in menus
-    app.setAttribute( Qt::AA_DontShowIconsInMenus );
+  // No icon in menus
+  app.setAttribute(Qt::AA_DontShowIconsInMenus);
 
-    // FIXME: should be replaced by a two staged init of MainWindow
-    GetPersistentInfo().retrieve( QString( "settings" ) );
+  // FIXME: should be replaced by a two staged init of MainWindow
+  GetPersistentInfo().retrieve(QString("settings"));
 
-    std::unique_ptr<Session> session( new Session() );
-    MainWindow mw( std::move( session ), externalCommunicator );
+  std::unique_ptr<Session> session(new Session());
+  app.setStyle(new DarkStyle(255));
+  FramelessWindow framelessWindow;
+  MainWindow mw(std::move(session), externalCommunicator,
+                framelessWindow.getTitleBar());
 
-    // Geometry
-    mw.reloadGeometry();
+  //   .   ui->windowTitlebar->setStyleSheet(QStringLiteral(
 
-    // Load the existing session if needed
-    std::shared_ptr<Configuration> config =
-        Persistent<Configuration>( "settings" );
-    if ( load_session || ( filenames.empty() && !new_session && config->loadLastSession() ) )
-        mw.reloadSession();
+  // Geometry
+  mw.reloadGeometry();
 
-    LOG(logDEBUG) << "MainWindow created.";
-    mw.show();
+  // Load the existing session if needed
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  if (load_session ||
+      (filenames.empty() && !new_session && config->loadLastSession()))
+    mw.reloadSession();
 
-    for ( const auto& filename: filenames ) {
-        mw.loadInitialFile( QString::fromStdString( filename ) );
-    }
+  LOG(logDEBUG) << "MainWindow created.";
 
-    mw.startBackgroundTasks();
+  framelessWindow.setContent(&mw);
+  framelessWindow.setWindowIcon(mw.getIcon());
+  framelessWindow.show();
 
-    return app.exec();
+  for (const auto& filename : filenames) {
+    mw.loadInitialFile(QString::fromStdString(filename));
+  }
+
+  mw.startBackgroundTasks();
+
+  return app.exec();
 }
 
-static void print_version()
-{
-    cout << "glogg " GLOGG_VERSION "\n";
+static void print_version() {
+  cout << "glogg " GLOGG_VERSION "\n";
 #ifdef GLOGG_COMMIT
-    cout << "Built " GLOGG_DATE " from " GLOGG_COMMIT "\n";
+  cout << "Built " GLOGG_DATE " from " GLOGG_COMMIT "\n";
 #endif
-    cout << "Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Nicolas Bonnefon and other contributors\n";
-    cout << "This is free software.  You may redistribute copies of it under the terms of\n";
-    cout << "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n";
-    cout << "There is NO WARRANTY, to the extent permitted by law.\n";
+  cout << "Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Nicolas "
+          "Bonnefon and other contributors\n";
+  cout << "This is free software.  You may redistribute copies of it under the "
+          "terms of\n";
+  cout << "the GNU General Public License "
+          "<http://www.gnu.org/licenses/gpl.html>.\n";
+  cout << "There is NO WARRANTY, to the extent permitted by law.\n";
 }

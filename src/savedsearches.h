@@ -20,40 +20,38 @@
 #ifndef SAVEDSEARCHES_H
 #define SAVEDSEARCHES_H
 
+#include <QMetaType>
 #include <QString>
 #include <QStringList>
-#include <QMetaType>
 
 #include "persistable.h"
 
 // Keeps track of the previously used searches and allows the application
 // to retrieve them.
-class SavedSearches : public Persistable
-{
-  public:
-    // Creates an empty set of saved searches
-    SavedSearches();
+class SavedSearches : public Persistable {
+ public:
+  // Creates an empty set of saved searches
+  SavedSearches();
 
-    // Adds the passed search to the list of recently used searches
-    void addRecent( const QString& text );
+  // Adds the passed search to the list of recently used searches
+  void addRecent(const QString& text);
 
-    // Returns a list of recent searches (newer first)
-    QStringList recentSearches() const;
+  // Returns a list of recent searches (newer first)
+  QStringList recentSearches() const;
 
-    // Operators for serialization
-    // (only for migrating pre 0.8.2 settings, will be removed)
-    friend QDataStream& operator<<( QDataStream& out, const SavedSearches& object );
-    friend QDataStream& operator>>( QDataStream& in, SavedSearches& object );
+  // Operators for serialization
+  // (only for migrating pre 0.8.2 settings, will be removed)
+  friend QDataStream& operator<<(QDataStream& out, const SavedSearches& object);
+  friend QDataStream& operator>>(QDataStream& in, SavedSearches& object);
 
-    // Reads/writes the current config in the QSettings object passed
-    void saveToStorage( QSettings& settings ) const;
-    void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  void saveToStorage(QSettings& settings) const;
+  void retrieveFromStorage(QSettings& settings);
 
-  private:
-    static const int SAVEDSEARCHES_VERSION;
-    static const int maxNumberOfRecentSearches;
-
-    QStringList savedSearches_;
+ private:
+  static const int SAVEDSEARCHES_VERSION;
+  static const int maxNumberOfRecentSearches;
+  QStringList savedSearches_;
 };
 
 Q_DECLARE_METATYPE(SavedSearches)

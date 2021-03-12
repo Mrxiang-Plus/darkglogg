@@ -25,28 +25,27 @@
 #include "data/logdata.h"
 
 // Class implementing the main (top) view widget.
-class LogMainView : public AbstractLogView
-{
-  public:
-    LogMainView( const LogData* newLogData,
-            const QuickFindPattern* const quickFindPattern,
-            Overview* overview,
-            OverviewWidget* overview_widget,
-            QWidget* parent = 0 );
+class LogMainView : public AbstractLogView {
+ public:
+  LogMainView(const LogData* newLogData,
+              const QuickFindPattern* const quickFindPattern,
+              const QuickFindPattern* const quickMarkPattern,
+              Overview* overview, OverviewWidget* overview_widget,
+              QWidget* parent = 0);
 
-    // Configure the view to use the passed filtered list
-    // (used for couloured bullets)
-    // Should be NULL or the empty LFD if no filtering is used
-    void useNewFiltering( LogFilteredData* filteredData );
+  // Configure the view to use the passed filtered list
+  // (used for couloured bullets)
+  // Should be NULL or the empty LFD if no filtering is used
+  void useNewFiltering(LogFilteredData* filteredData);
 
-  protected:
-    // Implements the virtual function
-    virtual LineType lineType( int lineNumber ) const;
+ protected:
+  // Implements the virtual function
+  virtual LineType lineType(int lineNumber) const;
 
-    virtual void keyPressEvent( QKeyEvent* keyEvent );
+  virtual void keyPressEvent(QKeyEvent* keyEvent);
 
-  private:
-    LogFilteredData* filteredData_;
+ private:
+  LogFilteredData* filteredData_;
 };
 
 #endif

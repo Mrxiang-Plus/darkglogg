@@ -27,25 +27,25 @@
 class FileWatcher : public QObject {
   Q_OBJECT
 
-  public:
-    // Create an empty object
-    FileWatcher() {}
-    // Destroy the object
-    virtual ~FileWatcher() {}
+ public:
+  // Create an empty object
+  FileWatcher() {}
+  // Destroy the object
+  virtual ~FileWatcher() {}
 
-    // Adds the file to the list of file to watch
-    // (do nothing if a file is already monitored)
-    virtual void addFile( const QString& fileName ) = 0;
-    // Removes the file to the list of file to watch
-    // (do nothing if said file is not monitored)
-    virtual void removeFile( const QString& fileName ) = 0;
+  // Adds the file to the list of file to watch
+  // (do nothing if a file is already monitored)
+  virtual void addFile(const QString& fileName) = 0;
+  // Removes the file to the list of file to watch
+  // (do nothing if said file is not monitored)
+  virtual void removeFile(const QString& fileName) = 0;
 
-    // Set the polling interval (0 means disabled)
-    virtual void setPollingInterval( uint32_t ) {}
+  // Set the polling interval (0 means disabled)
+  virtual void setPollingInterval(uint32_t) {}
 
-  signals:
-    // Sent when the file on disk has changed in any way.
-    void fileChanged( const QString& );
+ signals:
+  // Sent when the file on disk has changed in any way.
+  void fileChanged(const QString&);
 };
 
 #endif

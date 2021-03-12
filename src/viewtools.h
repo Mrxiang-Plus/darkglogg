@@ -30,47 +30,46 @@
 class ElasticHook : public QObject {
   Q_OBJECT
 
-  public:
-    ElasticHook( int hook_threshold ) : hook_threshold_( hook_threshold ) {}
+ public:
+  ElasticHook(int hook_threshold) : hook_threshold_(hook_threshold) {}
 
-    // Instruct the elastic to move by the passed pixels
-    // (a positive value increase the elastic tension)
-    void move( int value );
+  // Instruct the elastic to move by the passed pixels
+  // (a positive value increase the elastic tension)
+  void move(int value);
 
-    // Hold the elastic and prevent automatic decrease.
-    void hold() { held_ = true; }
+  // Hold the elastic and prevent automatic decrease.
+  void hold() { held_ = true; }
 
-    // Release the elastic.
-    void release() { held_ = false; }
+  // Release the elastic.
+  void release() { held_ = false; }
 
-    // Programmatically force the hook hooked or not.
-    void hook( bool hooked )
-    { hooked_ = hooked; }
+  // Programmatically force the hook hooked or not.
+  void hook(bool hooked) { hooked_ = hooked; }
 
-    // Return the "length" of the elastic hook.
-    int length() const { return position_; }
-    bool isHooked() const { return hooked_; }
+  // Return the "length" of the elastic hook.
+  int length() const { return position_; }
+  bool isHooked() const { return hooked_; }
 
-  protected:
-    void timerEvent( QTimerEvent *event );
+ protected:
+  void timerEvent(QTimerEvent *event);
 
-  signals:
-    // Sent when the length has changed
-    void lengthChanged();
-    // Sent when the hooked status has changed
-    void hooked( bool is_hooked );
+ signals:
+  // Sent when the length has changed
+  void lengthChanged();
+  // Sent when the hooked status has changed
+  void hooked(bool is_hooked);
 
-  private:
-    void decreasePosition();
+ private:
+  void decreasePosition();
 
-    static constexpr int TIMER_PERIOD_MS = 10;
-    static constexpr int DECREASE_RATE = 4;
-    const int hook_threshold_;
-    bool hooked_  = false;
-    bool held_ = false;
-    int position_ = 0;
-    int timer_id_ = 0;
-    std::chrono::time_point<std::chrono::steady_clock> last_update_;
+  static constexpr int TIMER_PERIOD_MS = 10;
+  static constexpr int DECREASE_RATE = 4;
+  const int hook_threshold_;
+  bool hooked_ = false;
+  bool held_ = false;
+  int position_ = 0;
+  int timer_id_ = 0;
+  std::chrono::time_point<std::chrono::steady_clock> last_update_;
 };
 
 #endif

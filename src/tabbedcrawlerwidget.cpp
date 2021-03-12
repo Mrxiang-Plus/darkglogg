@@ -24,39 +24,18 @@
 
 #include "crawlerwidget.h"
 
+#include <QPainter>
+#include <QStyleOption>
 #include "log.h"
 
-TabbedCrawlerWidget::TabbedCrawlerWidget() : QTabWidget(),
-    olddata_icon_( ":/images/olddata_icon.png" ),
-    newdata_icon_( ":/images/newdata_icon.png" ),
-    newfiltered_icon_( ":/images/newfiltered_icon.png" ),
-    myTabBar_()
-{
-#ifdef WIN32
-    myTabBar_.setStyleSheet( "QTabBar::tab {\
-            height: 20px; "
-            "} "
-            "QTabBar::close-button {\
-              height: 6px; width: 6px;\
-              subcontrol-origin: padding;\
-              subcontrol-position: left;\
-             }" );
-#else
-    // On GTK style, it looks better with a smaller font
-    myTabBar_.setStyleSheet(
-            "QTabBar::tab {"
-            " height: 20px; "
-            " font-size: 9pt; "
-            "} "
-            "QTabBar::close-button {\
-              height: 6px; width: 6px;\
-              subcontrol-origin: padding;\
-              subcontrol-position: left;\
-             }" );
-#endif
-    setTabBar( &myTabBar_ );
-    myTabBar_.hide();
-
+TabbedCrawlerWidget::TabbedCrawlerWidget(QWidget *parent)
+    : QTabWidget(parent),
+      olddata_icon_(":/images/olddata_icon.png"),
+      newdata_icon_(":/images/newdata_icon.png"),
+      newfiltered_icon_(":/images/newfiltered_icon.png"),
+      myTabBar_() {
+  setTabBar(&myTabBar_);
+  mousePressed = false;
 }
 
 // I know hiding non-virtual functions from the base class is bad form
@@ -64,115 +43,184 @@ TabbedCrawlerWidget::TabbedCrawlerWidget() : QTabWidget(),
 // QTabBar with all signals and all just to implement this very simple logic.
 // Maybe one day that should be done better...
 
-int TabbedCrawlerWidget::addTab( QWidget* page, const QString& label )
-{
-    int index = QTabWidget::addTab( page, label );
+int TabbedCrawlerWidget::addTab(QWidget *page, const QString &label,
+                                const QString &filePath) {
+  int index = QTabWidget::addTab(page, label);
 
-    if ( auto crawler = dynamic_cast<CrawlerWidget*>( page ) ) {
-        // Mmmmhhhh... new Qt5 signal syntax create tight coupling between
-        // us and the sender, baaaaad....
+  if (auto crawler = dynamic_cast<CrawlerWidget *>(page)) {
+    // Mmmmhhhh... new Qt5 signal syntax create tight coupling between
+    // us and the sender, baaaaad....
 
-        // Listen for a changing data status:
-        connect( crawler, &CrawlerWidget::dataStatusChanged,
-                [ this, index ]( DataStatus status ) { setTabDataStatus( index, status ); } );
-    }
+    // Listen for a changing data status:
+    connect(crawler, &CrawlerWidget::dataStatusChanged,
+            [this, filePath](DataStatus status) {
+              setTabDataStatus(filePath, status);
+            });
+  }
 
-    // Display the icon
-    QLabel* icon_label = new QLabel();
-    icon_label->setPixmap( olddata_icon_.pixmap( 11, 12 ) );
-    icon_label->setAlignment( Qt::AlignCenter );
-    myTabBar_.setTabButton( index, QTabBar::RightSide, icon_label );
+  // Display the icon
+  QLabel *icon_label = new QLabel();
+  icon_label->setPixmap(olddata_icon_.pixmap(11, 12));
+  icon_label->setAlignment(Qt::AlignCenter);
+  myTabBar_.setTabButton(index, QTabBar::LeftSide, icon_label);
 
-    LOG(logDEBUG) << "addTab, count = " << count();
-    LOG(logDEBUG) << "width = " << olddata_icon_.pixmap( 11, 12 ).devicePixelRatio();
+  LOG(logDEBUG) << "addTab, count = " << count();
+  LOG(logDEBUG) << "width = "
+                << olddata_icon_.pixmap(11, 12).devicePixelRatio();
 
-    if ( count() > 1 )
-        myTabBar_.show();
+  if (count() > 0) myTabBar_.show();
 
-    return index;
+  setTabToolTip(index, filePath);
+  return index;
 }
 
-void TabbedCrawlerWidget::removeTab( int index )
-{
-    QTabWidget::removeTab( index );
+void TabbedCrawlerWidget::removeTab(int index) {
+  QTabWidget::removeTab(index);
 
-    if ( count() <= 1 )
-        myTabBar_.hide();
+  if (count() <= 1) myTabBar_.hide();
 }
 
-void TabbedCrawlerWidget::mouseReleaseEvent( QMouseEvent *event)
-{
-    LOG(logDEBUG) << "TabbedCrawlerWidget::mouseReleaseEvent";
+void TabbedCrawlerWidget::mouseReleaseEvent(QMouseEvent *event) {
+  Q_UNUSED(event);
+  mousePressed = false;
+  LOG(logDEBUG) << "TabbedCrawlerWidget::mouseReleaseEvent";
 
-    if (event->button() == Qt::MidButton)
-    {
-        int tab = this->myTabBar_.tabAt( event->pos() );
-        if (-1 != tab)
-        {
-            emit tabCloseRequested( tab );
-        }
+  if (event->button() == Qt::MidButton) {
+    int tab = this->myTabBar_.tabAt(event->pos());
+    if (-1 != tab) {
+      emit tabCloseRequested(tab);
     }
+  }
 }
 
-void TabbedCrawlerWidget::keyPressEvent( QKeyEvent* event )
-{
-    const auto mod = event->modifiers();
-    const auto key = event->key();
+void TabbedCrawlerWidget::keyPressEvent(QKeyEvent *event) {
+  const auto mod = event->modifiers();
+  const auto key = event->key();
 
-    LOG(logDEBUG) << "TabbedCrawlerWidget::keyPressEvent";
+  LOG(logDEBUG) << "TabbedCrawlerWidget::keyPressEvent";
 
-    // Ctrl + tab
-    if ( ( mod == Qt::ControlModifier && key == Qt::Key_Tab ) ||
-         ( mod == ( Qt::ControlModifier | Qt::AltModifier | Qt::KeypadModifier ) && key == Qt::Key_Right ) ) {
-        setCurrentIndex( ( currentIndex() + 1 ) % count() );
-    }
-    // Ctrl + shift + tab
-    else if ( ( mod == ( Qt::ControlModifier | Qt::ShiftModifier ) && key == Qt::Key_Tab ) ||
-              ( mod == ( Qt::ControlModifier | Qt::AltModifier | Qt::KeypadModifier ) && key == Qt::Key_Left ) ) {
-        setCurrentIndex( ( currentIndex() - 1 >= 0 ) ? currentIndex() - 1 : count() - 1 );
-    }
-    // Ctrl + numbers
-    else if ( mod == Qt::ControlModifier && ( key >= Qt::Key_1 && key <= Qt::Key_8 ) ) {
-        int new_index = key - Qt::Key_0;
-        if ( new_index <= count() )
-            setCurrentIndex( new_index - 1 );
-    }
-    // Ctrl + 9
-    else if ( mod == Qt::ControlModifier && key == Qt::Key_9 ) {
-        setCurrentIndex( count() - 1 );
-    }
-    else if ( mod == Qt::ControlModifier && (key == Qt::Key_Q || key == Qt::Key_W) ) {
-        emit tabCloseRequested( currentIndex() );
-    }
-    else {
-        QTabWidget::keyPressEvent( event );
-    }
+  // Ctrl + tab
+  if ((mod == Qt::ControlModifier && key == Qt::Key_Tab) ||
+      (mod == (Qt::ControlModifier | Qt::AltModifier | Qt::KeypadModifier) &&
+       key == Qt::Key_Right)) {
+    setCurrentIndex((currentIndex() + 1) % count());
+  }
+  // Ctrl + shift + tab
+  else if ((mod == (Qt::ControlModifier | Qt::ShiftModifier) &&
+            key == Qt::Key_Tab) ||
+           (mod ==
+                (Qt::ControlModifier | Qt::AltModifier | Qt::KeypadModifier) &&
+            key == Qt::Key_Left)) {
+    setCurrentIndex((currentIndex() - 1 >= 0) ? currentIndex() - 1
+                                              : count() - 1);
+  }
+  // Ctrl + numbers
+  else if (mod == Qt::ControlModifier &&
+           (key >= Qt::Key_1 && key <= Qt::Key_8)) {
+    int new_index = key - Qt::Key_0;
+    if (new_index <= count()) setCurrentIndex(new_index - 1);
+  }
+  // Ctrl + 9
+  else if (mod == Qt::ControlModifier && key == Qt::Key_9) {
+    setCurrentIndex(count() - 1);
+  } else if (mod == Qt::ControlModifier && key == Qt::Key_W) {
+    emit tabCloseRequested(currentIndex());
+  } else {
+    QTabWidget::keyPressEvent(event);
+  }
 }
 
-void TabbedCrawlerWidget::setTabDataStatus( int index, DataStatus status )
-{
-    LOG(logDEBUG) << "TabbedCrawlerWidget::setTabDataStatus " << index;
-
-    QLabel* icon_label = dynamic_cast<QLabel*>(
-            myTabBar_.tabButton( index, QTabBar::RightSide ) );
-
-    if ( icon_label ) {
-        const QIcon* icon;
-        switch ( status ) {
-            case DataStatus::OLD_DATA:
-                icon = &olddata_icon_;
-                break;
-            case DataStatus::NEW_DATA:
-                icon = &newdata_icon_;
-                break;
-            case DataStatus::NEW_FILTERED_DATA:
-                icon = &newfiltered_icon_;
-                break;
-        default:
-            return;
-        }
-
-        icon_label->setPixmap ( icon->pixmap(12,12) );
-
+void TabbedCrawlerWidget::setTabDataStatus(const QString &filePath,
+                                           DataStatus status) {
+  LOG(logDEBUG) << "TabbedCrawlerWidget::setTabDataStatus ";
+  QString s;
+  int index = 0;
+  for (int i = 0; i < count(); i++) {
+    s = tabToolTip(i);
+    if (s == filePath) {
+      index = i;
     }
+  }
+  QLabel *icon_label =
+      dynamic_cast<QLabel *>(myTabBar_.tabButton(index, QTabBar::LeftSide));
+
+  if (icon_label) {
+    const QIcon *icon;
+    switch (status) {
+      case DataStatus::OLD_DATA:
+        icon = &olddata_icon_;
+        break;
+      case DataStatus::NEW_DATA:
+        icon = &newdata_icon_;
+        break;
+      case DataStatus::NEW_FILTERED_DATA:
+        icon = &newfiltered_icon_;
+        break;
+      default:
+        return;
+    }
+
+    icon_label->setPixmap(icon->pixmap(12, 12));
+  }
+}
+
+void TabbedCrawlerWidget::setTabBarVisibility(bool visible) {
+  if (visible) {
+    myTabBar_.show();
+  } else {
+    myTabBar_.hide();
+  }
+}
+
+bool TabbedCrawlerWidget::getTabBarVisibility() {
+  return myTabBar_.isVisible();
+}
+void TabbedCrawlerWidget::mousePressEvent(QMouseEvent *event) {
+  mousePressed = true;
+  mousePos = event->globalPos();
+
+  QWidget *parent = parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+
+  if (parent) wndPos = parent->pos();
+}
+
+void TabbedCrawlerWidget::mouseMoveEvent(QMouseEvent *event) {
+  QWidget *parent = parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+
+  if (parent && mousePressed)
+    parent->move(wndPos + (event->globalPos() - mousePos));
+}
+
+void TabbedCrawlerWidget::paintEvent(QPaintEvent *event) {
+  Q_UNUSED(event);
+  QStyleOption styleOption;
+  styleOption.init(this);
+  QPainter painter(this);
+  style()->drawPrimitive(QStyle::PE_Widget, &styleOption, &painter, this);
+}
+
+void TabbedCrawlerWidget::mouseDoubleClickEvent(QMouseEvent *event) {
+  Q_UNUSED(event);
+  QWidget *parent = parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) parent = parent->parentWidget();
+  if (parent) {
+    if (parent->windowState().testFlag(Qt::WindowNoState)) {
+      parent->setWindowState(Qt::WindowMaximized);
+    } else if (parent->windowState().testFlag(Qt::WindowMaximized)) {
+      parent->setWindowState(Qt::WindowNoState);
+      parent->hide();
+      parent->show();
+    }
+  }
 }

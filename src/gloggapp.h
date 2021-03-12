@@ -23,19 +23,17 @@
 #include <QApplication>
 
 // Subclass QApplication to add a custom event handler
-class GloggApp : public QApplication
-{
-    Q_OBJECT
-  public:
-    GloggApp( int &argc, char **argv ) : QApplication( argc, argv )
-    {}
+class GloggApp : public QApplication {
+  Q_OBJECT
+ public:
+  GloggApp(int& argc, char** argv) : QApplication(argc, argv) {}
 
-  signals:
-    void loadFile( const QString& file_name );
+ signals:
+  void loadFile(const QString& file_name);
 
-  protected:
+ protected:
 #ifdef __APPLE__
-    virtual bool event( QEvent* event );
+  virtual bool event(QEvent* event);
 #endif
 };
 

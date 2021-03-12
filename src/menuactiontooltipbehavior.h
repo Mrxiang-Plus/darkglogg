@@ -27,35 +27,33 @@ class QAction;
 class QMenu;
 class QTimerEvent;
 
-
 // Provides a behavior to show an action's tooltip after mouse is unmoved for
 // a specified number of 'ms'. E.g. used for tooltips with full-path for recent
 // files in the file menu. Not thread-safe.
-class MenuActionToolTipBehavior : public QObject
-{
-    Q_OBJECT;
+class MenuActionToolTipBehavior : public QObject {
+  Q_OBJECT;
 
  public:
-    MenuActionToolTipBehavior(QAction *action, QMenu *parentMenu,
-                              QObject *parent);
+  MenuActionToolTipBehavior(QAction *action, QMenu *parentMenu,
+                            QObject *parent);
 
-    // Time in ms that mouse needs to stay unmoved for tooltip to be shown
-    int toolTipDelay(); /* ms */
-    void setToolTipDelay(int ms);
+  // Time in ms that mouse needs to stay unmoved for tooltip to be shown
+  int toolTipDelay(); /* ms */
+  void setToolTipDelay(int ms);
 
  private:
-    void timerEvent(QTimerEvent *event);
-    void showToolTip(const QPoint &position);
+  void timerEvent(QTimerEvent *event);
+  void showToolTip(const QPoint &position);
 
  private slots:
-    void onActionHovered();
+  void onActionHovered();
 
  private:
-    QAction *action;
-    QMenu *parentMenu;
-    int toolTipDelayMs;
-    int timerId;
-    QPoint hoverPoint;
+  QAction *action;
+  QMenu *parentMenu;
+  int toolTipDelayMs;
+  int timerId;
+  QPoint hoverPoint;
 };
 
 #endif

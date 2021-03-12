@@ -20,86 +20,87 @@
 #ifndef FILTERSET_H
 #define FILTERSET_H
 
-#include <QRegularExpression>
 #include <QColor>
 #include <QMetaType>
+#include <QRegularExpression>
 
 #include "persistable.h"
 
 // Represents a filter, i.e. a regexp and the colors matching text
 // should be rendered in.
-class Filter
-{
-  public:
-    // Construct an uninitialized Filter (when reading from a config file)
-    Filter();
-    Filter(const QString& pattern, bool ignoreCase,
-            const QString& foreColor, const QString& backColor );
+class Filter {
+ public:
+  // Construct an uninitialized Filter (when reading from a config file)
+  Filter();
+  Filter(const QString& description, const QString& pattern, bool ignoreCase,
+         const QString& foreColor, const QString& backColor);
 
-    bool hasMatch( const QString& string ) const;
+  bool hasMatch(const QString& string) const;
 
-    // Accessor functions
-    QString pattern() const;
-    void setPattern( const QString& pattern );
-    bool ignoreCase() const;
-    void setIgnoreCase( bool ignoreCase );
-    const QString& foreColorName() const;
-    void setForeColor( const QString& foreColorName );
-    const QString& backColorName() const;
-    void setBackColor( const QString& backColorName );
+  // Accessor functions
+  QString pattern() const;
+  void setPattern(const QString& pattern);
+  bool ignoreCase() const;
+  void setIgnoreCase(bool ignoreCase);
+  const QString& foreColorName() const;
+  const QColor foreColor() const;
+  void setForeColor(const QString& foreColorName);
+  const QString& backColorName() const;
+  const QString& description() const;
+  const QColor backColor() const;
+  void setBackColor(const QString& backColorName);
+  void setDescription(const QString& description);
 
-    // Operators for serialization
-    // (must be kept to migrate filters from <=0.8.2)
-    friend QDataStream& operator<<( QDataStream& out, const Filter& object );
-    friend QDataStream& operator>>( QDataStream& in, Filter& object );
+  // Operators for serialization
+  // (must be kept to migrate filters from <=0.8.2)
+  friend QDataStream& operator<<(QDataStream& out, const Filter& object);
+  friend QDataStream& operator>>(QDataStream& in, Filter& object);
 
-    // Reads/writes the current config in the QSettings object passed
-    void saveToStorage( QSettings& settings ) const;
-    void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  void saveToStorage(QSettings& settings) const;
+  void retrieveFromStorage(QSettings& settings);
 
-  private:
-    QRegularExpression regexp_;
-    QString foreColorName_;
-    QString backColorName_;
-    bool enabled_;
+ private:
+  QRegularExpression regexp_;
+  QString foreColorName_;
+  QString backColorName_;
+  QString description_;
+  bool enabled_;
 };
 
 // Represents an ordered set of filters to be applied to each line displayed.
-class FilterSet : public Persistable
-{
-  public:
-    // Construct an empty filter set
-    FilterSet();
+class FilterSet : public Persistable {
+ public:
+  // Construct an empty filter set
+  FilterSet();
 
-    // Returns weither the passed line match a filter of the set,
-    // if so, it returns the fore/back colors the line should use.
-    // Ownership of the colors is transfered to the caller.
-    bool matchLine( const QString& line,
-            QColor* foreColor, QColor* backColor ) const;
+  // Returns weither the passed line match a filter of the set,
+  // if so, it returns the fore/back colors the line should use.
+  // Ownership of the colors is transfered to the caller.
+  bool matchLine(const QString& line, QColor* foreColor,
+                 QColor* backColor) const;
 
-    // Reads/writes the current config in the QSettings object passed
-    virtual void saveToStorage( QSettings& settings ) const;
-    virtual void retrieveFromStorage( QSettings& settings );
+  // Reads/writes the current config in the QSettings object passed
+  virtual void saveToStorage(QSettings& settings) const;
+  virtual void retrieveFromStorage(QSettings& settings);
 
-    // Should be private really, but I don't know how to have 
-    // it recognised by QVariant then.
-    typedef QList<Filter> FilterList;
+  // Should be private really, but I don't know how to have
+  // it recognised by QVariant then.
+  typedef QList<Filter> FilterList;
 
-    // Operators for serialization
-    // (must be kept to migrate filters from <=0.8.2)
-    friend QDataStream& operator<<(
-            QDataStream& out, const FilterSet& object );
-    friend QDataStream& operator>>(
-            QDataStream& in, FilterSet& object );
+  // Operators for serialization
+  // (must be kept to migrate filters from <=0.8.2)
+  friend QDataStream& operator<<(QDataStream& out, const FilterSet& object);
+  friend QDataStream& operator>>(QDataStream& in, FilterSet& object);
 
-  private:
-    static const int FILTERSET_VERSION;
+ private:
+  static const int FILTERSET_VERSION;
 
-    FilterList filterList;
+  FilterList filterList;
 
-    // To simplify this class interface, FilterDialog can access our
-    // internal structure directly.
-    friend class FiltersDialog;
+  // To simplify this class interface, FilterDialog can access our
+  // internal structure directly.
+  friend class FiltersDialog;
 };
 
 Q_DECLARE_METATYPE(Filter)

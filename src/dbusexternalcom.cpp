@@ -25,92 +25,81 @@
 
 static const char* DBUS_SERVICE_NAME = "org.bonnefon.glogg";
 
-DBusExternalCommunicator::DBusExternalCommunicator()
-{
-    if (!QDBusConnection::sessionBus().isConnected()) {
-        LOG(logERROR) << "Cannot connect to the D-Bus session bus.\n"
-                    << "To start it, run:\n"
-                    << "\teval `dbus-launch --auto-syntax`\n";
-        throw CantCreateExternalErr();
-    }
+DBusExternalCommunicator::DBusExternalCommunicator() {
+  if (!QDBusConnection::sessionBus().isConnected()) {
+    LOG(logERROR) << "Cannot connect to the D-Bus session bus.\n"
+                  << "To start it, run:\n"
+                  << "\teval `dbus-launch --auto-syntax`\n";
+    throw CantCreateExternalErr();
+  }
 
-    dbus_iface_object_ = std::make_shared<DBusInterfaceExternalCommunicator>();
+  dbus_iface_object_ = std::make_shared<DBusInterfaceExternalCommunicator>();
 
-    connect( dbus_iface_object_.get(), SIGNAL( signalLoadFile( const QString& ) ),
-             this, SIGNAL( loadFile( const QString& ) ) );
+  connect(dbus_iface_object_.get(), SIGNAL(signalLoadFile(const QString&)),
+          this, SIGNAL(loadFile(const QString&)));
 }
 
 // If listening fails (e.g. another glogg is already listening,
 // the function will fail silently and no listening will be done.
-void DBusExternalCommunicator::startListening()
-{
-    if (!QDBusConnection::sessionBus().registerService( DBUS_SERVICE_NAME )) {
-        LOG(logERROR) << qPrintable(QDBusConnection::sessionBus().lastError().message());
-    }
+void DBusExternalCommunicator::startListening() {
+  if (!QDBusConnection::sessionBus().registerService(DBUS_SERVICE_NAME)) {
+    LOG(logERROR) << qPrintable(
+        QDBusConnection::sessionBus().lastError().message());
+  }
 
-    if ( !QDBusConnection::sessionBus().registerObject( "/",
-            dbus_iface_object_.get(), QDBusConnection::ExportAllContents ) ) {
-        LOG(logERROR) << qPrintable(QDBusConnection::sessionBus().lastError().message());
-    }
+  if (!QDBusConnection::sessionBus().registerObject(
+          "/", dbus_iface_object_.get(), QDBusConnection::ExportAllContents)) {
+    LOG(logERROR) << qPrintable(
+        QDBusConnection::sessionBus().lastError().message());
+  }
 }
 
-ExternalInstance* DBusExternalCommunicator::otherInstance() const
-{
-    try {
-        return static_cast<ExternalInstance*>( new DBusExternalInstance() );
-    }
-    catch ( CantCreateExternalErr ) {
-        LOG(logINFO) << "Cannot find external D-Bus correspondant, we are the only glogg out there.";
-        return nullptr;
-    }
+ExternalInstance* DBusExternalCommunicator::otherInstance() const {
+  try {
+    return static_cast<ExternalInstance*>(new DBusExternalInstance());
+  } catch (CantCreateExternalErr) {
+    LOG(logINFO) << "Cannot find external D-Bus correspondant, we are the only "
+                    "glogg out there.";
+    return nullptr;
+  }
 }
 
-qint32 DBusExternalCommunicator::version() const
-{
-    return 3;
+qint32 DBusExternalCommunicator::version() const { return 3; }
+
+qint32 DBusInterfaceExternalCommunicator::version() const { return 0x010000; }
+
+void DBusInterfaceExternalCommunicator::loadFile(const QString& file_name) {
+  LOG(logDEBUG) << "DBusInterfaceExternalCommunicator::loadFile()";
+
+  emit signalLoadFile(file_name);
 }
 
-qint32 DBusInterfaceExternalCommunicator::version() const
-{
-    return 0x010000;
+DBusExternalInstance::DBusExternalInstance() {
+  dbusInterface_ = std::make_shared<QDBusInterface>(
+      DBUS_SERVICE_NAME, "/", "", QDBusConnection::sessionBus());
+
+  if (!dbusInterface_->isValid()) {
+    throw CantCreateExternalErr();
+  }
 }
 
-void DBusInterfaceExternalCommunicator::loadFile( const QString& file_name )
-{
-    LOG(logDEBUG) << "DBusInterfaceExternalCommunicator::loadFile()";
+void DBusExternalInstance::loadFile(const QString& file_name) const {
+  QDBusReply<void> reply = dbusInterface_->call("loadFile", file_name);
 
-    emit signalLoadFile( file_name );
+  if (!reply.isValid()) {
+    LOG(logWARNING) << "Invalid reply from D-Bus call: "
+                    << qPrintable(reply.error().message());
+  }
 }
 
-DBusExternalInstance::DBusExternalInstance()
-{
-     dbusInterface_ = std::make_shared<QDBusInterface>(
-             DBUS_SERVICE_NAME, "/", "", QDBusConnection::sessionBus() );
+uint32_t DBusExternalInstance::getVersion() const {
+  QDBusReply<qint32> reply = dbusInterface_->call("version");
 
-     if ( ! dbusInterface_->isValid() ) {
-        throw CantCreateExternalErr();
-     }
-}
+  if (!reply.isValid()) {
+    LOG(logWARNING) << "Invalid reply from D-Bus call: "
+                    << qPrintable(reply.error().message());
+    return 0;
+  }
 
-void DBusExternalInstance::loadFile( const QString& file_name ) const
-{
-    QDBusReply<void> reply = dbusInterface_->call( "loadFile", file_name );
-
-    if ( ! reply.isValid() ) {
-        LOG( logWARNING ) << "Invalid reply from D-Bus call: "
-            << qPrintable( reply.error().message() );
-    }
-}
-
-uint32_t DBusExternalInstance::getVersion() const
-{
-    QDBusReply<qint32> reply = dbusInterface_->call( "version" );
-
-    if ( ! reply.isValid() ) {
-        LOG( logWARNING ) << "Invalid reply from D-Bus call: "
-            << qPrintable( reply.error().message() );
-        return 0;
-    }
-
-    return (uint32_t) reply.value();
+  return (uint32_t)reply.value();
 }

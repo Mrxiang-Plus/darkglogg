@@ -25,12 +25,12 @@ class QSettings;
 // Must be implemented by classes which could be saved to persistent
 // storage by PersistentInfo.
 class Persistable {
-  public:
-    virtual ~Persistable() {}
+ public:
+  virtual ~Persistable() {}
 
-    // Must be implemented to save/retrieve from Qt Settings
-    virtual void saveToStorage( QSettings& settings ) const = 0;
-    virtual void retrieveFromStorage( QSettings& settings ) = 0;
+  // Must be implemented to save/retrieve from Qt Settings
+  virtual void saveToStorage(QSettings& settings) const = 0;
+  virtual void retrieveFromStorage(QSettings& settings) = 0;
 };
 
 #endif

@@ -20,15 +20,15 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-#include <memory>
-#include <unordered_map>
-#include <string>
-#include <vector>
-#include <utility>
 #include <functional>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include <QDateTime>
 #include <QByteArray>
+#include <QDateTime>
 
 #include "quickfindpattern.h"
 
@@ -37,6 +37,7 @@ class ViewContextInterface;
 class LogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedPatterns;
 
 // File unreadable error
 class FileUnreadableErr {};
@@ -46,83 +47,88 @@ class FileUnreadableErr {};
 // It also maintains the domain objects which are common to all log files
 // (SavedSearches, FileHistory, QFPattern...)
 class Session {
-  public:
-    Session();
-    ~Session();
+ public:
+  Session();
+  ~Session();
 
-    // No copy/assignment please
-    Session( const Session& ) = delete;
-    Session& operator =( const Session& ) = delete;
+  // No copy/assignment please
+  Session(const Session&) = delete;
+  Session& operator=(const Session&) = delete;
 
-    // Return the view associated to a file if it is open
-    // The filename must be strictly identical to trigger a match
-    // (no match in case of e.g. relative vs. absolute pathname.
-    ViewInterface* getViewIfOpen( const std::string& file_name ) const;
-    // Open a new file, starts its asynchronous loading, and construct a new
-    // view for it (the caller passes a factory to build the concrete view)
-    // The ownership of the view is given to the caller
-    // Throw exceptions if the file is already open or if it cannot be open.
-    ViewInterface* open( const std::string& file_name,
-            std::function<ViewInterface*()> view_factory );
-    // Close the file identified by the view passed
-    // Throw an exception if it does not exist.
-    void close( const ViewInterface* view );
+  // Return the view associated to a file if it is open
+  // The filename must be strictly identical to trigger a match
+  // (no match in case of e.g. relative vs. absolute pathname.
+  ViewInterface* getViewIfOpen(const std::string& file_name) const;
+  // Open a new file, starts its asynchronous loading, and construct a new
+  // view for it (the caller passes a factory to build the concrete view)
+  // The ownership of the view is given to the caller
+  // Throw exceptions if the file is already open or if it cannot be open.
+  ViewInterface* open(const std::string& file_name,
+                      std::function<ViewInterface*()> view_factory);
+  // Close the file identified by the view passed
+  // Throw an exception if it does not exist.
+  void close(const ViewInterface* view);
 
-    // Open all the files listed in the stored session
-    // (see ::open)
-    // returns a vector of pairs (file_name, view) and the index of the
-    // current file (or -1 if none).
-    std::vector<std::pair<std::string, ViewInterface*>> restore(
-            std::function<ViewInterface*()> view_factory,
-            int *current_file_index );
-    // Save the session to persistent storage. An ordered list of
-    // (view, topline, ViewContextInterface) is passed, this is because only
-    // the main window know the order in which the views are presented to
-    // the user (it might have changed since file were opened).
-    // Also, the geometry information is passed as an opaque string.
-    void save( std::vector<
-                   std::tuple<const ViewInterface*, uint64_t, std::shared_ptr<const ViewContextInterface>>
-               > view_list,
-           const QByteArray& geometry );
+  // Open all the files listed in the stored session
+  // (see ::open)
+  // returns a vector of pairs (file_name, view) and the index of the
+  // current file (or -1 if none).
+  std::vector<std::pair<std::string, ViewInterface*>> restore(
+      std::function<ViewInterface*()> view_factory, int* current_file_index);
+  // Save the session to persistent storage. An ordered list of
+  // (view, topline, ViewContextInterface) is passed, this is because only
+  // the main window know the order in which the views are presented to
+  // the user (it might have changed since file were opened).
+  // Also, the geometry information is passed as an opaque string.
+  void save(std::vector<std::tuple<const ViewInterface*, uint64_t,
+                                   std::shared_ptr<const ViewContextInterface>>>
+                view_list,
+            const QByteArray& geometry);
 
-    // Get the geometry string from persistent storage for this session.
-    void storedGeometry( QByteArray* geometry ) const;
+  // Get the geometry string from persistent storage for this session.
+  void storedGeometry(QByteArray* geometry) const;
 
-    // Get the file name for the passed view.
-    std::string getFilename( const ViewInterface* view ) const;
-    // Get the size (in bytes) and number of lines in the current file.
-    // The file is identified by the view attached to it.
-    void getFileInfo( const ViewInterface* view, uint64_t* fileSize,
-            uint32_t* fileNbLine, QDateTime* lastModified ) const;
-    // Get a (non-const) reference to the QuickFind pattern.
-    std::shared_ptr<QuickFindPattern> getQuickFindPattern() const
-    { return quickFindPattern_; }
+  // Get the file name for the passed view.
+  std::string getFilename(const ViewInterface* view) const;
+  // Get the size (in bytes) and number of lines in the current file.
+  // The file is identified by the view attached to it.
+  void getFileInfo(const ViewInterface* view, uint64_t* fileSize,
+                   uint32_t* fileNbLine, QDateTime* lastModified) const;
+  // Get a (non-const) reference to the QuickFind pattern.
+  std::shared_ptr<QuickFindPattern> getQuickFindPattern() const {
+    return quickFindPattern_;
+  }
+  std::shared_ptr<QuickFindPattern> getQuickMarkPattern() const {
+    return quickMarkPattern_;
+  }
 
-  private:
-    struct OpenFile {
-        std::string fileName;
-        std::shared_ptr<LogData> logData;
-        std::shared_ptr<LogFilteredData> logFilteredData;
-        ViewInterface* view;
-    };
+ private:
+  struct OpenFile {
+    std::string fileName;
+    std::shared_ptr<LogData> logData;
+    std::shared_ptr<LogFilteredData> logFilteredData;
+    ViewInterface* view;
+  };
 
-    // Open a file without checking if it is existing/readable
-    ViewInterface* openAlways( const std::string& file_name,
-            std::function<ViewInterface*()> view_factory,
-            const char* view_context );
-    // Find an open file from its associated view
-    OpenFile* findOpenFileFromView( const ViewInterface* view );
-    const OpenFile* findOpenFileFromView( const ViewInterface* view ) const;
+  // Open a file without checking if it is existing/readable
+  ViewInterface* openAlways(const std::string& file_name,
+                            std::function<ViewInterface*()> view_factory,
+                            const char* view_context);
+  // Find an open file from its associated view
+  OpenFile* findOpenFileFromView(const ViewInterface* view);
+  const OpenFile* findOpenFileFromView(const ViewInterface* view) const;
 
-    // List of open files
-    typedef std::unordered_map<const ViewInterface*, OpenFile> OpenFileMap;
-    OpenFileMap openFiles_;
+  // List of open files
+  typedef std::unordered_map<const ViewInterface*, OpenFile> OpenFileMap;
+  OpenFileMap openFiles_;
 
-    // Global search history
-    std::shared_ptr<SavedSearches> savedSearches_;
+  // Global search history
+  std::shared_ptr<SavedSearches> savedSearches_;
+  std::shared_ptr<SavedPatterns> savedPatterns_;
 
-    // Global quickfind pattern
-    std::shared_ptr<QuickFindPattern> quickFindPattern_;
+  // Global quickfind pattern
+  std::shared_ptr<QuickFindPattern> quickFindPattern_;
+  std::shared_ptr<QuickFindPattern> quickMarkPattern_;
 };
 
 #endif

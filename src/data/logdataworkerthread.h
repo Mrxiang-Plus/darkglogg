@@ -20,109 +20,107 @@
 #ifndef LOGDATAWORKERTHREAD_H
 #define LOGDATAWORKERTHREAD_H
 
+#include <QMutex>
 #include <QObject>
 #include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
 #include <QVector>
+#include <QWaitCondition>
 
-#include "loadingstatus.h"
-#include "linepositionarray.h"
 #include "encodingspeculator.h"
+#include "linepositionarray.h"
+#include "loadingstatus.h"
 #include "utils.h"
 
 // This class is a thread-safe set of indexing data.
-class IndexingData
-{
-  public:
-    IndexingData() : dataMutex_(), linePosition_(), maxLength_(0),
-        indexedSize_(0), encoding_(EncodingSpeculator::Encoding::ASCII7) { }
+class IndexingData {
+ public:
+  IndexingData()
+      : dataMutex_(),
+        linePosition_(),
+        maxLength_(0),
+        indexedSize_(0),
+        encoding_(EncodingSpeculator::Encoding::ASCII7) {}
 
-    // Get the total indexed size
-    qint64 getSize() const;
+  // Get the total indexed size
+  qint64 getSize() const;
 
-    // Get the length of the longest line
-    int getMaxLength() const;
+  // Get the length of the longest line
+  int getMaxLength() const;
 
-    // Get the total number of lines
-    LineNumber getNbLines() const;
+  // Get the total number of lines
+  LineNumber getNbLines() const;
 
-    // Get the position (in byte from the beginning of the file)
-    // of the end of the passed line.
-    qint64 getPosForLine( LineNumber line ) const;
+  // Get the position (in byte from the beginning of the file)
+  // of the end of the passed line.
+  qint64 getPosForLine(LineNumber line) const;
 
-    // Get the guessed encoding for the content.
-    EncodingSpeculator::Encoding getEncodingGuess() const;
+  // Get the guessed encoding for the content.
+  EncodingSpeculator::Encoding getEncodingGuess() const;
 
-    // Atomically add to all the existing
-    // indexing data.
-    void addAll( qint64 size, int length,
-            const FastLinePositionArray& linePosition,
-            EncodingSpeculator::Encoding encoding );
+  // Atomically add to all the existing
+  // indexing data.
+  void addAll(qint64 size, int length,
+              const FastLinePositionArray& linePosition,
+              EncodingSpeculator::Encoding encoding);
 
-    // Completely clear the indexing data.
-    void clear();
+  // Completely clear the indexing data.
+  void clear();
 
-  private:
-    mutable QMutex dataMutex_;
+ private:
+  mutable QMutex dataMutex_;
 
-    LinePositionArray linePosition_;
-    int maxLength_;
-    qint64 indexedSize_;
+  LinePositionArray linePosition_;
+  int maxLength_;
+  qint64 indexedSize_;
 
-    EncodingSpeculator::Encoding encoding_;
+  EncodingSpeculator::Encoding encoding_;
 };
 
-class IndexOperation : public QObject
-{
+class IndexOperation : public QObject {
   Q_OBJECT
-  public:
-    IndexOperation( const QString& fileName,
-            IndexingData* indexingData, bool* interruptRequest,
-            EncodingSpeculator* encodingSpeculator );
+ public:
+  IndexOperation(const QString& fileName, IndexingData* indexingData,
+                 bool* interruptRequest,
+                 EncodingSpeculator* encodingSpeculator);
 
-    virtual ~IndexOperation() { }
+  virtual ~IndexOperation() {}
 
-    // Start the indexing operation, returns true if it has been done
-    // and false if it has been cancelled (results not copied)
-    virtual bool start() = 0;
+  // Start the indexing operation, returns true if it has been done
+  // and false if it has been cancelled (results not copied)
+  virtual bool start() = 0;
 
-  signals:
-    void indexingProgressed( int );
+ signals:
+  void indexingProgressed(int);
 
-  protected:
-    static const int sizeChunk;
+ protected:
+  static const int sizeChunk;
 
-    // Returns the total size indexed
-    // Modify the passed linePosition and maxLength
-    void doIndex( IndexingData* linePosition, EncodingSpeculator* encodingSpeculator,
-            qint64 initialPosition );
+  // Returns the total size indexed
+  // Modify the passed linePosition and maxLength
+  void doIndex(IndexingData* linePosition,
+               EncodingSpeculator* encodingSpeculator, qint64 initialPosition);
 
-    QString fileName_;
-    bool* interruptRequest_;
-    IndexingData* indexing_data_;
+  QString fileName_;
+  bool* interruptRequest_;
+  IndexingData* indexing_data_;
 
-    EncodingSpeculator* encoding_speculator_;
+  EncodingSpeculator* encoding_speculator_;
 };
 
-class FullIndexOperation : public IndexOperation
-{
-  public:
-    FullIndexOperation( const QString& fileName,
-            IndexingData* indexingData, bool* interruptRequest,
-            EncodingSpeculator* speculator )
-        : IndexOperation( fileName, indexingData, interruptRequest, speculator ) { }
-    virtual bool start();
+class FullIndexOperation : public IndexOperation {
+ public:
+  FullIndexOperation(const QString& fileName, IndexingData* indexingData,
+                     bool* interruptRequest, EncodingSpeculator* speculator)
+      : IndexOperation(fileName, indexingData, interruptRequest, speculator) {}
+  virtual bool start();
 };
 
-class PartialIndexOperation : public IndexOperation
-{
-  public:
-    PartialIndexOperation( const QString& fileName,
-            IndexingData* indexingData, bool* interruptRequest,
-            EncodingSpeculator* speculator )
-        : IndexOperation( fileName, indexingData, interruptRequest, speculator ) { }
-    virtual bool start();
+class PartialIndexOperation : public IndexOperation {
+ public:
+  PartialIndexOperation(const QString& fileName, IndexingData* indexingData,
+                        bool* interruptRequest, EncodingSpeculator* speculator)
+      : IndexOperation(fileName, indexingData, interruptRequest, speculator) {}
+  virtual bool start();
 };
 
 // Create and manage the thread doing loading/indexing for
@@ -130,62 +128,62 @@ class PartialIndexOperation : public IndexOperation
 // per LogData instance.
 // Note everything except the run() function is in the LogData's
 // thread.
-class LogDataWorkerThread : public QThread
-{
+class LogDataWorkerThread : public QThread {
   Q_OBJECT
 
-  public:
-    // Pass a pointer to the IndexingData (initially empty)
-    // This object will change it when indexing (IndexingData must be thread safe!)
-    LogDataWorkerThread( IndexingData* indexing_data );
-    ~LogDataWorkerThread();
+ public:
+  // Pass a pointer to the IndexingData (initially empty)
+  // This object will change it when indexing (IndexingData must be thread
+  // safe!)
+  LogDataWorkerThread(IndexingData* indexing_data);
+  ~LogDataWorkerThread();
 
-    // Attaches to a file on disk. Attaching to a non existant file
-    // will work, it will just appear as an empty file.
-    void attachFile( const QString& fileName );
-    // Instructs the thread to start a new full indexing of the file, sending
-    // signals as it progresses.
-    void indexAll();
-    // Instructs the thread to start a partial indexing (starting at
-    // the end of the file as indexed).
-    void indexAdditionalLines();
-    // Interrupts the indexing if one is in progress
-    void interrupt();
+  // Attaches to a file on disk. Attaching to a non existant file
+  // will work, it will just appear as an empty file.
+  void attachFile(const QString& fileName);
+  // Instructs the thread to start a new full indexing of the file, sending
+  // signals as it progresses.
+  void indexAll();
+  // Instructs the thread to start a partial indexing (starting at
+  // the end of the file as indexed).
+  void indexAdditionalLines();
+  // Interrupts the indexing if one is in progress
+  void interrupt();
 
-    // Returns a copy of the current indexing data
-    void getIndexingData( qint64* indexedSize,
-            int* maxLength, LinePositionArray* linePosition );
+  // Returns a copy of the current indexing data
+  void getIndexingData(qint64* indexedSize, int* maxLength,
+                       LinePositionArray* linePosition);
 
-  signals:
-    // Sent during the indexing process to signal progress
-    // percent being the percentage of completion.
-    void indexingProgressed( int percent );
-    // Sent when indexing is finished, signals the client
-    // to copy the new data back.
-    void indexingFinished( LoadingStatus status );
+ signals:
+  // Sent during the indexing process to signal progress
+  // percent being the percentage of completion.
+  void indexingProgressed(int percent);
+  // Sent when indexing is finished, signals the client
+  // to copy the new data back.
+  void indexingFinished(LoadingStatus status);
 
-  protected:
-    void run();
+ protected:
+  void run();
 
-  private:
-    void doIndexAll();
+ private:
+  void doIndexAll();
 
-    // Mutex to protect operationRequested_ and friends
-    QMutex mutex_;
-    QWaitCondition operationRequestedCond_;
-    QWaitCondition nothingToDoCond_;
-    QString fileName_;
+  // Mutex to protect operationRequested_ and friends
+  QMutex mutex_;
+  QWaitCondition operationRequestedCond_;
+  QWaitCondition nothingToDoCond_;
+  QString fileName_;
 
-    // Set when the thread must die
-    bool terminate_;
-    bool interruptRequested_;
-    IndexOperation* operationRequested_;
+  // Set when the thread must die
+  bool terminate_;
+  bool interruptRequested_;
+  IndexOperation* operationRequested_;
 
-    // Pointer to the owner's indexing data (we modify it)
-    IndexingData* indexing_data_;
+  // Pointer to the owner's indexing data (we modify it)
+  IndexingData* indexing_data_;
 
-    // To guess the encoding
-    EncodingSpeculator encodingSpeculator_;
+  // To guess the encoding
+  EncodingSpeculator encodingSpeculator_;
 };
 
 #endif

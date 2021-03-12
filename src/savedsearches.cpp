@@ -19,119 +19,107 @@
 
 // This file implements class SavedSearch
 
-#include <QSettings>
 #include <QDataStream>
+#include <QSettings>
 
 #include "log.h"
 #include "savedsearches.h"
 
 const int SavedSearches::SAVEDSEARCHES_VERSION = 1;
-const int SavedSearches::maxNumberOfRecentSearches = 50;
+const int SavedSearches::maxNumberOfRecentSearches = 300;
 
-SavedSearches::SavedSearches() : savedSearches_()
-{
-    qRegisterMetaTypeStreamOperators<SavedSearches>( "SavedSearches" );
+SavedSearches::SavedSearches() : savedSearches_() {
+  qRegisterMetaTypeStreamOperators<SavedSearches>("SavedSearches");
 }
 
-void SavedSearches::addRecent( const QString& text )
-{
-    // We're not interested in blank lines
-    if ( text.isEmpty() )
-        return;
+void SavedSearches::addRecent(const QString& text) {
+  // We're not interested in blank lines
+  if (text.isEmpty()) return;
 
-    // Remove any copy of the about to be added text
-    savedSearches_.removeAll( text );
+  // Remove any copy of the about to be added text
+  savedSearches_.removeAll(text);
 
-    // Add at the front
-    savedSearches_.push_front( text );
+  // Add at the front
+  savedSearches_.push_front(text);
 
-    // Trim the list if it's too long
-    while (savedSearches_.size() > maxNumberOfRecentSearches)
-        savedSearches_.pop_back();
+  // Trim the list if it's too long
+  while (savedSearches_.size() > maxNumberOfRecentSearches)
+    savedSearches_.pop_back();
 }
 
-QStringList SavedSearches::recentSearches() const
-{
-    return savedSearches_;
-}
+QStringList SavedSearches::recentSearches() const { return savedSearches_; }
 
 //
 // Operators for serialization
 //
 
-QDataStream& operator<<( QDataStream& out, const SavedSearches& object )
-{
-    LOG(logDEBUG) << "<<operator from SavedSearches";
+QDataStream& operator<<(QDataStream& out, const SavedSearches& object) {
+  LOG(logDEBUG) << "<<operator from SavedSearches";
 
-    out << object.savedSearches_;
+  out << object.savedSearches_;
 
-    return out;
+  return out;
 }
 
-QDataStream& operator>>( QDataStream& in, SavedSearches& object )
-{
-    LOG(logDEBUG) << ">>operator from SavedSearches";
+QDataStream& operator>>(QDataStream& in, SavedSearches& object) {
+  LOG(logDEBUG) << ">>operator from SavedSearches";
 
-    in >> object.savedSearches_;
+  in >> object.savedSearches_;
 
-    return in;
+  return in;
 }
 
 //
 // Persistable virtual functions implementation
 //
 
-void SavedSearches::saveToStorage( QSettings& settings ) const
-{
-    LOG(logDEBUG) << "SavedSearches::saveToStorage";
+void SavedSearches::saveToStorage(QSettings& settings) const {
+  LOG(logINFO) << "SavedSearches::saveToStorage";
 
-    settings.beginGroup( "SavedSearches" );
-    // Remove everything in case the array is shorter than the previous one
-    settings.remove("");
-    settings.setValue( "version", SAVEDSEARCHES_VERSION );
-    settings.beginWriteArray( "searchHistory" );
-    for (int i = 0; i < savedSearches_.size(); ++i) {
-        settings.setArrayIndex( i );
-        settings.setValue( "string", savedSearches_.at( i ) );
-    }
-    settings.endArray();
-    settings.endGroup();
+  settings.beginGroup("SavedSearches");
+  // Remove everything in case the array is shorter than the previous one
+  settings.remove("");
+  settings.setValue("version", SAVEDSEARCHES_VERSION);
+  settings.beginWriteArray("searchHistory");
+  for (int i = 0; i < savedSearches_.size(); ++i) {
+    settings.setArrayIndex(i);
+    settings.setValue("string", savedSearches_.at(i));
+  }
+  settings.endArray();
+  settings.endGroup();
 }
 
-void SavedSearches::retrieveFromStorage( QSettings& settings )
-{
-    LOG(logDEBUG) << "SavedSearches::retrieveFromStorage";
+void SavedSearches::retrieveFromStorage(QSettings& settings) {
+  LOG(logDEBUG) << "SavedSearches::retrieveFromStorage";
 
-    savedSearches_.clear();
+  savedSearches_.clear();
 
-    if ( settings.contains( "SavedSearches/version" ) ) {
-        // Unserialise the "new style" stored history
-        settings.beginGroup( "SavedSearches" );
-        if ( settings.value( "version" ) == SAVEDSEARCHES_VERSION ) {
-            int size = settings.beginReadArray( "searchHistory" );
-            for (int i = 0; i < size; ++i) {
-                settings.setArrayIndex(i);
-                QString search = settings.value( "string" ).toString();
-                savedSearches_.append( search );
-            }
-            settings.endArray();
-        }
-        else {
-            LOG(logERROR) << "Unknown version of FilterSet, ignoring it...";
-        }
-        settings.endGroup();
+  if (settings.contains("SavedSearches/version")) {
+    // Unserialise the "new style" stored history
+    settings.beginGroup("SavedSearches");
+    if (settings.value("version") == SAVEDSEARCHES_VERSION) {
+      int size = settings.beginReadArray("searchHistory");
+      for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        QString search = settings.value("string").toString();
+        savedSearches_.append(search);
+      }
+      settings.endArray();
+    } else {
+      LOG(logERROR) << "Unknown version of FilterSet, ignoring it...";
     }
-    else {
-        LOG(logWARNING) << "Trying to import legacy (<=0.8.2) saved searches...";
-        SavedSearches tmp_saved_searches =
-            settings.value( "savedSearches" ).value<SavedSearches>();
-        *this = tmp_saved_searches;
-        LOG(logWARNING) << "...imported searches: "
-            << savedSearches_.count() << " elements";
-        // Remove the old key once migration is done
-        settings.remove( "savedSearches" );
-        // And replace it with the new one
-        saveToStorage( settings );
-        settings.sync();
-    }
+    settings.endGroup();
+  } else {
+    LOG(logWARNING) << "Trying to import legacy (<=0.8.2) saved searches...";
+    SavedSearches tmp_saved_searches =
+        settings.value("savedSearches").value<SavedSearches>();
+    *this = tmp_saved_searches;
+    LOG(logWARNING) << "...imported searches: " << savedSearches_.count()
+                    << " elements";
+    // Remove the old key once migration is done
+    settings.remove("savedSearches");
+    // And replace it with the new one
+    saveToStorage(settings);
+    settings.sync();
+  }
 }
