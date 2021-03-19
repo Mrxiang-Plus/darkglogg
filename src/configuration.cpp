@@ -36,6 +36,7 @@ Configuration::Configuration() {
 #else
   unzipPath_ = "~/.glogg/";
 #endif
+  processFilter_ = "";
   mainRegexpType_ = ExtendedRegexp;
   quickfindRegexpType_ = FixedString;
   quickfindIncremental_ = true;
@@ -65,6 +66,7 @@ Configuration::Configuration() {
 QFont Configuration::mainFont() const { return mainFont_; }
 QString Configuration::repoUrl() const { return repoUrl_; }
 QString Configuration::unzipPath() const { return unzipPath_; }
+QString Configuration::processFilter() const { return processFilter_; }
 
 void Configuration::setMainFont(QFont newFont) {
   LOG(logDEBUG) << "Configuration::setMainFont";
@@ -82,6 +84,12 @@ void Configuration::setUnzipPath(QString newPath) {
   LOG(logDEBUG) << "Configuration::setUnzipPath";
 
   unzipPath_ = newPath;
+}
+
+void Configuration::setProcessFilter(QString processFilter) {
+  LOG(logDEBUG) << "Configuration::setProcessFilter";
+
+  processFilter_ = processFilter;
 }
 
 void Configuration::retrieveFromStorage(QSettings& settings) {
@@ -102,11 +110,13 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   unzipPath_ = settings.value("unzip.path").toString();
   if (unzipPath_.isEmpty()) {
 #ifdef _WIN32
-  unzipPath_ = QDir::currentPath();
+    unzipPath_ = QDir::currentPath();
 #else
-  unzipPath_ = "~/.glogg/";
+    unzipPath_ = "~/.glogg/";
 #endif
   }
+
+  processFilter_ = settings.value("processFilter").toString();
 
   // Regexp types
   mainRegexpType_ = static_cast<SearchRegexpType>(
@@ -158,6 +168,7 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("mainFont.size", fi.pointSize());
   settings.setValue("repo.url", repoUrl_);
   settings.setValue("unzip.path", unzipPath_);
+  settings.setValue("processFilter", processFilter_);
   settings.setValue("regexpType.main", static_cast<int>(mainRegexpType_));
   settings.setValue("regexpType.quickfind",
                     static_cast<int>(quickfindRegexpType_));

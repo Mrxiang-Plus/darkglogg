@@ -861,13 +861,16 @@ void MainWindow::dropEvent(QDropEvent* event) {
             Persistent<Configuration>("settings");
         QString unzipPath = config->unzipPath();
 #ifdef _WIN32
-        QDir dir =QDir(QCoreApplication::applicationDirPath());
-      LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
-      process.setWorkingDirectory(path);
-      QString command = path + "open-bugreport.bat " ;
-      unzipPath = unzipPath + QDir::separator() +QFileInfo(fileName).baseName();
-      process.startDetached(command, QStringList() << dir.toNativeSeparators(unzipPath)
-                            << dir.toNativeSeparators(fileName) << QDir::currentPath());
+        QDir dir = QDir(QCoreApplication::applicationDirPath());
+        LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
+        process.setWorkingDirectory(path);
+        QString command = path + "open-bugreport.bat ";
+        unzipPath =
+            unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
+        process.startDetached(command, QStringList()
+                                           << dir.toNativeSeparators(unzipPath)
+                                           << dir.toNativeSeparators(fileName)
+                                           << QDir::currentPath());
 #else
         process.startDetached("/bin/bash", QStringList()
                                                << path + "open-bugreport.sh"
@@ -981,14 +984,16 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
 #ifdef _WIN32
       LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
       process.setWorkingDirectory(path);
-      QString command = path + "start-logcat.bat " ;
-      process.startDetached(command, QStringList()<< QDir::currentPath());
+      QString command = path + "start-logcat.bat ";
+      process.startDetached(command, QStringList() << QDir::currentPath());
 #else
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
-      QString zipPath = config->unzipPath() + QDir::separator() + "tmp.log";
-      process.startDetached(
-          "/bin/bash", QStringList() << path + "start-logcat.sh" << zipPath);
+      QString zipPath = config->unzipPath();
+      process.startDetached("/bin/bash", QStringList()
+                                             << path + "start-logcat-pid.sh"
+                                             << config->unzipPath()
+                                             << config->processFilter());
 #endif
       followSet(true);
       emit focusFilterBar();

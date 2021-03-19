@@ -42,9 +42,11 @@ class Configuration : public Persistable {
   QFont mainFont() const;
   QString repoUrl() const;
   QString unzipPath() const;
+  QString processFilter() const;
   void setMainFont(QFont newFont);
   void setRepoUrl(QString newUrl);
   void setUnzipPath(QString newPath);
+  void setProcessFilter(QString processFilter);
 
   // Accesses the regexp types
   SearchRegexpType mainRegexpType() const { return mainRegexpType_; }
@@ -101,6 +103,7 @@ class Configuration : public Persistable {
   QFont mainFont_;
   QString repoUrl_;
   QString unzipPath_;
+  QString processFilter_;
   SearchRegexpType mainRegexpType_;
   SearchRegexpType quickfindRegexpType_;
   bool quickfindIncremental_;
