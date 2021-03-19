@@ -984,8 +984,9 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
 #ifdef _WIN32
       LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
       process.setWorkingDirectory(path);
-      QString command = path + "start-logcat.bat ";
-      process.startDetached(command, QStringList() << QDir::currentPath());
+      QString command = path + "start-logcat-pid.bat ";
+      process.startDetached(command, QStringList() << QDir::currentPath()
+                                                   << config->processFilter());
 #else
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
