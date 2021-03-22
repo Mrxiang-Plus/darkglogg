@@ -31,35 +31,32 @@ Configuration::Configuration() {
 
   repoUrl_ = "git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git";
 
-#ifdef _WIN32
   unzipPath_ = QDir::currentPath();
-#else
-  unzipPath_ = "~/.glogg/";
-#endif
   processFilter_ = "";
   mainRegexpType_ = ExtendedRegexp;
-  quickfindRegexpType_ = FixedString;
-  quickfindIncremental_ = true;
+  quickfindRegexpType_ = ExtendedRegexp;
+  quickfindIncremental_ = false;
 
 #ifdef GLOGG_SUPPORTS_POLLING
   pollingEnabled_ = true;
+  pollIntervalMs_ = 10;
 #else
   pollingEnabled_ = false;
-#endif
   pollIntervalMs_ = 2000;
+#endif
   transparent_ = 255;
 
   loadLastSession_ = true;
 
   overviewVisible_ = true;
   lineNumbersVisibleInMain_ = false;
-  lineNumbersVisibleInFiltered_ = true;
+  lineNumbersVisibleInFiltered_ = false;
 
   QFontInfo fi(mainFont_);
   LOG(logDEBUG) << "Default font is " << fi.family().toStdString();
 
-  searchAutoRefresh_ = false;
-  searchIgnoreCase_ = false;
+  searchAutoRefresh_ = true;
+  searchIgnoreCase_ = true;
 }
 
 // Accessor functions
@@ -109,11 +106,7 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
 
   unzipPath_ = settings.value("unzip.path").toString();
   if (unzipPath_.isEmpty()) {
-#ifdef _WIN32
     unzipPath_ = QDir::currentPath();
-#else
-    unzipPath_ = "~/.glogg/";
-#endif
   }
 
   processFilter_ = settings.value("processFilter").toString();
@@ -149,7 +142,7 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
         settings.value("view.lineNumbersVisibleInFiltered").toBool();
 
   // Some sanity check (mainly for people upgrading)
-  if (quickfindIncremental_) quickfindRegexpType_ = FixedString;
+  if (quickfindIncremental_) quickfindRegexpType_ = ExtendedRegexp;
 
   // Default crawler settings
   if (settings.contains("defaultView.searchAutoRefresh"))

@@ -39,6 +39,8 @@
 #include <QMimeData>
 #include <QProcess>
 #include <QStyleFactory>
+#include <QTextStream>
+#include <QTimer>
 #include <QToolBar>
 #include <QUrl>
 
@@ -106,6 +108,7 @@ MainWindow::MainWindow(
   signalMux_.connect(this, SIGNAL(followSet(bool)), SIGNAL(followSet(bool)));
   signalMux_.connect(this, SIGNAL(optionsChanged()),
                      SLOT(applyConfiguration()));
+  signalMux_.connect(this, SIGNAL(startNewSearch()), SLOT(startNewSearch()));
   signalMux_.connect(this, SIGNAL(enterQuickFind()), SLOT(enteringQuickFind()));
   signalMux_.connect(this, SIGNAL(enterQuickMark()), SLOT(enteringQuickMark()));
   signalMux_.connect(this, SIGNAL(focusFilterBar()), SLOT(focusingFilterBar()));
@@ -137,6 +140,10 @@ MainWindow::MainWindow(
   signalMux_.connect(SIGNAL(openFile()), this, SLOT(open()));
   signalMux_.connect(SIGNAL(exitApp()), titleBar->parent()->parent(),
                      SLOT(close()));
+  signalMux_.connect(SIGNAL(changeFollowMode()), this,
+                     SLOT(changeFollowMode()));
+  signalMux_.connect(SIGNAL(disableFollowMode()), this,
+                     SLOT(disableFollowMode()));
   signalMux_.connect(SIGNAL(loadingProgressed(int)), this,
                      SLOT(updateLoadingProgress(int)));
   signalMux_.connect(SIGNAL(loadingFinished(LoadingStatus)), this,
@@ -542,6 +549,17 @@ void MainWindow::copy() {
 
     // Put it in the global selection as well (X11 only)
     clipboard->setText(current->getSelectedText(), QClipboard::Selection);
+  }
+}
+
+void MainWindow::saveAs(const QString& fileName) {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current) {
+    QFile file(fileName);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << current->getSelectedText();
+    file.close();
   }
 }
 
@@ -977,10 +995,14 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       process.startDetached("/bin/bash", QStringList()
                                              << path + "kill-logcat.sh");
 #endif
-      followSet(false);
+      followAction->setChecked(false);
+      QTimer::singleShot(500, this, SLOT(disableFollowMode()));
+
       break;
     }
     case 's': {
+      std::shared_ptr<Configuration> config =
+          Persistent<Configuration>("settings");
 #ifdef _WIN32
       LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
       process.setWorkingDirectory(path);
@@ -988,18 +1010,39 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       process.startDetached(command, QStringList() << QDir::currentPath()
                                                    << config->processFilter());
 #else
-      std::shared_ptr<Configuration> config =
-          Persistent<Configuration>("settings");
       QString zipPath = config->unzipPath();
       process.startDetached("/bin/bash", QStringList()
                                              << path + "start-logcat-pid.sh"
                                              << config->unzipPath()
                                              << config->processFilter());
 #endif
-      followSet(true);
-      emit focusFilterBar();
+      QTimer::singleShot(600, this, SLOT(changeFollowMode()));
+      //      followAction->setChecked(true);
+
       break;
     }
+    case 'a': {
+      std::shared_ptr<Configuration> config =
+          Persistent<Configuration>("settings");
+      QString zipPath = config->unzipPath() + QDir::separator() + "a.log";
+      saveAs(zipPath);
+
+    } break;
+    case 'b': {
+      std::shared_ptr<Configuration> config =
+          Persistent<Configuration>("settings");
+      QString aPath = config->unzipPath() + QDir::separator() + "a.log";
+      QString bPath = config->unzipPath() + QDir::separator() + "b.log";
+      saveAs(bPath);
+#ifdef _WIN32
+#else
+      process.startDetached("/bin/bash", QStringList()
+                                             << path + "compare-log.sh" << aPath
+                                             << bPath);
+#endif
+
+    } break;
+
     case 'd': {
       bool ok;
       QDateTime dateTime = dateTime.currentDateTime();
@@ -1032,6 +1075,16 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
   }
 
   if (!keyEvent->isAccepted()) QMainWindow::keyPressEvent(keyEvent);
+}
+
+void MainWindow::changeFollowMode() {
+  changeFollowMode(true);
+  emit startNewSearch();
+}
+
+void MainWindow::disableFollowMode() {
+  changeFollowMode(false);
+  emit startNewSearch();
 }
 
 //

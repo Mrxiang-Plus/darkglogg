@@ -86,6 +86,7 @@ class MainWindow : public QMainWindow {
   void closeAll();
   void selectAll();
   void copy();
+  void saveAs(const QString &fileName);
   void find();
   void mark();
   void filters();
@@ -94,6 +95,8 @@ class MainWindow : public QMainWindow {
   void aboutQt();
   void encodingChanged(QAction *action);
   void applyConfiguration();
+  void changeFollowMode();
+  void disableFollowMode();
 
   // Change the view settings
   void toggleOverviewVisibility(bool isVisible);
@@ -157,6 +160,7 @@ class MainWindow : public QMainWindow {
   void focusLogBar();
   void hideLogBar();
   void focusMainView();
+  void startNewSearch();
 
  private:
   void createActions();

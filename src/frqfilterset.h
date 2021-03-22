@@ -51,6 +51,8 @@ class FrqFilter {
   void ContrastColor(QColor* color, QColor* foreColor) const;
   void setBackColor(const QString& backColorName);
   void setDescription(const QString& description);
+  void setEnabled(const bool enabled);
+  bool getEnabled() const;
 
   // Operators for serialization
   // (must be kept to migrate FrqFilters from <=0.8.2)
@@ -86,6 +88,9 @@ class FrqFilterSet : public Persistable {
   // Ownership of the colors is transfered to the caller.
   bool matchLine(const QString& line, QColor* foreColor,
                  QColor* backColor) const;
+
+  bool matchFirstLine(const QString& line, QColor* foreColor,
+                      QColor* backColor) const;
 
   // Reads/writes the current config in the QSettings object passed
   virtual void saveToStorage(QSettings& settings) const;

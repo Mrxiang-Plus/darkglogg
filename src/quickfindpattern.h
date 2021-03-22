@@ -57,9 +57,11 @@ class QuickFindPattern : public QObject {
   // Set the search to a new pattern, using the current
   // case status
   void changeSearchPattern(const QString& pattern);
+  void changeMarkPattern(const QString& pattern);
 
   // Set the search to a new pattern, as well as the case status
   void changeSearchPattern(const QString& pattern, bool ignoreCase);
+  void changeMarkPattern(const QString& pattern, bool ignoreCase);
 
   // Returns whether the search is active (i.e. valid and non empty regexp)
   bool isActive() const { return active_; }

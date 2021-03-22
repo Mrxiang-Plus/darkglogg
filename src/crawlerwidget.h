@@ -21,6 +21,7 @@
 #ifndef CRAWLERWIDGET_H
 #define CRAWLERWIDGET_H
 
+#include <frqfilterset.h>
 #include <frqframe.h>
 #include <pinedbutton.h>
 #include <QCheckBox>
@@ -85,6 +86,7 @@ class CrawlerWidget : public QSplitter,
   QString encodingText() const;
   int viewSizeMax_;
 
+  std::shared_ptr<FrqFilterSet> frqFilterSet;
  public slots:
   // Stop the asynchoronous loading of the file if one is in progress
   // The file is identified by the view attached to it.
@@ -154,6 +156,8 @@ class CrawlerWidget : public QSplitter,
   // Sent when the data status (whether new not seen data are
   // available) has changed
   void dataStatusChanged(DataStatus status);
+  void changeFollowMode();
+  void disableFollowMode();
 
  private slots:
   void doSearch(int patternIndex);

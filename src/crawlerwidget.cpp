@@ -169,45 +169,34 @@ void CrawlerWidget::doSendAllStateSignals() {
 
 void CrawlerWidget::updateSearchPattern(int patternIndex) {
   currentSearchIndex_ = -1;
-  std::shared_ptr<const FrqFilterSet> frqFilterSet =
-      Persistent<FrqFilterSet>("frqFilterSet");
   QString filter = "";
   currentSearchTitle_ = "";
   replaceQuickMark("");
   int index = 0;
   for (int i = 0; i < buttonList_.size(); i++) {
+    index = buttonList_.at(i)->pinedIndex();
     if (buttonList_[i]->getPressed()) {
-      index = buttonList_.at(i)->pinedIndex();
+      frqFilterSet->frqFilterList[index].setEnabled(true);
       QString text = frqFilterSet->getPinedFilters(index);
-
-      QStringList list = text.split('>');
-      if (list.length() <= 1) {
-        if (filter.isEmpty()) {
-          filter = text;
-        } else {
-          filter += "|" + text;
-        }
+      if (filter.isEmpty()) {
+        filter = text;
       } else {
-        if (filter.isEmpty()) {
-          filter = list[1].trimmed();
-        } else {
-          filter += "|" + list[1].trimmed();
-        }
-        if (list.length() >= 3) {
-          addToQuickMark(list[2].trimmed());
-        }
+        filter += "|" + text;
       }
+    } else {
+      frqFilterSet->frqFilterList[index].setEnabled(false);
     }
   }
+  *(Persistent<FrqFilterSet>("frqFilterSet")) = *frqFilterSet;
+  GetPersistentInfo().save("frqFilterSet");
   currentSearchString_ = filter;
   startNewSearch(filter);
 }
+
 void CrawlerWidget::doSearch(int patternIndex) {
   QString filter = "";
   if (currentSearchIndex_ != patternIndex) {
     currentSearchIndex_ = patternIndex;
-    std::shared_ptr<const FrqFilterSet> frqFilterSet =
-        Persistent<FrqFilterSet>("frqFilterSet");
     QString text = frqFilterSet->getPinedFilters(patternIndex);
     QStringList list = text.split('>');
     if (list.length() <= 1) {
@@ -307,8 +296,14 @@ void CrawlerWidget::resetButtonWithoutSearch(int except) {
     if (i != except && button->getPressed()) {
       buttonList_[i]->setPressed(false);
       buttonList_[i]->setStyleSheet("");
+      int index = buttonList_.at(i)->pinedIndex();
+      frqFilterSet->frqFilterList[index].setEnabled(false);
     }
   }
+
+  *(Persistent<FrqFilterSet>("frqFilterSet")) = *frqFilterSet;
+  GetPersistentInfo().save("frqFilterSet");
+
   if (except >= 0) {
   } else {
     currentSearchString_ = "";
@@ -324,8 +319,12 @@ void CrawlerWidget::resetButton(int except) {
     if (i != except && button->getPressed()) {
       buttonList_[i]->setPressed(false);
       buttonList_[i]->setStyleSheet("");
+      int index = buttonList_.at(i)->pinedIndex();
+      frqFilterSet->frqFilterList[index].setEnabled(false);
     }
   }
+  *(Persistent<FrqFilterSet>("frqFilterSet")) = *frqFilterSet;
+  GetPersistentInfo().save("frqFilterSet");
   if (except >= 0) {
     doSearch(except);
   } else {
@@ -1201,6 +1200,16 @@ void CrawlerWidget::setup() {
   connect(filteredView, SIGNAL(commentLine(qint64, QString&)), this,
           SLOT(commentLineFromFiltered(qint64, QString&)));
 
+  connect(logMainView, SIGNAL(changeFollowMode()), this,
+          SIGNAL(changeFollowMode()));
+  connect(filteredView, SIGNAL(changeFollowMode()), this,
+          SIGNAL(changeFollowMode()));
+
+  connect(logMainView, SIGNAL(disableFollowMode()), this,
+          SIGNAL(disableFollowMode()));
+  connect(filteredView, SIGNAL(disableFollowMode()), this,
+          SIGNAL(disableFollowMode()));
+
   connect(logMainView, SIGNAL(addToSearch(const QString&)), this,
           SLOT(addToSearch(const QString&)));
   connect(filteredView, SIGNAL(addToSearch(const QString&)), this,
@@ -1373,8 +1382,9 @@ void CrawlerWidget::updateButtons() {
   pinnedPatternsLayout_->setSpacing(0);
   pinnedPatternsLayout_->setContentsMargins(0, 0, 0, 9);
 
-  std::shared_ptr<const FrqFilterSet> frqFilterSet =
-      Persistent<FrqFilterSet>("frqFilterSet");
+  GetPersistentInfo().retrieve("frqFilterSet");
+  frqFilterSet = PersistentCopy<FrqFilterSet>("frqFilterSet");
+
   buttonList_.clear();
   for (int i = 0; i < frqFilterSet->getSize(); i++) {
     QColor foreColor, backColor;

@@ -32,6 +32,35 @@
 QuickFindPattern::QuickFindPattern() : QObject(), regexp_() { active_ = false; }
 
 #include <iostream>
+void QuickFindPattern::changeMarkPattern(const QString& pattern) {
+  // Determine the type of regexp depending on the config
+  QString searchPattern;
+  searchPattern = pattern;
+
+  if (!searchPattern.startsWith(" //.*")) {
+    if (!searchPattern.isEmpty()) {
+      searchPattern = " //.*|" + searchPattern;
+    } else {
+      searchPattern = " //.*";
+    }
+  }
+  QStringList newPieces_ = searchPattern.split("|");
+  QList<int> removedPieces;
+  for (int i = 0; i < pieces_.size(); i++) {
+    if (!newPieces_.contains(pieces_[i])) {
+      removedPieces.append(i);
+    }
+  }
+  regexp_.setPattern(searchPattern);
+  pieces_ = searchPattern.split("|");
+
+  if (regexp_.isValid() && (!searchPattern.isEmpty()))
+    active_ = true;
+  else
+    active_ = false;
+
+  emit patternUpdated(removedPieces);
+}
 
 void QuickFindPattern::changeSearchPattern(const QString& pattern) {
   // Determine the type of regexp depending on the config
@@ -74,6 +103,17 @@ void QuickFindPattern::changeSearchPattern(const QString& pattern) {
       emit patternUpdated(removedPieces);
       break;
   }
+}
+void QuickFindPattern::changeMarkPattern(const QString& pattern,
+                                         bool ignoreCase) {
+  QRegularExpression::PatternOptions options =
+      QRegularExpression::UseUnicodePropertiesOption |
+      QRegularExpression::OptimizeOnFirstUsageOption;
+
+  if (ignoreCase) options |= QRegularExpression::CaseInsensitiveOption;
+
+  regexp_.setPatternOptions(options);
+  changeMarkPattern(pattern);
 }
 
 void QuickFindPattern::changeSearchPattern(const QString& pattern,

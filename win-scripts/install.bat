@@ -2,6 +2,7 @@ if not exist "C:\%HOMEPATH%\.glogg" (
 mkdir "C:\%HOMEPATH%\.glogg"
 )
 xcopy start-logcat.bat "C:\%HOMEPATH%\.glogg\"
+xcopy start-logcat-pid.bat "C:\%HOMEPATH%\.glogg\"
 xcopy kill-logcat.bat "C:\%HOMEPATH%\.glogg\"
 xcopy open-bugreport.bat "C:\%HOMEPATH%\.glogg\"
 

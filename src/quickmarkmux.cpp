@@ -103,7 +103,7 @@ void QuickMarkMux::setNewPattern(const QString& new_pattern, bool ignore_case) {
 
   // If we must do an incremental Mark, we do it now
   if (config->isQuickfindIncremental()) {
-    pattern_->changeSearchPattern(new_pattern, ignore_case);
+    pattern_->changeMarkPattern(new_pattern, ignore_case);
     if (auto markable = getMarkableWidget()) {
       if (currentDirection_ == QFDirection::Forward)
         markable->incrementallyMarkForward();
@@ -118,7 +118,7 @@ void QuickMarkMux::confirmPatternWithoutSearch(const QString& new_pattern,
   static std::shared_ptr<Configuration> config =
       Persistent<Configuration>("settings");
 
-  pattern_->changeSearchPattern(new_pattern, ignore_case);
+  pattern_->changeMarkPattern(new_pattern, ignore_case);
 }
 
 void QuickMarkMux::confirmPattern(const QString& new_pattern, bool ignore_case,
@@ -126,7 +126,7 @@ void QuickMarkMux::confirmPattern(const QString& new_pattern, bool ignore_case,
   static std::shared_ptr<Configuration> config =
       Persistent<Configuration>("settings");
 
-  pattern_->changeSearchPattern(new_pattern, ignore_case);
+  pattern_->changeMarkPattern(new_pattern, ignore_case);
 
   // if non-incremental, we perform the Mark now
   if (!config->isQuickfindIncremental()) {
@@ -150,7 +150,7 @@ void QuickMarkMux::cancelMark() {
 //
 void QuickMarkMux::changeQuickMark(const QString& new_pattern,
                                    QFDirection new_direction) {
-  pattern_->changeSearchPattern(new_pattern);
+  pattern_->changeMarkPattern(new_pattern);
   setDirection(new_direction);
 }
 

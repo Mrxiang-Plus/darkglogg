@@ -121,6 +121,10 @@ void FrqFilter::setDescription(const QString& description) {
   description_ = description;
 }
 
+void FrqFilter::setEnabled(const bool enabled) { enabled_ = enabled; }
+
+bool FrqFilter::getEnabled() const { return enabled_; }
+
 bool FrqFilter::hasMatch(const QString& string) const {
   return regexp_.match(string).hasMatch();
 }
@@ -135,6 +139,7 @@ QDataStream& operator<<(QDataStream& out, const FrqFilter& object) {
   out << object.regexp_;
   out << object.foreColorName_;
   out << object.backColorName_;
+  out << object.enabled_;
 
   return out;
 }
@@ -145,6 +150,7 @@ QDataStream& operator>>(QDataStream& in, FrqFilter& object) {
   in >> object.regexp_;
   in >> object.foreColorName_;
   in >> object.backColorName_;
+  in >> object.enabled_;
 
   return in;
 }
@@ -178,15 +184,28 @@ int FrqFilterSet::getSize() const { return frqFilterList.size(); }
 
 bool FrqFilterSet::matchLine(const QString& line, QColor* foreColor,
                              QColor* backColor) const {
-  for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin();
+  for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin() + 1;
        i != frqFilterList.constEnd(); i++) {
-    if (i->hasMatch(line)) {
+    if (i->hasMatch(line) && i->getEnabled()) {
       QColor fColor = i->foreColor();
       QColor bColor = i->backColor();
       foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
       backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
       return true;
     }
+  }
+  return false;
+}
+
+bool FrqFilterSet::matchFirstLine(const QString& line, QColor* foreColor,
+                                  QColor* backColor) const {
+  QList<FrqFilter>::const_iterator i = frqFilterList.constBegin();
+  if (i->hasMatch(line) && i->getEnabled()) {
+    QColor fColor = i->foreColor();
+    QColor bColor = i->backColor();
+    foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
+    backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
+    return true;
   }
 
   return false;
@@ -224,6 +243,7 @@ void FrqFilter::saveToStorage(QSettings& settings) const {
                         QRegularExpression::CaseInsensitiveOption));
   settings.setValue("fore_colour", foreColorName_);
   settings.setValue("back_colour", backColorName_);
+  settings.setValue("enabled", enabled_);
 }
 
 void FrqFilter::retrieveFromStorage(QSettings& settings) {
@@ -236,6 +256,7 @@ void FrqFilter::retrieveFromStorage(QSettings& settings) {
 
   foreColorName_ = settings.value("fore_colour").toString();
   backColorName_ = settings.value("back_colour").toString();
+  enabled_ = settings.value("enabled").toBool();
 }
 
 void FrqFilterSet::saveToStorage(QSettings& settings) const {

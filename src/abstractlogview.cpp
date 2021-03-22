@@ -40,6 +40,7 @@
 #include <QPainter>
 #include <QRect>
 #include <QScrollBar>
+#include <QTimer>
 #include <QtCore>
 #include <string>
 
@@ -1030,11 +1031,13 @@ void AbstractLogView::startLogcat() {
 #ifdef _WIN32
   process.setWorkingDirectory(path);
   QString command = path + "start-logcat.bat";
-  process.startDetached(command, QStringList()<< QDir::currentPath());
+  process.startDetached(command, QStringList() << QDir::currentPath());
 #else
-  process.startDetached("/bin/bash", QStringList() << path + "start-logcat.sh");
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  process.startDetached("/bin/bash", QStringList() << path + "start-logcat.sh"
+                                                   << config->unzipPath());
 #endif
-  followSet(true);
+  QTimer::singleShot(600, this, SIGNAL(changeFollowMode()));
 }
 
 void AbstractLogView::stopLogcat() {
@@ -1048,7 +1051,7 @@ void AbstractLogView::stopLogcat() {
 #else
   process.startDetached("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
-  followSet(false);
+  QTimer::singleShot(600, this, SIGNAL(disableFollowMode()));
 }
 
 void AbstractLogView::syncPatterns() {
@@ -1687,11 +1690,14 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
         foreColor = Qt::white;
       }
       painter.setPen(palette.color(QPalette::Text));
+
+    } else if (frqFilterSet->matchLine(logData->getLineString(line_index),
+                                       &foreColor, &backColor)) {
     } else if (filterSet->matchLine(logData->getLineString(line_index),
                                     &foreColor, &backColor)) {
       // Apply a filter to the line
-    } else if (frqFilterSet->matchLine(logData->getLineString(line_index),
-                                       &foreColor, &backColor)) {
+    } else if (frqFilterSet->matchFirstLine(logData->getLineString(line_index),
+                                            &foreColor, &backColor)) {
     } else {
       // Use the default colors
       foreColor = palette.color(QPalette::Text);
