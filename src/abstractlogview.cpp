@@ -557,7 +557,7 @@ void AbstractLogView::keyPressEvent(QKeyEvent* keyEvent) {
           addToSearch();
           break;
         }
-        case 'b': {
+        case 'w': {
           addToQuickMark();
           addToSearch();
           break;

@@ -558,7 +558,10 @@ void MainWindow::saveAs(const QString& fileName) {
     QFile file(fileName);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
-    out << current->getSelectedText();
+    QString string =
+        current->getSelectedText().remove(QRegExp("^[0-9: . -]+[^A-Z]"));
+    QString text = string.replace(QRegExp("\n[0-9: . -]+[^A-Z]"), "\n");
+    out << text;
     file.close();
   }
 }
@@ -1035,6 +1038,9 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       QString bPath = config->unzipPath() + QDir::separator() + "b.log";
       saveAs(bPath);
 #ifdef _WIN32
+      process.setWorkingDirectory(path);
+      QString command = path + "compare-log.bat ";
+      process.startDetached(command, QStringList() << aPath << bPath);
 #else
       process.startDetached("/bin/bash", QStringList()
                                              << path + "compare-log.sh" << aPath
