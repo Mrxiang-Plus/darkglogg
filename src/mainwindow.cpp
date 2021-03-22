@@ -870,7 +870,7 @@ void MainWindow::dropEvent(QDropEvent* event) {
   foreach (const QUrl& url, event->mimeData()->urls()) {
     QString fileName = url.toLocalFile();
     if (!fileName.isEmpty()) {
-      if (fileName.contains("bugreport") && fileName.endsWith(".zip")) {
+      if (fileName.endsWith(".zip")) {
         QProcess process;
         QString path =
             QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
