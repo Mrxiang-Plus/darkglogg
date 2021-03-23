@@ -517,7 +517,33 @@ void MainWindow::open() {
 
   QString fileName = QFileDialog::getOpenFileName(
       this, tr("Open file"), defaultDir, tr("All files (*)"));
-  if (!fileName.isEmpty()) loadFile(fileName);
+  if (!fileName.isEmpty()) {
+    if (fileName.endsWith(".jpeg") || fileName.endsWith(".mp4") ||
+        fileName.endsWith(".png")) {
+      QProcess process;
+      QString path =
+          QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+
+      std::shared_ptr<Configuration> config =
+          Persistent<Configuration>("settings");
+      QString unzipPath = config->unzipPath();
+#ifdef _WIN32
+      QDir dir = QDir(QCoreApplication::applicationDirPath());
+      LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
+      process.setWorkingDirectory(path);
+      QString command = path + "open-file.bat ";
+      unzipPath =
+          unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
+      process.startDetached(command, QStringList()
+                                         << dir.toNativeSeparators(unzipPath));
+#else
+      process.startDetached("/bin/bash",
+                            QStringList() << path + "open-file.sh" << fileName);
+#endif
+    } else {
+      loadFile(fileName);
+    }
+  }
 }
 
 // Opens a log file from the recent files list
