@@ -4,6 +4,7 @@ glogg 快捷键：
 | shift + F12                     | 显示/隐藏菜单
 | shift + T                       | 显示/隐藏文件栏
 | shift + F                       | 最大化/还原窗口
+| shift + A                       | 透明背景
 | Esc                             | 取消EditText中的对焦
 | ctrl + F or  /                  | 查找
 | j/k/h/l Ctrl + D Ctrl + U       | 移动
@@ -23,12 +24,15 @@ glogg 快捷键：
 | ctrl+k                          | menu下拉框中上一个选项
 | ctrl+p                          | 复制filter到当前过滤框
 | ctrl+num                        | 切换指定窗口
-| b                               | mark并添加到过滤器
+| ctrl+o                          | 支持打开bugreport解压目录中的jpeg/png/mp4
+| w                               | mark并添加到过滤器
 | d                               | 另存为一个文件打开做比较 (diff)
 | c                               | 底部按钮1
 | e                               | 底部按钮2
 | alt+num                         | 底部按钮1,2,3...9
 | r                               | 重置底部按钮按压状态
+| a & b                           | a b compare功能, 选中一段按a, 选中一段按b比较
+| ctrl+shift+c                    | copy时带文字高亮色,方便贴入jira comment中
 | ------------------------------- | ---------------------------------------
 
 1. 支持BugReport.*zip文件自动解压打开里面的txt文件. 解压路径配置 Tools > Options > work path

@@ -519,7 +519,7 @@ void MainWindow::open() {
       this, tr("Open file"), defaultDir, tr("All files (*)"));
   if (!fileName.isEmpty()) {
     if (fileName.endsWith(".jpeg") || fileName.endsWith(".mp4") ||
-        fileName.endsWith(".png")) {
+        fileName.endsWith(".png") || fileName.endsWith(".jpg")) {
       QProcess process;
       QString path =
           QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -535,7 +535,7 @@ void MainWindow::open() {
       unzipPath =
           unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
       process.startDetached(command, QStringList()
-                                         << dir.toNativeSeparators(unzipPath));
+                                         << dir.toNativeSeparators(fileName));
 #else
       process.startDetached("/bin/bash",
                             QStringList() << path + "open-file.sh" << fileName);

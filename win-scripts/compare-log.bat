@@ -1,2 +1,2 @@
 @echo off
-start bcompare.exe %1 %2
+start bcompare.exe "%1" "%2"

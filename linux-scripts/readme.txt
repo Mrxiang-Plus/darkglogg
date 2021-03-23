@@ -23,13 +23,15 @@ glogg 快捷键：
 | ctrl+k                          | menu下拉框中上一个选项
 | ctrl+p                          | 复制filter到当前过滤框
 | ctrl+num                        | 切换指定窗口
-| b                               | mark并添加到过滤器
+| w                               | mark并添加到过滤器
 | p                               | 添加注释(只能一直加,暂不支持编辑)
-| d                               | 另存为一个文件打开做比较 (diff)
+| d                               | save as
 | c                               | 底部按钮1
 | e                               | 底部按钮2
 | alt+num                         | 底部按钮1,2,3...9
 | r                               | 重置底部按钮按压状态
+| a & b                           | a b compare功能, 选中一段按a, 选中一段按b比较
+| ctrl+shift+c                    | copy时带文字高亮色,方便贴入jira comment中
 | ------------------------------- | ---------------------------------------
 
 1. 支持BugReport.*zip文件自动解压打开里面的txt文件. 解压路径配置 Tools > Options > work path
