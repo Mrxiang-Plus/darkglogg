@@ -345,6 +345,14 @@ void MainWindow::createActions() {
   copyAction->setStatusTip(tr("Copy the selection"));
   connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
 
+  copyWithColorAction = new QAction(tr("Copy To Jira"), this);
+  copyWithColorAction->setShortcut(
+      QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
+  copyWithColorAction->setStatusTip(
+      tr("Copy the selection with foreground color"));
+  connect(copyWithColorAction, SIGNAL(triggered()), this,
+          SLOT(copyWithColor()));
+
   selectAllAction = new QAction(tr("Select &All"), this);
   selectAllAction->setShortcut(tr("Ctrl+A"));
   selectAllAction->setStatusTip(tr("Select all the text"));
@@ -444,6 +452,8 @@ void MainWindow::createMenus() {
 
   editMenu = menuBar()->addMenu(tr("&Edit"));
   editMenu->addAction(copyAction);
+  editMenu->addAction(copyWithColorAction);
+  editMenu->addSeparator();
   editMenu->addAction(selectAllAction);
   editMenu->addSeparator();
   editMenu->addAction(findAction);
@@ -545,12 +555,32 @@ void MainWindow::copy() {
   CrawlerWidget* current = currentCrawlerWidget();
 
   if (current) {
-    QString string = current->getSelectedText().replace(
-        QRegExp("(^|\n)([0-9: . -]+[^\n]*)"), "\n{color:#eee50b}\\2{color}");
+    const QString string = current->getSelectedText();
     clipboard->setText(string);
 
     // Put it in the global selection as well (X11 only)
-    clipboard->setText(current->getSelectedText(), QClipboard::Selection);
+    clipboard->setText(string, QClipboard::Selection);
+  }
+}
+
+void MainWindow::copyWithColor() {
+  static QClipboard* clipboard = QApplication::clipboard();
+  CrawlerWidget* current = currentCrawlerWidget();
+
+  if (current) {
+    QString colorString;
+    colorString.append("{panel:title=");
+
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    colorString.append(strippedName(current_file));
+    colorString.append("|titleBGColor=#3498db|bgColor=#181a1b}\n");
+    const QString string = current->getSelectedTextWithColor();
+    colorString.append(string);
+    colorString.append("\n{panel}");
+    clipboard->setText(colorString);
+    // Put it in the global selection as well (X11 only)
+    clipboard->setText(colorString, QClipboard::Selection);
   }
 }
 
@@ -938,6 +968,10 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       titleBar->hide();
       mainTabWidget_.setTabBarVisibility(true);
     }
+  } else if (keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
+             keyEvent->modifiers().testFlag(Qt::ShiftModifier) &&
+             keyEvent->key() == Qt::Key_C) {
+    copyWithColor();
   }
 
   switch ((keyEvent->text())[0].toLatin1()) {

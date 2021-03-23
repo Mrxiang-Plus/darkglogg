@@ -24,6 +24,8 @@
 
 #include "log.h"
 
+#include <filterset.h>
+#include <frqfilterset.h>
 #include <QString>
 #include <cassert>
 #include <limits>
@@ -31,6 +33,7 @@
 #include "logdata.h"
 #include "logfiltereddata.h"
 #include "marks.h"
+#include "persistentinfo.h"
 #include "utils.h"
 
 // Creates an empty set. It must be possible to display it without error.
@@ -334,6 +337,34 @@ QStringList LogFilteredData::doGetLines(qint64 first_line, int number) const {
   return list;
 }
 
+QStringList LogFilteredData::doGetLinesWithColor(qint64 first_line,
+                                                 int number) const {
+  QStringList list;
+  std::shared_ptr<const FilterSet> filterSet =
+      Persistent<FilterSet>("filterSet");
+  std::shared_ptr<const FrqFilterSet> frqFilterSet =
+      Persistent<FrqFilterSet>("frqFilterSet");
+
+  QColor foreColor, backColor;
+
+  for (int i = first_line; i < first_line + number; i++) {
+    QString line = doGetLineString(i);
+
+    if (frqFilterSet->matchLine(line, &foreColor, &backColor)) {
+      line =
+          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
+    } else if (filterSet->matchLine(line, &foreColor, &backColor)) {
+      line =
+          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
+    } else if (frqFilterSet->matchFirstLine(line, &foreColor, &backColor)) {
+      line =
+          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
+    }
+    list.append(line);
+  }
+  return list;
+}
+
 // Implementation of the virtual function.
 QStringList LogFilteredData::doGetExpandedLines(qint64 first_line,
                                                 int number) const {
@@ -409,8 +440,8 @@ void LogFilteredData::regenerateFilteredItemsCache() const {
     qint64 next_match = (i != matching_lines_.cend())
                             ? i->lineNumber()
                             : std::numeric_limits<qint64>::max();
-    // We choose a Mark over a Match if a line is both, just an arbitrary choice
-    // really.
+    // We choose a Mark over a Match if a line is both, just an arbitrary
+    // choice really.
     if (next_mark <= next_match) {
       filteredItemsCache_.push_back(FilteredItem(next_mark, Mark));
       if (j != marks_.end()) ++j;

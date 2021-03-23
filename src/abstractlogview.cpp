@@ -1094,8 +1094,8 @@ void AbstractLogView::findPreviousSelected() {
 // Copy the selection to the clipboard
 void AbstractLogView::copy() {
   static QClipboard* clipboard = QApplication::clipboard();
-
-  clipboard->setText(selection_.getSelectedText(logData));
+  QString string = selection_.getSelectedTextWithColor(logData);
+  clipboard->setText(string);
 }
 
 void AbstractLogView::comment() {
@@ -1189,6 +1189,10 @@ int AbstractLogView::getTopLine() const { return firstLine; }
 
 QString AbstractLogView::getSelection() const {
   return selection_.getSelectedText(logData);
+}
+
+QString AbstractLogView::getSelectionWithColor() const {
+  return selection_.getSelectedTextWithColor(logData);
 }
 
 void AbstractLogView::selectAll() {
@@ -1679,6 +1683,7 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
     const QString line = lines[i];
     const QString cutLine = line.mid(firstCol, nbCols);
 
+    const QString filterLine = logData->getLineString(line_index);
     if (selection_.isLineSelected(line_index)) {
       foreColor = palette.color(QPalette::Text);
       // Reverse the selected line
@@ -1691,13 +1696,11 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
       }
       painter.setPen(palette.color(QPalette::Text));
 
-    } else if (frqFilterSet->matchLine(logData->getLineString(line_index),
-                                       &foreColor, &backColor)) {
-    } else if (filterSet->matchLine(logData->getLineString(line_index),
-                                    &foreColor, &backColor)) {
+    } else if (frqFilterSet->matchLine(filterLine, &foreColor, &backColor)) {
+    } else if (filterSet->matchLine(filterLine, &foreColor, &backColor)) {
       // Apply a filter to the line
-    } else if (frqFilterSet->matchFirstLine(logData->getLineString(line_index),
-                                            &foreColor, &backColor)) {
+    } else if (frqFilterSet->matchFirstLine(filterLine, &foreColor,
+                                            &backColor)) {
     } else {
       // Use the default colors
       foreColor = palette.color(QPalette::Text);

@@ -68,6 +68,7 @@ class CrawlerWidget : public QSplitter,
   int getTopLine() const;
   // Get the selected text as a string (from the main window)
   QString getSelectedText() const;
+  QString getSelectedTextWithColor() const;
 
   // Display the QFB at the bottom, remembering where the focus was
   void displayQuickFindBar(QFDirection direction);

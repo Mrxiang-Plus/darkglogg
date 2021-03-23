@@ -149,6 +149,28 @@ QString Selection::getSelectedText(const AbstractLogData* logData) const {
   return text;
 }
 
+QString Selection::getSelectedTextWithColor(
+    const AbstractLogData* logData) const {
+  QString text;
+
+  if (selectedLine_ >= 0) {
+    text = logData->getLineString(selectedLine_);
+  } else if (selectedPartial_.line >= 0) {
+    text =
+        logData->getExpandedLineString(selectedPartial_.line)
+            .mid(selectedPartial_.startColumn,
+                 (selectedPartial_.endColumn - selectedPartial_.startColumn) +
+                     1);
+  } else if (selectedRange_.startLine >= 0) {
+    QStringList list = logData->getLinesWithColor(
+        selectedRange_.startLine,
+        selectedRange_.endLine - selectedRange_.startLine + 1);
+    text = list.join("\n");
+  }
+
+  return text;
+}
+
 FilePosition Selection::getNextPosition() const {
   qint64 line = 0;
   int column = 0;

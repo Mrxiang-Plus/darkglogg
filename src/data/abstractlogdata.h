@@ -42,6 +42,7 @@ class AbstractLogData : public QObject {
   QString getExpandedLineString(qint64 line) const;
   // Returns a set of lines as a QStringList
   QStringList getLines(qint64 first_line, int number) const;
+  QStringList getLinesWithColor(qint64 first_line, int number) const;
   // Returns a set of lines with tabs expanded
   QStringList getExpandedLines(qint64 first_line, int number) const;
   // Returns the total number of lines
@@ -66,6 +67,8 @@ class AbstractLogData : public QObject {
   virtual QString doGetExpandedLineString(qint64 line) const = 0;
   // Internal function called to get a set of lines
   virtual QStringList doGetLines(qint64 first_line, int number) const = 0;
+  virtual QStringList doGetLinesWithColor(qint64 first_line,
+                                          int number) const = 0;
   // Internal function called to get a set of expanded lines
   virtual QStringList doGetExpandedLines(qint64 first_line,
                                          int number) const = 0;

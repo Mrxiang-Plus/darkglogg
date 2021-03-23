@@ -42,6 +42,11 @@ QStringList AbstractLogData::getLines(qint64 first_line, int number) const {
   return doGetLines(first_line, number);
 }
 
+QStringList AbstractLogData::getLinesWithColor(qint64 first_line,
+                                               int number) const {
+  return doGetLinesWithColor(first_line, number);
+}
+
 // Simple wrapper in order to use a clean Template Method
 QStringList AbstractLogData::getExpandedLines(qint64 first_line,
                                               int number) const {

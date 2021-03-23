@@ -24,6 +24,8 @@
 
 #include <cassert>
 
+#include <filterset.h>
+#include <frqfilterset.h>
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
@@ -32,6 +34,7 @@
 
 #include "logdata.h"
 #include "logfiltereddata.h"
+#include "persistentinfo.h"
 #if defined(GLOGG_SUPPORTS_INOTIFY) || defined(GLOGG_SUPPORTS_KQUEUE) || \
     defined(WIN32)
 #include "platformfilewatcher.h"
@@ -457,6 +460,66 @@ QStringList LogData::doGetLines(qint64 first_line, int number) const {
     beginning = beginningOfNextLine(end);
   }
 
+  return list;
+}
+
+QStringList LogData::doGetLinesWithColor(qint64 first_line, int number) const {
+  QStringList list;
+  const qint64 last_line = first_line + number - 1;
+
+  // << number;
+
+  if (number == 0) {
+    return QStringList();
+  }
+
+  if (last_line >= indexing_data_.getNbLines()) {
+    LOG(logWARNING) << "LogData::doGetLines Lines out of bound asked for";
+    return QStringList(); /* exception? */
+  }
+
+  fileMutex_.lock();
+
+  const qint64 first_byte =
+      (first_line == 0)
+          ? 0
+          : (indexing_data_.getPosForLine(first_line - 1) + after_cr_offset_);
+  const qint64 end_byte = endOfLinePosition(last_line);
+  // end_byte:" << end_byte;
+  attached_file_->seek(first_byte);
+  QByteArray blob = attached_file_->read(end_byte - first_byte);
+
+  fileMutex_.unlock();
+
+  qint64 beginning = 0;
+  qint64 end = 0;
+  std::shared_ptr<const FilterSet> filterSet =
+      Persistent<FilterSet>("filterSet");
+  std::shared_ptr<const FrqFilterSet> frqFilterSet =
+      Persistent<FrqFilterSet>("frqFilterSet");
+
+  QColor foreColor, backColor;
+  for (qint64 line = first_line; (line <= last_line); line++) {
+    end = endOfLinePosition(line) - first_byte;
+    // " end " << end;
+    QByteArray this_line = blob.mid(beginning, end - beginning);
+
+    QString colorLine = codec_->toUnicode(this_line);
+
+    if (frqFilterSet->matchLine(colorLine, &foreColor, &backColor)) {
+      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
+                  "{color}";
+    } else if (filterSet->matchLine(colorLine, &foreColor, &backColor)) {
+      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
+                  "{color}";
+    } else if (frqFilterSet->matchFirstLine(colorLine, &foreColor,
+                                            &backColor)) {
+      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
+                  "{color}";
+    }
+    list.append(colorLine);
+    beginning = beginningOfNextLine(end);
+  }
   return list;
 }
 

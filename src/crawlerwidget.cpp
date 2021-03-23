@@ -130,6 +130,13 @@ QString CrawlerWidget::getSelectedText() const {
     return logMainView->getSelection();
 }
 
+QString CrawlerWidget::getSelectedTextWithColor() const {
+  if (filteredView->hasFocus())
+    return filteredView->getSelectionWithColor();
+  else
+    return logMainView->getSelectionWithColor();
+}
+
 void CrawlerWidget::selectAll() { activeView()->selectAll(); }
 
 Encoding CrawlerWidget::encodingSetting() const { return encodingSetting_; }
