@@ -545,7 +545,9 @@ void MainWindow::copy() {
   CrawlerWidget* current = currentCrawlerWidget();
 
   if (current) {
-    clipboard->setText(current->getSelectedText());
+    QString string = current->getSelectedText().replace(
+        QRegExp("(^|\n)([0-9: . -]+[^\n]*)"), "\n{color:#eee50b}\\2{color}");
+    clipboard->setText(string);
 
     // Put it in the global selection as well (X11 only)
     clipboard->setText(current->getSelectedText(), QClipboard::Selection);

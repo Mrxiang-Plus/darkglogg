@@ -56,7 +56,10 @@ cd $START_DIR
 
 cp -rf linux-scripts release/
 cp -f release/linux-scripts/install.sh release/
+cp -f release/linux-scripts/install-fallback.sh release/
 cp -f release/linux-scripts/glogg.sh release/
+cp -r images/hicolor/ release/
+cp glogg.desktop release/
 name=$(date '+%Y_%m_%d')
 
 tar -czvf glogg_ubuntu_$name.tar.gz release

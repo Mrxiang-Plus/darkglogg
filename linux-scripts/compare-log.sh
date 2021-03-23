@@ -1,3 +1,10 @@
 #!/bin/sh
-meld $1 $2
-#bcompare $1 $2
+if  ! command -v bcompare &> /dev/null
+then
+    if   command -v meld &> /dev/null
+    then
+        meld $1 $2
+    fi
+else
+    bcompare $1 $2
+fi

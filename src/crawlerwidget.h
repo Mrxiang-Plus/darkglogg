@@ -325,7 +325,7 @@ class CrawlerWidget : public QSplitter,
   std::shared_ptr<QuickFindPattern> quickMarkPattern_;
 
   LogData* logData_;
-  uint32_t pollIntervalMs_;
+  uint32_t pollIntervalMs_ = 2000;
   LogFilteredData* logFilteredData_;
 
   qint64 logFileSize_;

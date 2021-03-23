@@ -24,11 +24,10 @@ BoxPopupMenu::BoxPopupMenu(QWidget *parent) : QComboBox(parent) {
 
 bool BoxPopupMenu::eventFilter(QObject *obj, QEvent *e) {
   QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-  int key = keyEvent->key();
 
   if (e->type() == QEvent::KeyPress &&
       (keyEvent->modifiers() & Qt::ControlModifier)) {
-    switch (key) {
+    switch (keyEvent->key()) {
       case Qt::Key_U: {
         this->clearEditText();
         break;

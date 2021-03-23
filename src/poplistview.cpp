@@ -10,14 +10,13 @@ PopListView::PopListView(QWidget *parent) : QListView(parent) {
 
 bool PopListView::eventFilter(QObject *obj, QEvent *e) {
   QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-  int key = keyEvent->key();
 
   if (e->type() == QEvent::KeyPress) {
     LOG(logINFO) << "event filter";
   }
   if (e->type() == QEvent::KeyPress &&
       (keyEvent->modifiers() & Qt::ControlModifier)) {
-    switch (key) {
+    switch (keyEvent->key()) {
       case Qt::Key_K:
         // case Qt::Key_Up:
         {

@@ -432,8 +432,8 @@ bool FramelessWindow::eventFilter(QObject *obj, QEvent *event) {
   QListView *listView = qobject_cast<QListView *>(obj);
   if (listView != nullptr) {
     QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-    int key = keyEvent->key();
-    if (event->type() == QEvent::KeyPress && key == Qt::Key_Return) {
+    if (event->type() == QEvent::KeyPress &&
+        keyEvent->key() == Qt::Key_Return) {
       if (obj->parent() != nullptr) {
         BoxPopupMenu *menu =
             qobject_cast<BoxPopupMenu *>(obj->parent()->parent());
@@ -445,7 +445,7 @@ bool FramelessWindow::eventFilter(QObject *obj, QEvent *event) {
                (keyEvent->modifiers() & Qt::ControlModifier)) {
       QModelIndex currentIndex = listView->currentIndex();
       int count = listView->model()->rowCount();
-      switch (key) {
+      switch (keyEvent->key()) {
         case Qt::Key_P: {
           LOG(logINFO) << "eventFilter" << obj->metaObject()->className();
           PopListView *listView = qobject_cast<PopListView *>(obj);
