@@ -878,7 +878,7 @@ void CrawlerWidget::addToSearch(const QString& string) {
     // Escape the regexp chars from the string before adding it.
     QString searchString = QRegularExpression::escape(string);
     if (!text.contains(searchString)) {
-      text += ('|' + QRegularExpression::escape(searchString));
+      text += ('|' + searchString);
     } else {
       text.remove(searchString + "|");
       text.remove("|" + searchString);
