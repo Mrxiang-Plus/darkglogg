@@ -132,6 +132,7 @@ class LogFilteredData : public AbstractLogData {
   QStringList doGetLines(qint64 first, int number) const;
   QStringList doGetLinesWithColor(qint64 first, int number) const;
   QStringList doGetExpandedLines(qint64 first, int number) const;
+  void ContrastColor(QColor* foreColor, QColor* fColor) const;
   qint64 doGetNbLine() const;
   int doGetMaxLength() const;
   int doGetLineLength(qint64 line) const;

@@ -498,7 +498,7 @@ QStringList LogData::doGetLinesWithColor(qint64 first_line, int number) const {
   std::shared_ptr<const FrqFilterSet> frqFilterSet =
       Persistent<FrqFilterSet>("frqFilterSet");
 
-  QColor foreColor, backColor;
+  QColor foreColor, backColor, fColor;
   for (qint64 line = first_line; (line <= last_line); line++) {
     end = endOfLinePosition(line) - first_byte;
     // " end " << end;
@@ -506,21 +506,37 @@ QStringList LogData::doGetLinesWithColor(qint64 first_line, int number) const {
 
     QString colorLine = codec_->toUnicode(this_line);
 
-    if (frqFilterSet->matchLine(colorLine, &foreColor, &backColor)) {
-      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
-                  "{color}";
-    } else if (filterSet->matchLine(colorLine, &foreColor, &backColor)) {
-      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
-                  "{color}";
-    } else if (frqFilterSet->matchFirstLine(colorLine, &foreColor,
-                                            &backColor)) {
-      colorLine = "{color:" + foreColor.name(QColor::HexRgb) + "}" + colorLine +
-                  "{color}";
+    if (frqFilterSet->matchLine(colorLine, &foreColor, &backColor) ||
+        filterSet->matchLine(colorLine, &foreColor, &backColor) ||
+        frqFilterSet->matchFirstLine(colorLine, &foreColor, &backColor)) {
+      ContrastColor(&foreColor, &fColor);
+      colorLine =
+          "{color:" + fColor.name(QColor::HexRgb) + "}" + colorLine + "{color}";
     }
     list.append(colorLine);
     beginning = beginningOfNextLine(end);
   }
   return list;
+}
+
+void LogData::ContrastColor(QColor* foreColor, QColor* fColor) const {
+  // Counting the perceptive luminance - human eye favors green color...
+  double luminance = (0.299 * 255 + 0.587 * 255 + 0.114 * 209) / 255;
+  double foreLuminance =
+      (0.299 * foreColor->red() + 0.587 * foreColor->green() +
+       0.114 * foreColor->blue()) /
+      255;
+  double brightest = qMax(luminance, foreLuminance);
+  double darkest = qMin(luminance, foreLuminance);
+
+  if ((brightest + 0.05) / (darkest + 0.05) < 4.5) {
+    // bright colors - black font
+    fColor->setRgb(foreColor->red() * (1 - 0.6 * 0.299),
+                   foreColor->green() * (1 - 0.6 * 0.578),
+                   foreColor->blue() * (1 - 0.6 * 0.114));
+  } else {
+    fColor->setRgb(foreColor->red(), foreColor->green(), foreColor->blue());
+  }
 }
 
 QStringList LogData::doGetExpandedLines(qint64 first_line, int number) const {

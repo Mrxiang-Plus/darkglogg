@@ -159,6 +159,7 @@ class LogData : public AbstractLogData {
   QStringList doGetLines(qint64 first, int number) const override;
   QStringList doGetLinesWithColor(qint64 first, int number) const override;
   QStringList doGetExpandedLines(qint64 first, int number) const override;
+  void ContrastColor(QColor* color, QColor* foreColor) const;
   qint64 doGetNbLine() const override;
   int doGetMaxLength() const override;
   int doGetLineLength(qint64 line) const override;

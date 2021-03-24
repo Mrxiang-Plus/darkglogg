@@ -345,24 +345,41 @@ QStringList LogFilteredData::doGetLinesWithColor(qint64 first_line,
   std::shared_ptr<const FrqFilterSet> frqFilterSet =
       Persistent<FrqFilterSet>("frqFilterSet");
 
-  QColor foreColor, backColor;
+  QColor foreColor, backColor, fColor;
 
   for (int i = first_line; i < first_line + number; i++) {
     QString line = doGetLineString(i);
 
-    if (frqFilterSet->matchLine(line, &foreColor, &backColor)) {
-      line =
-          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
-    } else if (filterSet->matchLine(line, &foreColor, &backColor)) {
-      line =
-          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
-    } else if (frqFilterSet->matchFirstLine(line, &foreColor, &backColor)) {
-      line =
-          "{color:" + foreColor.name(QColor::HexRgb) + "}" + line + "{color}";
+    if (frqFilterSet->matchLine(line, &foreColor, &backColor) ||
+        filterSet->matchLine(line, &foreColor, &backColor) ||
+        frqFilterSet->matchFirstLine(line, &foreColor, &backColor)) {
+      ContrastColor(&foreColor, &fColor);
+      line = "{color:" + fColor.name(QColor::HexRgb) + "}" + line + "{color}";
     }
+
     list.append(line);
   }
   return list;
+}
+
+void LogFilteredData::ContrastColor(QColor* foreColor, QColor* fColor) const {
+  // Counting the perceptive luminance - human eye favors green color...
+  double luminance = (0.299 * 255 + 0.587 * 255 + 0.114 * 209) / 255;
+  double foreLuminance =
+      (0.299 * foreColor->red() + 0.587 * foreColor->green() +
+       0.114 * foreColor->blue()) /
+      255;
+  double brightest = qMax(luminance, foreLuminance);
+  double darkest = qMin(luminance, foreLuminance);
+
+  if ((brightest + 0.05) / (darkest + 0.05) < 4.5) {
+    // bright colors - black font
+    fColor->setRgb(foreColor->red() * (1 - 0.6 * 0.299),
+                   foreColor->green() * (1 - 0.6 * 0.578),
+                   foreColor->blue() * (1 - 0.6 * 0.114));
+  } else {
+    fColor->setRgb(foreColor->red(), foreColor->green(), foreColor->blue());
+  }
 }
 
 // Implementation of the virtual function.
