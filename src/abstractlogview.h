@@ -394,7 +394,6 @@ class AbstractLogView : public QAbstractScrollArea,
   // Hovering state
   // Last line that has been hoovered on, -1 if none
   qint64 lastHoveredLine_;
-  bool wasdStyle_;
 
   // Marks (left margin click)
   bool markingClickInitiated_;

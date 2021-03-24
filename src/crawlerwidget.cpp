@@ -1121,21 +1121,24 @@ void CrawlerWidget::setup() {
   QVBoxLayout* searchLineLayout = new QVBoxLayout;
   // searchLineLayout->addWidget(searchLabel);
   searchLineLayout->addWidget(searchLineEdit);
-  lineB = new QWidget;
-  lineB->setFixedHeight(2);
-  lineB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  lineB->setStyleSheet(QString("background-color: #424242;"));
   searchLineLayout->addWidget(patternLineEdit);
-  searchLineLayout->addWidget(lineB);
+
+  if (config->wasdStyle()) {
+    lineB = new QWidget;
+    lineB->setFixedHeight(2);
+    lineB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    lineB->setStyleSheet(QString("background-color: #424242;"));
+    searchLineLayout->addWidget(lineB);
+  }
   // searchLineLayout->addWidget(frqFrame);
 
   // searchLineLayout->addWidget(searchButton);
   // searchLineLayout->addWidget(stopButton);
   // searchLineLayout->setContentsMargins(6, 0, 6, 0);
-  stopButton->setSizePolicy(
-      QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
-  searchButton->setSizePolicy(
-      QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
+  //  stopButton->setSizePolicy(
+  //      QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
+  //  searchButton->setSizePolicy(
+  //      QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
 
   QHBoxLayout* searchInfoLineLayout = new QHBoxLayout;
   searchInfoLineLayout->addWidget(visibilityBox);
