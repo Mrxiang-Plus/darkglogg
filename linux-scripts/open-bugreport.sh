@@ -24,6 +24,8 @@ function ex () {
 filename=$(basename $1 .zip)
 mkdir -p $2/$filename 
 cd $2/$filename
+ex $1
 find . -type f -name '*.zip' -print0|xargs -I % unzip -o %
 find . -type f -name 'bugreport*.txt' |xargs -I % glogg %
+find . -type f -name 'test*.log' |xargs -I % glogg %
 
