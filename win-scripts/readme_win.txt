@@ -7,14 +7,17 @@ glogg 快捷键：
 | shift + A                       | 透明背景
 | Esc                             | 取消EditText中的对焦
 | ctrl + F or  /                  | 查找
-| j/k/h/l Ctrl + D Ctrl + U       | 移动
+| ctrl + M                        | 打开mark bar
+| [j/k/h/l][w/a/s/d]              | 移动
+| [num] g                         | 跳转到制定行
 | ctrl + Z                        | 最大化过滤器窗口
 | space                           | 切换窗口
-| q                               | Quit logcat
 | .                               | 切换到过滤器输入框
-| s                               | start logcat
-| y                               | 添加到过滤器
-| i                               | mark
+| F1                              | start logcat
+| F2                              | Quit logcat
+| y/t                             | 添加到过滤器
+| i/x                             | mark
+| b                               | mark并添加到过滤器(both)
 | ctrl+u/d    PgUp/PgDn           | 快速上下翻页
 | m                               | 标记当前行
 | [ / ]                           | 标记行间跳转
@@ -24,16 +27,17 @@ glogg 快捷键：
 | ctrl+k                          | menu下拉框中上一个选项
 | ctrl+p                          | 复制filter到当前过滤框
 | ctrl+num                        | 切换指定窗口
-| ctrl+o                          | 支持打开bugreport解压目录中的jpeg/png/mp4
-| w                               | mark并添加到过滤器
-| d                               | 另存为一个文件打开做比较 (diff)
+| ctrl+o                          | 支持打开bugreport解压目录中的jpeg/png/mp4 (gnome-open)
+| p                               | 添加注释(只能一直加,暂不支持编辑)
+| ctrl+s                          | save as
 | c                               | 底部按钮1
 | e                               | 底部按钮2
 | alt+num                         | 底部按钮1,2,3...9
 | r                               | 重置底部按钮按压状态
-| a & b                           | a b compare功能, 选中一段按a, 选中一段按b比较
+| shift+a & shift+b               | a b compare功能, 选中一段按shift+ a, 选中一段按shift+b比较
 | ctrl+shift+c                    | copy时带文字高亮色,方便贴入jira comment中
 | ------------------------------- | ---------------------------------------
 
-1. 支持BugReport.*zip文件自动解压打开里面的txt文件. 解压路径配置 Tools > Options > work path
+
+1. 支持zip/7z/tar.gz文件自动解压打开里面的txt文件. 解压路径配置 Tools > Options > work path
 2. 快捷固定log设置 Tools-> Filters ">"

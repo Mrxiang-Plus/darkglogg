@@ -17,8 +17,8 @@ cd $DEPLOY_DIR
 
 # Run ldd on all files in the directory and create a list of required qt libs
 flag=false
-#for entry in `ldd * | grep -i "qt\|c++\|gcc\|thread"`; do
-for entry in `ldd *`; do
+for entry in `ldd * | grep -i "qt\|c++\|libz\|icu\|png\|libharf"`; do
+#for entry in `ldd *`; do
     if $flag; then
 # Only add to the array if it is not already in it
 if ! [[ $libsArray =~ $entry ]]; then
@@ -58,6 +58,7 @@ cp -rf linux-scripts release/
 cp -f release/linux-scripts/install.sh release/
 cp -f release/linux-scripts/install-fallback.sh release/
 cp -f release/linux-scripts/glogg.sh release/
+cp release/linux-scripts/libQt5XcbQpa.so.5 release/lib/
 cp -r images/hicolor/ release/
 cp glogg.desktop release/
 name=$(date '+%Y_%m_%d')

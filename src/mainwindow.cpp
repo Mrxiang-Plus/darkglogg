@@ -1044,10 +1044,6 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       titleBar->hide();
       mainTabWidget_.setTabBarVisibility(true);
     }
-  } else if (keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
-             keyEvent->modifiers().testFlag(Qt::ShiftModifier) &&
-             keyEvent->key() == Qt::Key_C) {
-    copyWithColor();
   } else if (keyEvent->key() == Qt::Key_F1) {
     std::shared_ptr<Configuration> config =
         Persistent<Configuration>("settings");
@@ -1065,7 +1061,7 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
                                            << config->processFilter());
 #endif
     QTimer::singleShot(600, this, SLOT(changeFollowMode()));
-  } else if (keyEvent->key() == Qt::Key_F5) {
+  } else if (keyEvent->key() == Qt::Key_F2) {
 #ifdef _WIN32
     process.setWorkingDirectory(path);
     QString command = path + "kill-logcat.bat";

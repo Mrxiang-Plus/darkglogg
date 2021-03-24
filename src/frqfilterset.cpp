@@ -184,14 +184,16 @@ int FrqFilterSet::getSize() const { return frqFilterList.size(); }
 
 bool FrqFilterSet::matchLine(const QString& line, QColor* foreColor,
                              QColor* backColor) const {
-  for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin() + 1;
-       i != frqFilterList.constEnd(); i++) {
-    if (i->hasMatch(line) && i->getEnabled()) {
-      QColor fColor = i->foreColor();
-      QColor bColor = i->backColor();
-      foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
-      backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
-      return true;
+  if (frqFilterList.size() > 0) {
+    for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin() + 1;
+         i != frqFilterList.constEnd(); i++) {
+      if (i->hasMatch(line) && i->getEnabled()) {
+        QColor fColor = i->foreColor();
+        QColor bColor = i->backColor();
+        foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
+        backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
+        return true;
+      }
     }
   }
   return false;
@@ -199,13 +201,15 @@ bool FrqFilterSet::matchLine(const QString& line, QColor* foreColor,
 
 bool FrqFilterSet::matchFirstLine(const QString& line, QColor* foreColor,
                                   QColor* backColor) const {
-  QList<FrqFilter>::const_iterator i = frqFilterList.constBegin();
-  if (i->hasMatch(line) && i->getEnabled()) {
-    QColor fColor = i->foreColor();
-    QColor bColor = i->backColor();
-    foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
-    backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
-    return true;
+  if (frqFilterList.size() > 0) {
+    QList<FrqFilter>::const_iterator i = frqFilterList.constBegin();
+    if (i->hasMatch(line) && i->getEnabled()) {
+      QColor fColor = i->foreColor();
+      QColor bColor = i->backColor();
+      foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
+      backColor->setRgb(bColor.red(), bColor.green(), bColor.blue());
+      return true;
+    }
   }
 
   return false;
