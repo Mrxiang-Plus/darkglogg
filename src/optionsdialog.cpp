@@ -167,6 +167,8 @@ void OptionsDialog::updateDialogFromConfig() {
 
   // Last session
   loadLastSessionCheckBox->setChecked(config->loadLastSession());
+  radioButton->setChecked(config->wasdStyle());
+  radioButton_2->setChecked(!config->wasdStyle());
 }
 
 //
@@ -214,6 +216,7 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setTransparent(transparent);
 
   config->setLoadLastSession(loadLastSessionCheckBox->isChecked());
+  config->setWasdStyle(radioButton->isChecked());
   emit optionsChanged();
 }
 

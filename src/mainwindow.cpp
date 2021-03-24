@@ -317,6 +317,11 @@ void MainWindow::createActions() {
   openAction->setStatusTip(tr("Open a file"));
   connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+  saveAsAction = new QAction(tr("&SaveAs"), this);
+  saveAsAction->setShortcut(tr("Ctrl+S"));
+  saveAsAction->setStatusTip(tr("save As"));
+  connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAsFile()));
+
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
   closeAction->setStatusTip(tr("Close document"));
@@ -439,6 +444,7 @@ void MainWindow::createActions() {
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
+  fileMenu->addAction(saveAsAction);
   fileMenu->addAction(closeAction);
   fileMenu->addAction(closeAllAction);
   fileMenu->addSeparator();
@@ -607,6 +613,28 @@ void MainWindow::copyWithColor() {
     clipboard->setText(colorString);
     // Put it in the global selection as well (X11 only)
     clipboard->setText(colorString, QClipboard::Selection);
+  }
+}
+
+void MainWindow::saveAsFile() {
+  bool ok;
+  QString path =
+      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  QDateTime dateTime = dateTime.currentDateTime();
+  QString text = QInputDialog::getText(
+      this, tr("Save As"),
+      tr("                                               "
+         "                            "),
+      QLineEdit::Normal, dateTime.toString("yyyy-MM-dd_HH_mm_ss_"), &ok);
+  if (ok) {
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    QString zipPath = config->unzipPath();
+    QString dstPath = zipPath + QDir::separator() + text + ".log";
+    process.startDetached(
+        "/bin/bash", QStringList()
+                         << path + "save-and-reopen.sh"
+                         << zipPath + QDir::separator() + "tmp.log" << dstPath);
   }
 }
 
@@ -931,7 +959,9 @@ void MainWindow::dropEvent(QDropEvent* event) {
   foreach (const QUrl& url, event->mimeData()->urls()) {
     QString fileName = url.toLocalFile();
     if (!fileName.isEmpty()) {
-      if (fileName.endsWith(".zip")) {
+      if (fileName.endsWith(".zip") || fileName.endsWith(".tar.gz") ||
+          fileName.endsWith(".gz") || fileName.endsWith(".tar") ||
+          fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
         QProcess process;
         QString path =
             QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -959,6 +989,26 @@ void MainWindow::dropEvent(QDropEvent* event) {
         loadFile(fileName);
       }
     }
+  }
+}
+
+void MainWindow::hideTitleMenu() {
+  if (mainTabWidget_.getTabBarVisibility()) {
+    menuBar()->hide();
+    titleBar->hide();
+    mainTabWidget_.setTabBarVisibility(false);
+  } else {
+    menuBar()->show();
+    titleBar->show();
+    mainTabWidget_.setTabBarVisibility(true);
+  }
+}
+
+void MainWindow::hideTab() {
+  if (mainTabWidget_.getTabBarVisibility()) {
+    mainTabWidget_.setTabBarVisibility(false);
+  } else {
+    mainTabWidget_.setTabBarVisibility(true);
   }
 }
 
@@ -998,10 +1048,38 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
              keyEvent->modifiers().testFlag(Qt::ShiftModifier) &&
              keyEvent->key() == Qt::Key_C) {
     copyWithColor();
+  } else if (keyEvent->key() == Qt::Key_F1) {
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+#ifdef _WIN32
+    LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
+    process.setWorkingDirectory(path);
+    QString command = path + "start-logcat-pid.bat ";
+    process.startDetached(command, QStringList() << QDir::currentPath()
+                                                 << config->processFilter());
+#else
+    QString zipPath = config->unzipPath();
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "start-logcat-pid.sh"
+                                           << config->unzipPath()
+                                           << config->processFilter());
+#endif
+    QTimer::singleShot(600, this, SLOT(changeFollowMode()));
+  } else if (keyEvent->key() == Qt::Key_F5) {
+#ifdef _WIN32
+    process.setWorkingDirectory(path);
+    QString command = path + "kill-logcat.bat";
+    process.startDetached(command);
+#else
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "kill-logcat.sh");
+#endif
+    followAction->setChecked(false);
+    QTimer::singleShot(500, this, SLOT(disableFollowMode()));
   }
 
   switch ((keyEvent->text())[0].toLatin1()) {
-    case 'A': {
+    case 'T': {
       if (transparent_ != 255) {
         transparent_ = 255;
       } else {
@@ -1013,26 +1091,8 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       emit optionsChanged();
       break;
     }
-    case 'M':
-      if (mainTabWidget_.getTabBarVisibility()) {
-        menuBar()->hide();
-        titleBar->hide();
-        mainTabWidget_.setTabBarVisibility(false);
-      } else {
-        menuBar()->show();
-        titleBar->show();
-        mainTabWidget_.setTabBarVisibility(true);
-      }
-      break;
     case 'f':
       followAction->setChecked(!followAction->isChecked());
-      break;
-    case 'T':
-      if (mainTabWidget_.getTabBarVisibility()) {
-        mainTabWidget_.setTabBarVisibility(false);
-      } else {
-        mainTabWidget_.setTabBarVisibility(true);
-      }
       break;
     case 'F': {
       QWidget* parent = parentWidget();
@@ -1051,49 +1111,14 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
     case '/':
       displayQuickFindBar(QFDirection::Forward);
       break;
-    case 'q': {
-#ifdef _WIN32
-      process.setWorkingDirectory(path);
-      QString command = path + "kill-logcat.bat";
-      process.startDetached(command);
-#else
-      process.startDetached("/bin/bash", QStringList()
-                                             << path + "kill-logcat.sh");
-#endif
-      followAction->setChecked(false);
-      QTimer::singleShot(500, this, SLOT(disableFollowMode()));
-
-      break;
-    }
-    case 's': {
-      std::shared_ptr<Configuration> config =
-          Persistent<Configuration>("settings");
-#ifdef _WIN32
-      LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
-      process.setWorkingDirectory(path);
-      QString command = path + "start-logcat-pid.bat ";
-      process.startDetached(command, QStringList() << QDir::currentPath()
-                                                   << config->processFilter());
-#else
-      QString zipPath = config->unzipPath();
-      process.startDetached("/bin/bash", QStringList()
-                                             << path + "start-logcat-pid.sh"
-                                             << config->unzipPath()
-                                             << config->processFilter());
-#endif
-      QTimer::singleShot(600, this, SLOT(changeFollowMode()));
-      //      followAction->setChecked(true);
-
-      break;
-    }
-    case 'a': {
+    case 'A': {
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
       QString zipPath = config->unzipPath() + QDir::separator() + "a.log";
       saveAs(zipPath);
 
     } break;
-    case 'b': {
+    case 'B': {
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
       QString aPath = config->unzipPath() + QDir::separator() + "a.log";
@@ -1110,28 +1135,6 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
 #endif
 
     } break;
-
-    case 'd': {
-      bool ok;
-      QDateTime dateTime = dateTime.currentDateTime();
-      QString text = QInputDialog::getText(
-          this, tr("Add comment"),
-          tr("                                               "
-             "                            "),
-          QLineEdit::Normal, dateTime.toString("yyyy-MM-dd_HH_mm_ss_"), &ok);
-      if (ok) {
-        std::shared_ptr<Configuration> config =
-            Persistent<Configuration>("settings");
-        QString zipPath = config->unzipPath();
-        QString dstPath = zipPath + QDir::separator() + text + ".log";
-        process.startDetached("/bin/bash",
-                              QStringList()
-                                  << path + "save-and-reopen.sh"
-                                  << zipPath + QDir::separator() + "tmp.log"
-                                  << dstPath);
-      }
-      break;
-    }
     case '.':
       emit focusFilterBar();
       break;

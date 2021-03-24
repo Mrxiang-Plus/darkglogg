@@ -259,7 +259,7 @@ void CrawlerWidget::keyPressEvent(QKeyEvent* keyEvent) {
     if (character == '-') {
       changeTopViewSize(5);
     } else if (character == 'u') {
-      moveSplitter(closestLegalPosition(viewSizeMax_ / 2, 1), 1);
+      //      moveSplitter(closestLegalPosition(viewSizeMax_ / 2, 1), 1);
     } else if (character == '=')
       changeTopViewSize(-5);
     else if (character == 'c') {
@@ -1101,11 +1101,10 @@ void CrawlerWidget::setup() {
 
   QLayout* frqFrameLayout = frqFrame->layout();
 
-  frqFrame->setMaximumHeight(40);
-  frqFrame->setContentsMargins(0, 0, 0, 0);
+  frqFrame->setMaximumHeight(42);
+  frqFrame->setContentsMargins(0, 3, 0, 0);
   frqFrameLayout->setSpacing(0);
-  frqFrame->setSizePolicy(QSizePolicy::Preferred,
-                          QSizePolicy::MinimumExpanding);
+  frqFrame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
   //  QHBoxLayout* layout = frqFrame->horizontalLayout;
   updateButtons();
@@ -1123,11 +1122,11 @@ void CrawlerWidget::setup() {
   // searchLineLayout->addWidget(searchLabel);
   searchLineLayout->addWidget(searchLineEdit);
   lineB = new QWidget;
-  lineB->setFixedHeight(1);
+  lineB->setFixedHeight(2);
   lineB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   lineB->setStyleSheet(QString("background-color: #424242;"));
-  searchLineLayout->addWidget(lineB);
   searchLineLayout->addWidget(patternLineEdit);
+  searchLineLayout->addWidget(lineB);
   // searchLineLayout->addWidget(frqFrame);
 
   // searchLineLayout->addWidget(searchButton);
@@ -1146,8 +1145,8 @@ void CrawlerWidget::setup() {
 
   // Construct the bottom window
   QVBoxLayout* bottomMainLayout = new QVBoxLayout;
-  bottomMainLayout->addWidget(filteredView);
   bottomMainLayout->addLayout(searchLineLayout);
+  bottomMainLayout->addWidget(filteredView);
   bottomMainLayout->addWidget(frqFrame);
   bottomMainLayout->addLayout(searchInfoLineLayout);
   bottomMainLayout->setContentsMargins(0, 0, 0, 0);
@@ -1375,8 +1374,7 @@ void CrawlerWidget::updateButtons() {
 
   scrollArea_ = new QScrollArea(this);
   scrollArea_->setWidgetResizable(true);
-  scrollArea_->setSizePolicy(QSizePolicy::Preferred,
-                             QSizePolicy::MinimumExpanding);
+  scrollArea_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   scrollArea_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   scrollArea_->setContentsMargins(0, 0, 0, 0);
 
@@ -1384,8 +1382,7 @@ void CrawlerWidget::updateButtons() {
   scrollArea_->setWidget(container_);
   pinnedPatternsLayout_ = new QHBoxLayout(container_);
 
-  container_->setSizePolicy(QSizePolicy::Preferred,
-                            QSizePolicy::MinimumExpanding);
+  container_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   pinnedPatternsLayout_->setSpacing(0);
   pinnedPatternsLayout_->setContentsMargins(0, 0, 0, 9);
 
@@ -1402,7 +1399,7 @@ void CrawlerWidget::updateButtons() {
     b->setText(text);
     pinnedPatternsLayout_->addWidget(b);
     b->setPinedIndex(i);
-    b->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+    b->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     frqFilterSet->getPinedFiltersColor(i, &foreColor, &backColor);
     b->setColor(backColor, foreColor);
     b->setAutoFillBackground(true);

@@ -78,6 +78,8 @@ class MainWindow : public QMainWindow {
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
   void keyPressEvent(QKeyEvent *keyEvent);
+  void hideTab();
+  void hideTitleMenu();
 
  private slots:
   void open();
@@ -88,6 +90,7 @@ class MainWindow : public QMainWindow {
   void copy();
   void copyWithColor();
   void saveAs(const QString &fileName);
+  void saveAsFile();
   void find();
   void mark();
   void filters();
@@ -215,6 +218,7 @@ class MainWindow : public QMainWindow {
   QToolBar *toolBar;
 
   QAction *openAction;
+  QAction *saveAsAction;
   QAction *closeAction;
   QAction *closeAllAction;
   QAction *exitAction;

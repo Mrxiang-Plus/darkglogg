@@ -69,6 +69,8 @@ class Configuration : public Persistable {
   uint32_t transparent() const { return transparent_; }
   bool loadLastSession() const { return loadLastSession_; }
   void setLoadLastSession(bool enabled) { loadLastSession_ = enabled; }
+  bool wasdStyle() const { return wasdStyle_; }
+  void setWasdStyle(bool enabled) { wasdStyle_ = enabled; }
 
   // View settings
   bool isOverviewVisible() const { return overviewVisible_; }
@@ -103,6 +105,7 @@ class Configuration : public Persistable {
   QFont mainFont_;
   QString repoUrl_;
   QString unzipPath_;
+  bool wasdStyle_;
   QString processFilter_;
   SearchRegexpType mainRegexpType_;
   SearchRegexpType quickfindRegexpType_;

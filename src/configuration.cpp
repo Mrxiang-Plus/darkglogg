@@ -47,6 +47,7 @@ Configuration::Configuration() {
   transparent_ = 255;
 
   loadLastSession_ = true;
+  wasdStyle_ = true;
 
   overviewVisible_ = true;
   lineNumbersVisibleInMain_ = false;
@@ -131,6 +132,9 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   if (settings.contains("session.loadLast"))
     loadLastSession_ = settings.value("session.loadLast").toBool();
 
+  if (settings.contains("shortcut.wasd"))
+    wasdStyle_ = settings.value("shortcut.wasd").toBool();
+
   // View settings
   if (settings.contains("view.overviewVisible"))
     overviewVisible_ = settings.value("view.overviewVisible").toBool();
@@ -170,6 +174,7 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("polling.intervalMs", pollIntervalMs_);
   settings.setValue("transparent", transparent_);
   settings.setValue("session.loadLast", loadLastSession_);
+  settings.setValue("shortcut.wasd", wasdStyle_);
 
   settings.setValue("view.overviewVisible", overviewVisible_);
   settings.setValue("view.lineNumbersVisibleInMain", lineNumbersVisibleInMain_);

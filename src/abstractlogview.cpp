@@ -268,6 +268,10 @@ AbstractLogView::AbstractLogView(const AbstractLogData* newLogData,
   setMouseTracking(true);
   lastHoveredLine_ = -1;
 
+  static std::shared_ptr<Configuration> config =
+      Persistent<Configuration>("settings");
+  wasdStyle_ = config->wasdStyle();
+
   // Init the popup menu
   createMenu();
 
@@ -533,54 +537,11 @@ void AbstractLogView::keyPressEvent(QKeyEvent* keyEvent) {
       // Adds the digit to the timed buffer
       digitsBuffer_.add(character);
     } else {
-      switch ((keyEvent->text())[0].toLatin1()) {
-        case 'j': {
-          int delta = qMax(1, digitsBuffer_.content());
-          disableFollow();
-          moveSelection(delta);
-          break;
-        }
+      switch (character) {
         case 'p': {
           comment();
           break;
         }
-
-        case 't': {
-          addToQuickSearch();
-          break;
-        }
-        case 'i': {
-          addToQuickMark();
-          break;
-        }
-        case 'y': {
-          addToSearch();
-          break;
-        }
-        case 'w': {
-          addToQuickMark();
-          addToSearch();
-          break;
-        }
-        case 'k': {
-          int delta = qMin(-1, -digitsBuffer_.content());
-          disableFollow();
-          moveSelection(delta);
-          break;
-        }
-        case 'h': {
-          QScrollBar* scrollBar = horizontalScrollBar();
-          for (int i = 0; i < 30; i++) {
-            scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
-          }
-        } break;
-        case 'l': {
-          QScrollBar* scrollBar = horizontalScrollBar();
-          for (int i = 0; i < 30; i++) {
-            scrollBar->triggerAction(QScrollBar::SliderSingleStepAdd);
-          }
-        } break;
-        case '0':
         case '^':
           jumpToStartOfLine();
           break;
@@ -620,8 +581,25 @@ void AbstractLogView::keyPressEvent(QKeyEvent* keyEvent) {
           emit markLines(lines);
           break;
         }
+
+        case 'w':
+        case 'a':
+        case 's':
+        case 'd':
+        case 'h':
+        case 'j':
+        case 'k':
+        case 'l':
+        case 't':
+        case 'i':
+        case 'y':
+        case 'x': {
+          handleNavigationEvents(character);
+          break;
+        }
         default:
           keyEvent->ignore();
+          break;
       }
     }
   }
@@ -639,6 +617,93 @@ void AbstractLogView::keyPressEvent(QKeyEvent* keyEvent) {
   }
 }
 
+void AbstractLogView::handleNavigationEvents(const char character) {
+  if (wasdStyle_) {
+    switch (character) {
+      case 'a': {
+        QScrollBar* scrollBar = horizontalScrollBar();
+        for (int i = 0; i < 30; i++) {
+          scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
+        }
+      } break;
+      case 's': {
+        int delta = qMax(1, digitsBuffer_.content());
+        disableFollow();
+        moveSelection(delta);
+        break;
+      }
+      case 'w': {
+        int delta = qMin(-1, -digitsBuffer_.content());
+        disableFollow();
+        moveSelection(delta);
+        break;
+      }
+      case 'd': {
+        QScrollBar* scrollBar = horizontalScrollBar();
+        for (int i = 0; i < 30; i++) {
+          scrollBar->triggerAction(QScrollBar::SliderSingleStepAdd);
+        }
+      } break;
+      case 'x': {
+        addToQuickMark();
+        break;
+      }
+      case 't': {
+        addToSearch();
+        break;
+      }
+      case 'h': {
+        addToQuickMark();
+        addToSearch();
+        break;
+      }
+    }
+  } else {
+    switch (character) {
+      case 'h': {
+        QScrollBar* scrollBar = horizontalScrollBar();
+        for (int i = 0; i < 30; i++) {
+          scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
+        }
+      } break;
+      case 'j': {
+        int delta = qMax(1, digitsBuffer_.content());
+        disableFollow();
+        moveSelection(delta);
+        break;
+      }
+      case 'k': {
+        int delta = qMin(-1, -digitsBuffer_.content());
+        disableFollow();
+        moveSelection(delta);
+        break;
+      }
+      case 'l': {
+        QScrollBar* scrollBar = horizontalScrollBar();
+        for (int i = 0; i < 30; i++) {
+          scrollBar->triggerAction(QScrollBar::SliderSingleStepAdd);
+        }
+      } break;
+      case 'i': {
+        addToQuickMark();
+        break;
+      }
+      case 'y': {
+        addToSearch();
+        break;
+      }
+      case 't': {
+        addToQuickSearch();
+        break;
+      }
+      case 'w': {
+        addToQuickMark();
+        addToSearch();
+        break;
+      }
+    }
+  }
+}
 void AbstractLogView::wheelEvent(QWheelEvent* wheelEvent) {
   emit activity();
 
@@ -999,8 +1064,8 @@ void AbstractLogView::addToSearch() {
     LOG(logDEBUG) << "AbstractLogView::addToSearch()";
     emit addToSearch(selection_.getSelectedText(logData));
   } else {
-    LOG(logERROR)
-        << "AbstractLogView::addToSearch called for a wrong type of selection";
+    LOG(logERROR) << "AbstractLogView::addToSearch called for a wrong type "
+                     "of selection";
   }
 }
 
@@ -1009,8 +1074,8 @@ void AbstractLogView::addToQuickSearch() {
     LOG(logDEBUG) << "AbstractLogView::addToSearch()";
     emit addToQuickSearch(selection_.getSelectedText(logData));
   } else {
-    LOG(logERROR)
-        << "AbstractLogView::addToSearch called for a wrong type of selection";
+    LOG(logERROR) << "AbstractLogView::addToSearch called for a wrong type "
+                     "of selection";
   }
 }
 
@@ -1019,8 +1084,8 @@ void AbstractLogView::addToQuickMark() {
     LOG(logERROR) << "AbstractLogView::addToSearch()";
     emit addToQuickMark(selection_.getSelectedText(logData));
   } else {
-    LOG(logERROR)
-        << "AbstractLogView::addToSearch called for a wrong type of selection";
+    LOG(logERROR) << "AbstractLogView::addToSearch called for a wrong type "
+                     "of selection";
   }
 }
 

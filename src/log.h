@@ -154,7 +154,7 @@ typedef Log<Output2FILE> FILELog;
 //    else if (level < FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
 //    else FILELog().Get(level, __FILE__, __LINE__)
 #define FILE_LOG(level) \
-  if (level < logERROR) FILELog().Get(level, __FILE__, __LINE__)
+  if (level < logINFO) FILELog().Get(level, __FILE__, __LINE__)
 
 #define LOG(level) FILE_LOG(level)
 

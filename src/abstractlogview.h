@@ -217,6 +217,7 @@ class AbstractLogView : public QAbstractScrollArea,
   virtual void scrollContentsBy(int dx, int dy);
   virtual void keyPressEvent(QKeyEvent* keyEvent);
   virtual void wheelEvent(QWheelEvent* wheelEvent);
+  virtual void handleNavigationEvents(const char character);
   virtual bool event(QEvent* e);
 
   // Must be implemented to return wether the line number is
@@ -393,6 +394,7 @@ class AbstractLogView : public QAbstractScrollArea,
   // Hovering state
   // Last line that has been hoovered on, -1 if none
   qint64 lastHoveredLine_;
+  bool wasdStyle_;
 
   // Marks (left margin click)
   bool markingClickInitiated_;
