@@ -3,55 +3,72 @@
 #repoUrl="/pc2/work/repo/.git/"
 
 echo "repo url:>>>>"$1
-repoUrl=$1
 repoName=`basename $repoUrl .git`
+
 function uploadToRemote() {
     cd ~/.glogg/$repoName
     if [ ! -d glogg ]; then
         mkdir -p glogg
     fi
-    cp ~/.config/glogg/glogg_pattern.conf glogg/
-    sort glogg/glogg_pattern.conf > tmp.conf
-    cp tmp.conf glogg/glogg_pattern.conf
-    difftime=`date "+%Y-%m-%d_%H-%M-%S"`
-    git diff|grep "^+searchPattern\\\[0-9\]"  > $difftime.diff
-    sed -i "s/^+//g" $difftime.diff
-    git stash save
-    git pull --rebase
+    cp ~/.config/glogg/glogg_pattern.conf .
+
+    grep "searchPattern\\\[0-9]\+\\\string=" glogg_pattern.conf > pattern.txt
+    sed -i "s/\([^\]\)\"/\1/g" pattern.txt
+    sed -i "s/searchPattern\\\[0-9]\+\\\string=[\"]*//g" pattern.txt
+    sed -i '/^$/d' pattern.txt
+    sort pattern.txt | sed '$!N; /^\(.*\)\n\1$/!P; D' > glogg_pattern.txt
+    rm glogg_pattern.conf
+
+
     if [ ! -d glogg ]; then
         mkdir -p glogg
-        cp ~/.config/glogg/glogg_pattern.conf glogg/
+        cp glogg_pattern.txt glogg/
     else
-        count=$(sed -n 's/^searchPattern\\size=\([0-9]*\)/\1/p' glogg/glogg_pattern.conf)
-        addtime=`date "+%Y-%m-%d_%H-%M-%S"`
-        awk -v num=$count '{printf "%d:%s\n", NR+num , $0}' $difftime.diff | sed 's/\(^[0-9]*\):\([^\]*\\\)\([0-9]\+\)/\2\1/g' > $addtime.add
-        addNum=$(echo $(cat $addtime.add|wc -l)+$count|bc)
-        echo $addNum
-        sed -i "s@\\(^searchPattern\\\size\\).*@\1=$addNum@" glogg/glogg_pattern.conf
-        cat $addtime.add >> glogg/glogg_pattern.conf
+        cp glogg_pattern.txt glogg/
+        difftime=`date "+%Y-%m-%d_%H-%M-%S"`
+        git diff|grep "^+[^+]"  > $difftime.diff
+        sed -i "s/^+//g" $difftime.diff
+        sed -i "s/\([^\]\)\"/\1/g" $difftime.diff
+        git stash save
+        git pull --rebase
+        if [ -s glogg/glogg_pattern.txt ]
+        then
+            mv pattern.txt  glogg/glogg_pattern.txt
+        else
+            rm pattern.txt
+            cat $difftime.diff >> glogg/glogg_pattern.txt
+        fi
+
+        if [ ! -s $difftime.diff ]
+        then
+           rm $difftime.diff
+        fi
+        sort glogg/glogg_pattern.txt| sed '$!N; /^\(.*\)\n\1$/!P; D' > tmp.txt
+        mv tmp.txt glogg/glogg_pattern.txt
+
+        awk '{print "searchPattern\\" NR "\\string=\"" $s "\""}' glogg/glogg_pattern.txt > glogg_pattern.txt
+        echo "[SavedPatterns]" > tmp.txt
+        cat glogg_pattern.txt >> tmp.txt
+        count=$(cat glogg_pattern.txt|wc -l)
+        echo "searchPattern\\size=$count" >> tmp.txt
+        echo "version=1" >> tmp.txt
+        mv tmp.txt ~/.config/glogg/glogg_pattern.conf
+        rm glogg_pattern.txt
     fi
     #git stash pop
-
-    sort glogg/glogg_pattern.conf > tmp.conf
-    cp tmp.conf glogg/glogg_pattern.conf
-    git add glogg/glogg_pattern.conf
+    git add glogg/glogg_pattern.txt
     git add -u
     git commit -s -m "update patterns."
     branch=$(git rev-parse --abbrev-ref HEAD)
     git push origin -u HEAD:$branch
-    cp glogg/glogg_pattern.conf ~/.config/glogg/glogg_pattern.conf
 }
 
-if [ -d ~/.glogg/$repoName ]; then
-    uploadToRemote
-else
+if [  ! -d ~/.glogg/$repoName ]; then
     echo "Error: Directory does not exists."
     cd ~/.glogg/
     git clone $repoUrl
-    if [ -d $repoName/glogg ]; then
-        cp $repoName/glogg/glogg_pattern.conf ~/.config/glogg/glogg_pattern.conf
-    else
+    if [ ! -d $repoName/glogg ]; then
         mkdir -p $repoName/glogg
-        uploadToRemote
     fi
 fi
+uploadToRemote
