@@ -986,7 +986,10 @@ void AbstractLogView::handleMarkPatternUpdated(QList<int> removedList) {
   int size = removedList.size();
   for (int i = 0; i < size; i++) {
     LOG(logERROR) << "remove>>>: " << removedList[i] - 1;
-    colorIndexList_.move(removedList[i] - 1, colorIndexList_.size() - 1);
+    int removeIndex = removedList[i] - 1;
+    if (removeIndex < colorIndexList_.size() - 1) {
+      colorIndexList_.move(removeIndex, colorIndexList_.size() - 1);
+    }
   }
   for (int j = 0; j < colorIndexList_.size(); j++) {
     LOG(logERROR) << "j: " << colorIndexList_[j];
@@ -1744,7 +1747,9 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
             type = LineChunk::Commented;
             break;
           default:
-            type = colorIndexList_[match.matchedIndex() - 1] + LineChunk::Mark1;
+            type = colorIndexList_[(match.matchedIndex() - 1) %
+                                   colorIndexList_.size()] +
+                   LineChunk::Mark1;
             break;
         }
         chunkList << LineChunk(qMax(start, 0), column, type);

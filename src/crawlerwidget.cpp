@@ -272,8 +272,11 @@ void CrawlerWidget::keyPressEvent(QKeyEvent* keyEvent) {
     // Alt + numbers
     else if (mod == Qt::AltModifier &&
              (character >= Qt::Key_1 && character <= Qt::Key_9)) {
-      int new_index = character - Qt::Key_0;
-      forceToggleButton(new_index - 1);
+      int newIndex = character - Qt::Key_0 - 1;
+      if (newIndex < buttonList_.size()) {
+        buttonList_[newIndex]->onClick();
+      }
+      // forceToggleButton(new_index - 1);
     } else if (mod == Qt::ControlModifier && (keyEvent->key() == Qt::Key_C)) {
       emit copyToClipboard();
     } else if (mod == Qt::ControlModifier && (keyEvent->key() == Qt::Key_O)) {
@@ -504,7 +507,7 @@ void CrawlerWidget::updateFilteredView(int nbMatches, int progress,
     printSearchInfoMessage(nbMatches);
     searchInfoLine->hideGauge();
     // De-activate the stop button
-    stopButton->setEnabled(false);
+    //    stopButton->setEnabled(false);
   } else {
     // Search in progress
     // We ignore 0% and 100% to avoid a flash when the search is very short
@@ -1109,14 +1112,14 @@ void CrawlerWidget::setup() {
   //  QHBoxLayout* layout = frqFrame->horizontalLayout;
   updateButtons();
 
-  searchButton = new QToolButton();
-  searchButton->setText(tr("&Search"));
-  searchButton->setAutoRaise(true);
+  //  searchButton = new QToolButton();
+  //  searchButton->setText(tr("&Search"));
+  //  searchButton->setAutoRaise(true);
 
-  stopButton = new QToolButton();
-  stopButton->setIcon(QIcon(":/images/stop14.png"));
-  stopButton->setAutoRaise(true);
-  stopButton->setEnabled(false);
+  //  stopButton = new QToolButton();
+  //  stopButton->setIcon(QIcon(":/images/stop14.png"));
+  //  stopButton->setAutoRaise(true);
+  //  stopButton->setEnabled(false);
 
   QVBoxLayout* searchLineLayout = new QVBoxLayout;
   // searchLineLayout->addWidget(searchLabel);
@@ -1174,14 +1177,14 @@ void CrawlerWidget::setup() {
       config->isSearchIgnoreCaseDefault() ? Qt::Checked : Qt::Unchecked);
 
   // Connect the signals
-  connect(searchLineEdit->lineEdit(), SIGNAL(returnPressed()), searchButton,
-          SIGNAL(clicked()));
+  //  connect(searchLineEdit->lineEdit(), SIGNAL(returnPressed()), searchButton,
+  //          SIGNAL(clicked()));
   connect(patternLineEdit->lineEdit(), SIGNAL(returnPressed()), this,
           SLOT(saveNewPattern()));
   connect(searchLineEdit->lineEdit(), SIGNAL(textEdited(const QString&)), this,
           SLOT(searchTextChangeHandler()));
-  connect(searchButton, SIGNAL(clicked()), this, SLOT(startNewSearch()));
-  connect(stopButton, SIGNAL(clicked()), this, SLOT(stopSearch()));
+  //  connect(searchButton, SIGNAL(clicked()), this, SLOT(startNewSearch()));
+  //  connect(stopButton, SIGNAL(clicked()), this, SLOT(stopSearch()));
 
   connect(visibilityBox, SIGNAL(currentIndexChanged(int)), this,
           SLOT(changeFilteredViewVisibility(int)));
@@ -1339,7 +1342,7 @@ void CrawlerWidget::replaceCurrentSearch(const QString& searchText) {
 
     if (regexp.isValid()) {
       // Activate the stop button
-      stopButton->setEnabled(true);
+      //      stopButton->setEnabled(true);
       // Start a new asynchronous search
       logFilteredData_->runSearch(regexp);
       // Accept auto-refresh of the search
@@ -1397,8 +1400,12 @@ void CrawlerWidget::updateButtons() {
     QColor foreColor, backColor;
     PinedButton* b = new PinedButton();
 
-    QString text = frqFilterSet->getPinedDescription(i);
-
+    QString text;
+    if (i < 9) {
+      text.append(QString::number(i + 1));
+      text.append(".");
+    }
+    text.append(frqFilterSet->getPinedDescription(i));
     b->setText(text);
     pinnedPatternsLayout_->addWidget(b);
     b->setPinedIndex(i);

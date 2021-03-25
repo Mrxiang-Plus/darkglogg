@@ -317,9 +317,9 @@ void MainWindow::createActions() {
   openAction->setStatusTip(tr("Open a file"));
   connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  saveAsAction = new QAction(tr("&SaveAs"), this);
+  saveAsAction = new QAction(tr("&Save As"), this);
   saveAsAction->setShortcut(tr("Ctrl+S"));
-  saveAsAction->setStatusTip(tr("save As"));
+  saveAsAction->setStatusTip(tr("save as and open file"));
   connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAsFile()));
 
   closeAction = new QAction(tr("&Close"), this);
