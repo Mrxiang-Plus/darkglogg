@@ -1068,7 +1068,7 @@ void AbstractLogView::stopLogcat() {
 #ifdef _WIN32
   process->setWorkingDirectory(path);
   QString command = path + "kill-logcat.bat";
-  processs->tart(command);
+  process->start(command);
 #else
   process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
