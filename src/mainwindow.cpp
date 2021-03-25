@@ -632,7 +632,7 @@ void MainWindow::copyWithColor() {
     QString current_file =
         session_->getFilename(currentCrawlerWidget()).c_str();
     colorString.append(strippedName(current_file));
-    colorString.append("|titleBGColor=#7ccee9|bgColor=#ffffd1}\n");
+    colorString.append("|titleBGColor=#7ccee9|bgColor=#c7ffce}\n");
     const QString string = current->getSelectedTextWithColor();
     colorString.append(string);
     colorString.append("\n{panel}");

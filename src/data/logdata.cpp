@@ -521,7 +521,7 @@ QStringList LogData::doGetLinesWithColor(qint64 first_line, int number) const {
 
 void LogData::ContrastColor(QColor* foreColor, QColor* fColor) const {
   // Counting the perceptive luminance - human eye favors green color...
-  double luminance = (0.299 * 255 + 0.587 * 255 + 0.114 * 209) / 255;
+  double luminance = (0.299 * 199 + 0.587 * 255 + 0.114 * 206) / 255;
   double foreLuminance =
       (0.299 * foreColor->red() + 0.587 * foreColor->green() +
        0.114 * foreColor->blue()) /
