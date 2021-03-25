@@ -101,6 +101,9 @@ class MainWindow : public QMainWindow {
   void applyConfiguration();
   void changeFollowMode();
   void disableFollowMode();
+  void startLogcat();
+  void stopLogcat();
+  void fullScreen();
 
   // Change the view settings
   void toggleOverviewVisibility(bool isVisible);
@@ -210,7 +213,6 @@ class MainWindow : public QMainWindow {
   QMenu *toolsMenu;
   QMenu *encodingMenu;
   QMenu *helpMenu;
-  QProcess process;
   uint32_t transparent_ = 255;
 
   InfoLine *infoLine;
@@ -223,15 +225,19 @@ class MainWindow : public QMainWindow {
   QAction *closeAllAction;
   QAction *exitAction;
   QAction *copyAction;
+  QAction *startLogcatAction;
+  QAction *stopLogcatAction;
   QAction *copyWithColorAction;
   QAction *selectAllAction;
   QAction *findAction;
   QAction *markAction;
+  QAction *searchShareAction;
   QAction *overviewVisibleAction;
   QAction *lineNumbersVisibleInMainAction;
   QAction *lineNumbersVisibleInFilteredAction;
   QAction *followAction;
   QAction *reloadAction;
+  QAction *fullScreenAction;
   QAction *stopAction;
   QAction *filtersAction;
   QAction *pinedFiltersAction;

@@ -273,6 +273,7 @@ class AbstractLogView : public QAbstractScrollArea,
   void searchPrevious();
   void markNext();
   void markPrevious();
+  void refreshPatterns();
   // Sent up when the user has moved within the view
   void activity();
   // Sent up when the user want to exit this view
@@ -421,6 +422,7 @@ class AbstractLogView : public QAbstractScrollArea,
   QAction* findNextAction_;
   QAction* findPreviousAction_;
   QAction* addToSearchAction_;
+  QAction* addToFilterAction_;
   QAction* addToMarkAction_;
   QAction* startLogcatAction_;
   QAction* stopLogcatAction_;

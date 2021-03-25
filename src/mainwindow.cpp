@@ -137,6 +137,7 @@ MainWindow::MainWindow(
 
   // Register for progress status bar
   signalMux_.connect(SIGNAL(copyToClipboard()), this, SLOT(copy()));
+  signalMux_.connect(SIGNAL(fullScreen()), this, SLOT(fullScreen()));
   signalMux_.connect(SIGNAL(openFile()), this, SLOT(open()));
   signalMux_.connect(SIGNAL(exitApp()), titleBar->parent()->parent(),
                      SLOT(close()));
@@ -363,6 +364,16 @@ void MainWindow::createActions() {
   selectAllAction->setStatusTip(tr("Select all the text"));
   connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
 
+  startLogcatAction = new QAction(tr("Start Logcat"), this);
+  startLogcatAction->setShortcut(QKeySequence(Qt::Key_F1));
+  startLogcatAction->setStatusTip(tr("startLogcat the selection"));
+  connect(startLogcatAction, SIGNAL(triggered()), this, SLOT(startLogcat()));
+
+  stopLogcatAction = new QAction(tr("Stop Logcat"), this);
+  stopLogcatAction->setShortcut(QKeySequence(Qt::Key_F2));
+  stopLogcatAction->setStatusTip(tr("stopLogcat the selection"));
+  connect(stopLogcatAction, SIGNAL(triggered()), this, SLOT(stopLogcat()));
+
   findAction = new QAction(tr("&Find..."), this);
   findAction->setShortcut(QKeySequence::Find);
   findAction->setStatusTip(tr("Find the text"));
@@ -372,6 +383,11 @@ void MainWindow::createActions() {
   markAction->setShortcut(tr("Ctrl+M"));
   markAction->setStatusTip(tr("Mark the text"));
   connect(markAction, SIGNAL(triggered()), this, SLOT(mark()));
+
+  searchShareAction = new QAction(tr("Search and share..."), this);
+  searchShareAction->setShortcut(QKeySequence(Qt::Key_Question));
+  searchShareAction->setStatusTip(tr("search and share in the git repo"));
+  connect(searchShareAction, SIGNAL(triggered()), this, SIGNAL(focusLogBar()));
 
   overviewVisibleAction = new QAction(tr("Matches &overview"), this);
   overviewVisibleAction->setCheckable(true);
@@ -404,6 +420,10 @@ void MainWindow::createActions() {
   reloadAction->setIcon(QIcon(":/images/reload14.png"));
   signalMux_.connect(reloadAction, SIGNAL(triggered()), SLOT(reload()));
 
+  fullScreenAction = new QAction(tr("Full Screen"), this);
+  fullScreenAction->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F12));
+  connect(fullScreenAction, SIGNAL(triggered()), this, SLOT(fullScreen()));
+
   stopAction = new QAction(tr("&Stop"), this);
   stopAction->setIcon(QIcon(":/images/stop14.png"));
   stopAction->setEnabled(true);
@@ -411,6 +431,7 @@ void MainWindow::createActions() {
 
   filtersAction = new QAction(tr("&Filters..."), this);
   filtersAction->setStatusTip(tr("Show the Filters box"));
+  filtersAction->setShortcut(QKeySequence(Qt::Key_F8));
   connect(filtersAction, SIGNAL(triggered()), this, SLOT(filters()));
 
   optionsAction = new QAction(tr("&Options..."), this);
@@ -462,10 +483,15 @@ void MainWindow::createMenus() {
   editMenu->addSeparator();
   editMenu->addAction(selectAllAction);
   editMenu->addSeparator();
+  editMenu->addAction(startLogcatAction);
+  editMenu->addAction(stopLogcatAction);
+  editMenu->addSeparator();
   editMenu->addAction(findAction);
   editMenu->addAction(markAction);
+  editMenu->addAction(searchShareAction);
 
   viewMenu = menuBar()->addMenu(tr("&View"));
+  viewMenu->addAction(fullScreenAction);
   viewMenu->addAction(overviewVisibleAction);
   viewMenu->addSeparator();
   viewMenu->addAction(lineNumbersVisibleInMainAction);
@@ -631,6 +657,7 @@ void MainWindow::saveAsFile() {
         Persistent<Configuration>("settings");
     QString zipPath = config->unzipPath();
     QString dstPath = zipPath + QDir::separator() + text + ".log";
+    QProcess process;
     process.startDetached(
         "/bin/bash", QStringList()
                          << path + "save-and-reopen.sh"
@@ -934,6 +961,7 @@ void MainWindow::newVersionNotification(const QString& new_version) {
 
 // Closes the application
 void MainWindow::closeEvent(QCloseEvent* event) {
+  QProcess process;
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
 
@@ -1012,6 +1040,62 @@ void MainWindow::hideTab() {
   }
 }
 
+void MainWindow::startLogcat() {
+  QProcess* process = new QProcess();
+  QString path =
+      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+        emit changeFollowMode();
+        process->deleteLater();
+      });
+#ifdef _WIN32
+  LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
+  process->setWorkingDirectory(path);
+  QString command = path + "start-logcat-pid.bat ";
+  process->start(
+      command, QStringList() << QDir::currentPath() << config->processFilter());
+#else
+  QString zipPath = config->unzipPath();
+  process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
+                                            << config->unzipPath()
+                                            << config->processFilter());
+#endif
+}
+
+void MainWindow::stopLogcat() {
+  QProcess* process = new QProcess();
+  QString path =
+      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+        emit disableFollowMode();
+        process->deleteLater();
+      });
+#ifdef _WIN32
+  process->setWorkingDirectory(path);
+  QString command = path + "kill-logcat.bat";
+  process->start(command);
+#else
+  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
+#endif
+}
+
+void MainWindow::fullScreen() {
+  if (menuBar()->isHidden()) {
+    menuBar()->show();
+    titleBar->show();
+    mainTabWidget_.setTabBarVisibility(true);
+  } else {
+    menuBar()->hide();
+    titleBar->hide();
+    mainTabWidget_.setTabBarVisibility(true);
+  }
+}
+
 void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
   LOG(logDEBUG4) << "keyPressEvent received";
   QString path =
@@ -1033,48 +1117,14 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
   } else if (keyEvent->key() == Qt::Key_Period &&
              keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
     dropSearchBar();
-  } else if (keyEvent->key() == Qt::Key_F12 &&
-             keyEvent->modifiers().testFlag(Qt::ShiftModifier)) {
-    if (menuBar()->isHidden()) {
-      menuBar()->show();
-      titleBar->show();
-      mainTabWidget_.setTabBarVisibility(true);
-    } else {
-      menuBar()->hide();
-      titleBar->hide();
-      mainTabWidget_.setTabBarVisibility(true);
-    }
   } else if (keyEvent->key() == Qt::Key_F1) {
-    std::shared_ptr<Configuration> config =
-        Persistent<Configuration>("settings");
-#ifdef _WIN32
-    LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
-    process.setWorkingDirectory(path);
-    QString command = path + "start-logcat-pid.bat ";
-    process.startDetached(command, QStringList() << QDir::currentPath()
-                                                 << config->processFilter());
-#else
-    QString zipPath = config->unzipPath();
-    process.startDetached("/bin/bash", QStringList()
-                                           << path + "start-logcat-pid.sh"
-                                           << config->unzipPath()
-                                           << config->processFilter());
-#endif
-    QTimer::singleShot(600, this, SLOT(changeFollowMode()));
+    startLogcat();
   } else if (keyEvent->key() == Qt::Key_F2) {
-#ifdef _WIN32
-    process.setWorkingDirectory(path);
-    QString command = path + "kill-logcat.bat";
-    process.startDetached(command);
-#else
-    process.startDetached("/bin/bash", QStringList()
-                                           << path + "kill-logcat.sh");
-#endif
-    followAction->setChecked(false);
-    QTimer::singleShot(500, this, SLOT(disableFollowMode()));
+    stopLogcat();
   }
 
   switch ((keyEvent->text())[0].toLatin1()) {
+#ifdef _WIN32
     case 'T': {
       if (transparent_ != 255) {
         transparent_ = 255;
@@ -1087,6 +1137,7 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       emit optionsChanged();
       break;
     }
+#endif
     case 'f':
       followAction->setChecked(!followAction->isChecked());
       break;
@@ -1120,6 +1171,7 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       QString aPath = config->unzipPath() + QDir::separator() + "a.log";
       QString bPath = config->unzipPath() + QDir::separator() + "b.log";
       saveAs(bPath);
+      QProcess process;
 #ifdef _WIN32
       process.setWorkingDirectory(path);
       QString command = path + "compare-log.bat ";

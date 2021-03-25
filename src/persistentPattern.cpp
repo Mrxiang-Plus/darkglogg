@@ -47,12 +47,12 @@ void PersistentPattern::migrateAndInit() {
 
   // This store the config file in %appdata%
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
-                            "glogg");
+                            "glogg_pattern");
 
-  settings_->setIniCodec(QTextCodec::codecForName("GB2312"));
+  settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
   if (settings_->childKeys().count() == 0) {
     LOG(logWARNING) << "INI file empty, trying to import from registry";
-    QSettings registry("glogg", "glogg");
+    QSettings registry("glogg", "glogg_pattern");
     foreach (QString key, registry.allKeys()) {
       settings_->setValue(key, registry.value(key));
     }

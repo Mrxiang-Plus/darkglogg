@@ -5,13 +5,14 @@
 echo "repo url:>>>>"$1
 repoUrl=$1
 repoName=`basename $repoUrl .git`
-#repoName="repo"
 function uploadToRemote() {
     cd ~/.glogg/$repoName
     if [ ! -d glogg ]; then
         mkdir -p glogg
     fi
     cp ~/.config/glogg/glogg_pattern.conf glogg/
+    sort glogg/glogg_pattern.conf > tmp.conf
+    cp tmp.conf glogg/glogg_pattern.conf
     difftime=`date "+%Y-%m-%d_%H-%M-%S"`
     git diff|grep "^+searchPattern\\\[0-9\]"  > $difftime.diff
     sed -i "s/^+//g" $difftime.diff
@@ -30,6 +31,9 @@ function uploadToRemote() {
         cat $addtime.add >> glogg/glogg_pattern.conf
     fi
     #git stash pop
+
+    sort glogg/glogg_pattern.conf > tmp.conf
+    cp tmp.conf glogg/glogg_pattern.conf
     git add glogg/glogg_pattern.conf
     git add -u
     git commit -s -m "update patterns."

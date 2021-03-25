@@ -308,9 +308,6 @@ void AbstractLogView::changeEvent(QEvent* changeEvent) {
 }
 
 void AbstractLogView::mousePressEvent(QMouseEvent* mouseEvent) {
-  static std::shared_ptr<Configuration> config =
-      Persistent<Configuration>("settings");
-
   if (mouseEvent->button() == Qt::LeftButton) {
     int line = convertCoordToLine(mouseEvent->y());
     if (mouseEvent->modifiers() & Qt::ShiftModifier) {
@@ -353,11 +350,18 @@ void AbstractLogView::mousePressEvent(QMouseEvent* mouseEvent) {
       findNextAction_->setEnabled(true);
       findPreviousAction_->setEnabled(true);
       addToSearchAction_->setEnabled(true);
+      addToMarkAction_->setEnabled(true);
+      addToFilterAction_->setEnabled(true);
     } else {
       findNextAction_->setEnabled(false);
       findPreviousAction_->setEnabled(false);
       addToSearchAction_->setEnabled(false);
+      addToMarkAction_->setEnabled(false);
+      addToFilterAction_->setEnabled(false);
     }
+
+    static std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
 
     // "Add to search" only makes sense in regexp mode
     if (config->mainRegexpType() != ExtendedRegexp)
@@ -1030,50 +1034,76 @@ void AbstractLogView::addToQuickMark() {
 }
 
 void AbstractLogView::startLogcat() {
-  QProcess process;
+  QProcess* process = new QProcess();
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+        emit changeFollowMode();
+        process->deleteLater();
+      });
 #ifdef _WIN32
-  process.setWorkingDirectory(path);
+  process->setWorkingDirectory(path);
   QString command = path + "start-logcat.bat";
-  process.startDetached(command, QStringList() << QDir::currentPath());
+  process->start(command, QStringList() << QDir::currentPath());
 #else
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
-  process.startDetached("/bin/bash", QStringList() << path + "start-logcat.sh"
-                                                   << config->unzipPath());
+
+  process->start("/bin/bash", QStringList() << path + "start-logcat.sh"
+                                            << config->unzipPath());
 #endif
-  QTimer::singleShot(600, this, SIGNAL(changeFollowMode()));
 }
 
 void AbstractLogView::stopLogcat() {
-  QProcess process;
+  QProcess* process = new QProcess();
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+        emit disableFollowMode();
+        process->deleteLater();
+      });
 #ifdef _WIN32
-  process.setWorkingDirectory(path);
+  process->setWorkingDirectory(path);
   QString command = path + "kill-logcat.bat";
-  process.startDetached(command);
+  processs->tart(command);
 #else
-  process.startDetached("/bin/bash", QStringList() << path + "kill-logcat.sh");
+  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
-  QTimer::singleShot(600, this, SIGNAL(disableFollowMode()));
 }
 
 void AbstractLogView::syncPatterns() {
-  QProcess process;
+  //  QProcess process;
+  QProcess* process = new QProcess();
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
 
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   QString repoUrl = config->repoUrl();
 #ifdef _WIN32
-  process.setWorkingDirectory(path);
+  process->setWorkingDirectory(path);
   QString command = path + "sync-patterns.bat";
-  process.startDetached(command);
+  process->startDetached(command);
 #else
 
-  process.startDetached("/bin/bash",
-                        QStringList() << path + "sync-patterns.sh" << repoUrl);
+  // catch data output
+  // QObject::connect(process, &QProcess::readyRead, [process]() {
+  // QByteArray a = process->readAll();
+  // qDebug() << a;
+  // });
+
+  // delete process instance when done, and get the exit status to handle
+  // errors.
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+        emit refreshPatterns();
+        process->deleteLater();
+      });
+  process->start("/bin/bash", QStringList()
+                                  << path + "sync-patterns.sh" << repoUrl);
 #endif
 }
 
@@ -1522,13 +1552,20 @@ void AbstractLogView::createMenu() {
   connect(findPreviousAction_, SIGNAL(triggered()), this,
           SLOT(findPreviousSelected()));
 
+  addToFilterAction_ = new QAction(tr("Add to &filter"), this);
+  addToFilterAction_->setShortcut(Qt::Key_Y);
+  addToFilterAction_->setStatusTip(tr("Add the selection to the Filter"));
+  connect(addToFilterAction_, SIGNAL(triggered()), this, SLOT(addToSearch()));
+
   addToSearchAction_ = new QAction(tr("&Add to search"), this);
   addToSearchAction_->setStatusTip(
       tr("Add the selection to the current search"));
-  connect(addToSearchAction_, SIGNAL(triggered()), this, SLOT(addToSearch()));
+  connect(addToSearchAction_, SIGNAL(triggered()), this,
+          SLOT(addToQuickSearch()));
 
-  addToMarkAction_ = new QAction(tr("&Mark"), this);
+  addToMarkAction_ = new QAction(tr("Mark"), this);
   addToMarkAction_->setStatusTip(tr("Add the selection to the Mark"));
+  addToMarkAction_->setShortcut(Qt::Key_I);
   connect(addToMarkAction_, SIGNAL(triggered()), this, SLOT(addToQuickMark()));
 
   startLogcatAction_ = new QAction(tr("Start logcat"), this);
@@ -1547,12 +1584,13 @@ void AbstractLogView::createMenu() {
   popupMenu_->addAction(startLogcatAction_);
   popupMenu_->addAction(stopLogcatAction_);
   popupMenu_->addSeparator();
-  popupMenu_->addAction(syncPatternsAction_);
-  popupMenu_->addSeparator();
   popupMenu_->addAction(findNextAction_);
   popupMenu_->addAction(findPreviousAction_);
+  popupMenu_->addAction(addToFilterAction_);
   popupMenu_->addAction(addToSearchAction_);
   popupMenu_->addAction(addToMarkAction_);
+  popupMenu_->addSeparator();
+  popupMenu_->addAction(syncPatternsAction_);
 }
 
 void AbstractLogView::considerMouseHovering(int x_pos, int y_pos) {

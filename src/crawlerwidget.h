@@ -133,6 +133,7 @@ class CrawlerWidget : public QSplitter,
   // passing the completion percentage.
   void loadingProgressed(int progress);
   void copyToClipboard();
+  void fullScreen();
   void openFile();
   void exitApp();
   // Sent to the client when the loading has finished
@@ -178,6 +179,7 @@ class CrawlerWidget : public QSplitter,
   // QuickFind is being closed.
   void focusingFilterBar();
   void focusingLogBar();
+  void updatePatterns();
   void hidingLogBar();
   void focusingMainView();
   void exitingQuickFind();

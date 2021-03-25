@@ -285,6 +285,8 @@ void CrawlerWidget::keyPressEvent(QKeyEvent* keyEvent) {
       selectAll();
     } else if (mod == Qt::ControlModifier && (keyEvent->key() == Qt::Key_Q)) {
       emit exitApp();
+    } else if (mod == Qt::ShiftModifier && (keyEvent->key() == Qt::Key_F12)) {
+      emit fullScreen();
     }
 
     else
@@ -692,6 +694,13 @@ void CrawlerWidget::focusingFilterBar() {
   logMainView->updateData();
   filteredView->updateData();
   searchLineEdit->setFocus();
+}
+void CrawlerWidget::updatePatterns() {
+  LOG(logERROR) << "update patterns";
+  GetPersistentPattern().retrieve("savedPatterns");
+  patternLineEdit->clear();
+  patternLineEdit->addItems(savedPatterns_->recentPatterns());
+  patternLineEdit->lineEdit()->clear();
 }
 
 void CrawlerWidget::focusingLogBar() {
@@ -1183,7 +1192,9 @@ void CrawlerWidget::setup() {
           SLOT(saveNewPattern()));
   connect(searchLineEdit->lineEdit(), SIGNAL(textEdited(const QString&)), this,
           SLOT(searchTextChangeHandler()));
-  //  connect(searchButton, SIGNAL(clicked()), this, SLOT(startNewSearch()));
+  connect(searchLineEdit->lineEdit(), SIGNAL(returnPressed()), this,
+          SLOT(startNewSearch()));
+  //    connect(searchButton, SIGNAL(clicked()), this, SLOT(startNewSearch()));
   //  connect(stopButton, SIGNAL(clicked()), this, SLOT(stopSearch()));
 
   connect(visibilityBox, SIGNAL(currentIndexChanged(int)), this,
@@ -1216,6 +1227,10 @@ void CrawlerWidget::setup() {
           SIGNAL(changeFollowMode()));
   connect(filteredView, SIGNAL(changeFollowMode()), this,
           SIGNAL(changeFollowMode()));
+
+  connect(logMainView, SIGNAL(refreshPatterns()), this, SLOT(updatePatterns()));
+  connect(filteredView, SIGNAL(refreshPatterns()), this,
+          SLOT(updatePatterns()));
 
   connect(logMainView, SIGNAL(disableFollowMode()), this,
           SIGNAL(disableFollowMode()));

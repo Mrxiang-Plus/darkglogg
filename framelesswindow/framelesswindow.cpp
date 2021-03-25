@@ -434,11 +434,42 @@ bool FramelessWindow::eventFilter(QObject *obj, QEvent *event) {
     QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
     if (event->type() == QEvent::KeyPress &&
         keyEvent->key() == Qt::Key_Return) {
+      //      if (obj->parent() != nullptr) {
+      //        BoxPopupMenu *menu =
+      //            qobject_cast<BoxPopupMenu *>(obj->parent()->parent());
+      //        if (menu != nullptr) {
+      //          emit menu->lineEdit()->returnPressed();
+      //        }
       if (obj->parent() != nullptr) {
+        LOG(logINFO) << "eventFilter"
+                     << obj->parent()->metaObject()->className();
         BoxPopupMenu *menu =
             qobject_cast<BoxPopupMenu *>(obj->parent()->parent());
         if (menu != nullptr) {
-          emit menu->lineEdit()->returnPressed();
+          if (menu->index == 0) {
+            QString text = menu->currentText();
+            if (!text.isEmpty()) {
+              text = text + "|" + menu->hilighted;
+            } else {
+              text = menu->hilighted;
+            }
+            menu->setCurrentText(text);
+            emit menu->lineEdit()->returnPressed();
+          } else if (menu->index == 1) {
+            QString text = menu->mainMenu->currentText();
+            if (!text.isEmpty()) {
+              text = text + "|" + menu->hilighted;
+            } else {
+              text = menu->hilighted;
+            }
+            menu->mainMenu->setCurrentText(text);
+            if (!menu->marked.isEmpty()) {
+              emit addToQuickMark(menu->marked);
+            }
+            emit menu->mainMenu->lineEdit()->returnPressed();
+            menu->hide();
+          }
+          menu->hidePopup();
         }
       }
     } else if (event->type() == QEvent::KeyPress &&
