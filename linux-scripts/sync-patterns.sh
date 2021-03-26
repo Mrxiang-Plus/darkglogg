@@ -1,10 +1,11 @@
 #!/bin/bash
 #repoUrl="git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git"
-#repoUrl="/pc2/work/repo/.git/"
+#repoUrl="/pc2/work/test/.git/"
 
 echo "repo url:>>>>"$1
 repoUrl=$1
 repoName=`basename $repoUrl .git`
+#repoName="test"
 
 function uploadToRemote() {
     cd ~/.glogg/$repoName
@@ -34,10 +35,10 @@ function uploadToRemote() {
         git pull --rebase
         if [ -s glogg/glogg_pattern.txt ]
         then
-            mv pattern.txt  glogg/glogg_pattern.txt
-        else
             rm pattern.txt
             cat $difftime.diff >> glogg/glogg_pattern.txt
+        else
+            mv pattern.txt  glogg/glogg_pattern.txt
         fi
 
         if [ ! -s $difftime.diff ]
