@@ -3,6 +3,7 @@
 #repoUrl="/pc2/work/repo/.git/"
 
 echo "repo url:>>>>"$1
+repoUrl=$1
 repoName=`basename $repoUrl .git`
 
 function uploadToRemote() {
