@@ -323,6 +323,12 @@ void MainWindow::createActions() {
   saveAsAction->setStatusTip(tr("save as and open file"));
   connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAsFile()));
 
+  saveSelectedAsAction = new QAction(tr("Save Selected As"), this);
+  saveSelectedAsAction->setShortcut(tr("Ctrl+Shift+S"));
+  saveSelectedAsAction->setStatusTip(tr("save selected as and open file"));
+  connect(saveSelectedAsAction, SIGNAL(triggered()), this,
+          SLOT(saveSelectedAsFile()));
+
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
   closeAction->setStatusTip(tr("Close document"));
@@ -466,6 +472,7 @@ void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
   fileMenu->addAction(saveAsAction);
+  fileMenu->addAction(saveSelectedAsAction);
   fileMenu->addAction(closeAction);
   fileMenu->addAction(closeAllAction);
   fileMenu->addSeparator();
@@ -518,6 +525,7 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
+  fullScreen();
 }
 
 void MainWindow::createToolBars() {
@@ -639,6 +647,34 @@ void MainWindow::copyWithColor() {
     clipboard->setText(colorString);
     // Put it in the global selection as well (X11 only)
     clipboard->setText(colorString, QClipboard::Selection);
+  }
+}
+
+void MainWindow::saveSelectedAsFile() {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current) {
+    QString selectedString = current->getSelectedText();
+    bool ok;
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QDateTime dateTime = dateTime.currentDateTime();
+    QString text = QInputDialog::getText(
+        this, tr("Save As"),
+        tr("                                               "
+           "                            "),
+        QLineEdit::Normal, dateTime.toString("yyyy-MM-dd_HH_mm_ss_"), &ok);
+    if (ok) {
+      std::shared_ptr<Configuration> config =
+          Persistent<Configuration>("settings");
+      QString zipPath = config->unzipPath();
+      QString dstPath = zipPath + QDir::separator() + text + ".log";
+      QFile file(dstPath);
+      file.open(QIODevice::WriteOnly | QIODevice::Text);
+      QTextStream out(&file);
+      out << selectedString;
+      file.close();
+      loadFile(dstPath);
+    }
   }
 }
 

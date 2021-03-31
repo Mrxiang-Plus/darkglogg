@@ -91,6 +91,7 @@ class MainWindow : public QMainWindow {
   void copyWithColor();
   void saveAs(const QString &fileName);
   void saveAsFile();
+  void saveSelectedAsFile();
   void find();
   void mark();
   void filters();
@@ -221,6 +222,7 @@ class MainWindow : public QMainWindow {
 
   QAction *openAction;
   QAction *saveAsAction;
+  QAction *saveSelectedAsAction;
   QAction *closeAction;
   QAction *closeAllAction;
   QAction *exitAction;
