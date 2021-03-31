@@ -525,7 +525,6 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
-  fullScreen();
 }
 
 void MainWindow::createToolBars() {
