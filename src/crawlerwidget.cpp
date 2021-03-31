@@ -178,7 +178,7 @@ void CrawlerWidget::updateSearchPattern(int patternIndex) {
   currentSearchIndex_ = -1;
   QString filter = "";
   currentSearchTitle_ = "";
-  replaceQuickMark("");
+  // replaceQuickMark("");
   int index = 0;
   for (int i = 0; i < buttonList_.size(); i++) {
     index = buttonList_.at(i)->pinedIndex();
@@ -220,7 +220,7 @@ void CrawlerWidget::doSearch(int patternIndex) {
     currentSearchIndex_ = -1;
     currentSearchTitle_ = "";
     currentSearchColor_ = "color:green";
-    replaceQuickMark("");
+    // replaceQuickMark("");
   }
 
   startNewSearch(filter);
