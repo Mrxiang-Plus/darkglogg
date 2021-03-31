@@ -19,11 +19,15 @@
 
 // This file implements classes FrqFilter and FrqFilterSet
 
+#include <configuration.h>
 #include <frqfilterset.h>
 #include <QDataStream>
 #include <QSettings>
 
+#include <boost/shared_ptr.hpp>
+
 #include "log.h"
+#include "persistentinfo.h"
 
 const int FrqFilterSet::FRQFILTERSET_VERSION = 1;
 
@@ -71,7 +75,13 @@ const QString& FrqFilter::foreColorName() const { return foreColorName_; }
 
 const QColor FrqFilter::foreColor() const {
   if (foreColorName_.toStdString() == "window") {
-    return QColor(33, 33, 33);
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    if (config->wasdStyle()) {
+      return QColor(33, 33, 33);
+    } else {
+      return QColor(239, 235, 231);
+    }
   } else if (foreColorName_.toStdString() == "text") {
     return QColor(255, 203, 107);
   } else {
@@ -97,8 +107,14 @@ void FrqFilter::ContrastColor(QColor* color, QColor* foreColor) const {
 
 const QColor FrqFilter::backColor() const {
   if (backColorName_.toStdString() == "window") {
-    return QColor(33, 33, 33);
-  } else if (foreColorName_.toStdString() == "text") {
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    if (config->wasdStyle()) {
+      return QColor(33, 33, 33);
+    } else {
+      return QColor(239, 235, 231);
+    }
+  } else if (backColorName_.toStdString() == "text") {
     return QColor(255, 203, 107);
   } else {
     return QColor(backColorName_);
@@ -135,10 +151,10 @@ bool FrqFilter::hasMatch(const QString& string) const {
 
 QDataStream& operator<<(QDataStream& out, const FrqFilter& object) {
   LOG(logDEBUG) << "<<operator from FrqFilter";
-  out << object.description_;
   out << object.regexp_;
   out << object.foreColorName_;
   out << object.backColorName_;
+  out << object.description_;
   out << object.enabled_;
 
   return out;
@@ -146,10 +162,10 @@ QDataStream& operator<<(QDataStream& out, const FrqFilter& object) {
 
 QDataStream& operator>>(QDataStream& in, FrqFilter& object) {
   LOG(logDEBUG) << ">>operator from FrqFilter";
-  in >> object.description_;
   in >> object.regexp_;
   in >> object.foreColorName_;
   in >> object.backColorName_;
+  in >> object.description_;
   in >> object.enabled_;
 
   return in;

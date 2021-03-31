@@ -232,14 +232,17 @@ UI_DIR = $${OUT_PWD}/.ui/$${DESTDIR}-shared
 # QMAKE_CXXFLAGS = -g
 
 CONFIG += c++11
-#CONFIG += static
+CONFIG += static
 #QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++
 #QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++  -L/pc2/work/Qt/Tools/QtCreator/lib/Qt/lib
-#DEFINES += STATIC
+QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lstdc++  -L/pc2/work/qt_static/lib
+DEFINES += STATIC
+#QMAKE_LFLAGS = -static-libgcc –static-libstdc++
 
 # Extra compiler arguments
 # QMAKE_CXXFLAGS += -Weffc++
 #QMAKE_CXXFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++ -L/pc2/work/Qt/Tools/QtCreator/lib/Qt/lib
+QMAKE_CXXFLAGS += -static-libgcc -static-libstdc++ -lstdc++ -L/pc2/work/qt_static/lib
 QMAKE_CXXFLAGS += -Wextra
 
 GPROF {

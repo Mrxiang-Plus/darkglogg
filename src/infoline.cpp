@@ -26,10 +26,10 @@
 // This file implements InfoLine. It is responsible for decorating the
 // widget and managing the completion gauge.
 
-const QPalette InfoLine::palette_(QColor(0, 0, 0, 0));
+// const QPalette InfoLine::palette_(QColor(0, 0, 0, 0));
 InfoLine::InfoLine()
     : QLabel(),
-      origPalette_(palette_),
+      origPalette_(palette()),
       backgroundColor_(Qt::transparent),
       darkBackgroundColor_(Qt::transparent) {
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

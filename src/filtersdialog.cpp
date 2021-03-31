@@ -352,7 +352,14 @@ void FiltersDialog::populateColors() {
                                  << "chocolate";
 
   QPixmap solidPixmap(20, 10);
-  solidPixmap.fill(QColor(33, 33, 33));
+
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  if (config->wasdStyle()) {
+    solidPixmap.fill(QColor(33, 33, 33));
+  } else {
+    solidPixmap.fill(QColor(239, 235, 231));
+  }
+
   QIcon solidIcon{solidPixmap};
 
   foreColorBox->addItem(solidIcon, "window");

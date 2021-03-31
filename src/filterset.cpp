@@ -24,6 +24,7 @@
 
 #include "filterset.h"
 #include "log.h"
+#include "persistentinfo.h"
 
 const int FilterSet::FILTERSET_VERSION = 1;
 
@@ -69,7 +70,13 @@ const QString& Filter::foreColorName() const { return foreColorName_; }
 
 const QColor Filter::foreColor() const {
   if (foreColorName_.toStdString() == "window") {
-    return QColor(33, 33, 33);
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    if (config->wasdStyle()) {
+      return QColor(33, 33, 33);
+    } else {
+      return QColor(239, 235, 231);
+    }
   } else if (foreColorName_.toStdString() == "text") {
     return QColor(255, 203, 107);
   } else {
@@ -79,8 +86,14 @@ const QColor Filter::foreColor() const {
 
 const QColor Filter::backColor() const {
   if (backColorName_.toStdString() == "window") {
-    return QColor(33, 33, 33);
-  } else if (foreColorName_.toStdString() == "text") {
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    if (config->wasdStyle()) {
+      return QColor(33, 33, 33);
+    } else {
+      return QColor(239, 235, 231);
+    }
+  } else if (backColorName_.toStdString() == "text") {
     return QColor(255, 203, 107);
   } else {
     return QColor(backColorName_);

@@ -20,9 +20,12 @@
 #ifndef FILTERSET_H
 #define FILTERSET_H
 
+#include <configuration.h>
 #include <QColor>
 #include <QMetaType>
 #include <QRegularExpression>
+
+#include <boost/shared_ptr.hpp>
 
 #include "persistable.h"
 

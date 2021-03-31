@@ -40,7 +40,6 @@ class InfoLine : public QLabel {
   void paintEvent(QPaintEvent* paintEvent);
 
  private:
-  static const QPalette palette_;
   // The original palette of the QLabel
   QPalette origPalette_;
   // Color of the background

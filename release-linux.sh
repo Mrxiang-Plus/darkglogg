@@ -1,8 +1,10 @@
 #!/bin/bash
+PATH=/pc2/work/qt_static/bin:$PATH
+export PATH
 rm -rf release
 make clean
 qmake -config release
-make
+make -j16
 # Rememeber start dir
 START_DIR=$PWD
 
@@ -16,35 +18,35 @@ echo "Deploy dir: $DEPLOY_DIR"
 cd $DEPLOY_DIR
 
 # Run ldd on all files in the directory and create a list of required qt libs
-flag=false
-for entry in `ldd * | grep -i "qt\|c++\|libz\|icu\|png\|libharf"`; do
-#for entry in `ldd *`; do
-    if $flag; then
-# Only add to the array if it is not already in it
-if ! [[ $libsArray =~ $entry ]]; then
-echo "adding $entry"
-libsArray="$libsArray $entry"
-fi
-flag=false
-fi
-
-# If we see a "=>" then the next line will be a library
-if [ $entry == "=>" ]; then
-flag=true
-fi
-done
-echo 
-echo
-
-ls
-# Create the required folder structure. Note here we are need the qt audio plugin so we are going to manually copy that as well.
-mkdir -p lib
-#mkdir -p lib/audio
-# Now copy these files to the deploy directory
-for entry in $libsArray; do
-echo "cp -v -f $entry lib"
-cp -v -f $entry lib
-done
+#flag=false
+#for entry in `ldd * | grep -i "c++\|libz"`; do
+##for entry in `ldd *`; do
+#    if $flag; then
+## Only add to the array if it is not already in it
+#if ! [[ $libsArray =~ $entry ]]; then
+#echo "adding $entry"
+#libsArray="$libsArray $entry"
+#fi
+#flag=false
+#fi
+#
+## If we see a "=>" then the next line will be a library
+#if [ $entry == "=>" ]; then
+#flag=true
+#fi
+#done
+#echo
+#echo
+#
+#ls
+## Create the required folder structure. Note here we are need the qt audio plugin so we are going to manually copy that as well.
+#mkdir -p lib
+##mkdir -p lib/audio
+## Now copy these files to the deploy directory
+#for entry in $libsArray; do
+#echo "cp -v -f $entry lib"
+#cp -v -f $entry lib
+#done
 
 # Now get the audio lib - this is a plugin that we are using so we need these libs as well.
 # Add other plugins here as well.
@@ -56,11 +58,7 @@ cd $START_DIR
 
 cp -rf linux-scripts release/
 cp -f release/linux-scripts/install.sh release/
-cp -f release/linux-scripts/install-fallback.sh release/
-cp -f release/linux-scripts/glogg.sh release/
-cp release/linux-scripts/libQt5XcbQpa.so.5 release/lib/
-cp -r images/hicolor/ release/
-cp glogg.desktop release/
+#cp -f release/linux-scripts/glogg.sh release/
 name=$(date '+%Y_%m_%d')
 
 tar -czvf glogg_ubuntu_$name.tar.gz release
