@@ -1022,35 +1022,7 @@ void MainWindow::dropEvent(QDropEvent* event) {
   foreach (const QUrl& url, event->mimeData()->urls()) {
     QString fileName = url.toLocalFile();
     if (!fileName.isEmpty()) {
-      if (fileName.endsWith(".zip") || fileName.endsWith(".tar.gz") ||
-          fileName.endsWith(".gz") || fileName.endsWith(".tar") ||
-          fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
-        QProcess process;
-        QString path =
-            QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-
-        std::shared_ptr<Configuration> config =
-            Persistent<Configuration>("settings");
-        QString unzipPath = config->unzipPath();
-#ifdef _WIN32
-        QDir dir = QDir(QCoreApplication::applicationDirPath());
-        LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
-        process.setWorkingDirectory(path);
-        QString command = path + "open-bugreport.bat ";
-        unzipPath =
-            unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
-        process.startDetached(command, QStringList()
-                                           << dir.toNativeSeparators(unzipPath)
-                                           << dir.toNativeSeparators(fileName)
-                                           << QDir::currentPath());
-#else
-        process.startDetached("/bin/bash", QStringList()
-                                               << path + "open-bugreport.sh"
-                                               << fileName << unzipPath);
-#endif
-      } else {
-        loadFile(fileName);
-      }
+      loadFile(fileName);
     }
   }
 }
@@ -1249,52 +1221,80 @@ void MainWindow::disableFollowMode() {
 // and update the title bar.
 // The loading is done asynchronously.
 bool MainWindow::loadFile(const QString& fileName) {
-  LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
+  if (fileName.endsWith(".zip") || fileName.endsWith(".tar.gz") ||
+      fileName.endsWith(".gz") || fileName.endsWith(".tar") ||
+      fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
+    QProcess process;
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
 
-  // First check if the file is already open...
-  CrawlerWidget* existing_crawler = dynamic_cast<CrawlerWidget*>(
-      session_->getViewIfOpen(fileName.toStdString()));
-  if (existing_crawler) {
-    // ... and switch to it.
-    mainTabWidget_.setCurrentWidget(existing_crawler);
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    QString unzipPath = config->unzipPath();
+#ifdef _WIN32
+    QDir dir = QDir(QCoreApplication::applicationDirPath());
+    LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
+    process.setWorkingDirectory(path);
+    QString command = path + "open-bugreport.bat ";
+    unzipPath = unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
+    process.startDetached(command, QStringList()
+                                       << dir.toNativeSeparators(unzipPath)
+                                       << dir.toNativeSeparators(fileName)
+                                       << QDir::currentPath());
+#else
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "open-bugreport.sh"
+                                           << fileName << unzipPath);
+#endif
+  } else {
+    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
 
+    // First check if the file is already open...
+    CrawlerWidget* existing_crawler = dynamic_cast<CrawlerWidget*>(
+        session_->getViewIfOpen(fileName.toStdString()));
+    if (existing_crawler) {
+      // ... and switch to it.
+      mainTabWidget_.setCurrentWidget(existing_crawler);
+
+      return true;
+    }
+
+    // Load the file
+    loadingFileName = fileName;
+
+    try {
+      CrawlerWidget* crawler_widget =
+          dynamic_cast<CrawlerWidget*>(session_->open(
+              fileName.toStdString(), []() { return new CrawlerWidget(); }));
+      assert(crawler_widget);
+
+      // We won't show the widget until the file is fully loaded
+      crawler_widget->hide();
+
+      // We disable the tab widget to avoid having someone switch
+      // tab during loading. (maybe FIXME)
+
+      int index = mainTabWidget_.addTab(crawler_widget, strippedName(fileName),
+                                        fileName);
+
+      // Setting the new tab, the user will see a blank page for the duration
+      // of the loading, with no way to switch to another tab
+      mainTabWidget_.setCurrentIndex(index);
+
+      // Update the recent files list
+      // (reload the list first in case another glogg changed it)
+      GetPersistentInfo().retrieve("recentFiles");
+      recentFiles_->addRecent(fileName);
+      GetPersistentInfo().save("recentFiles");
+      updateRecentFileActions();
+    } catch (FileUnreadableErr) {
+      LOG(logDEBUG) << "Can't open file " << fileName.toStdString();
+      return false;
+    }
+
+    LOG(logDEBUG) << "Success loading file " << fileName.toStdString();
     return true;
   }
-
-  // Load the file
-  loadingFileName = fileName;
-
-  try {
-    CrawlerWidget* crawler_widget = dynamic_cast<CrawlerWidget*>(session_->open(
-        fileName.toStdString(), []() { return new CrawlerWidget(); }));
-    assert(crawler_widget);
-
-    // We won't show the widget until the file is fully loaded
-    crawler_widget->hide();
-
-    // We disable the tab widget to avoid having someone switch
-    // tab during loading. (maybe FIXME)
-
-    int index =
-        mainTabWidget_.addTab(crawler_widget, strippedName(fileName), fileName);
-
-    // Setting the new tab, the user will see a blank page for the duration
-    // of the loading, with no way to switch to another tab
-    mainTabWidget_.setCurrentIndex(index);
-
-    // Update the recent files list
-    // (reload the list first in case another glogg changed it)
-    GetPersistentInfo().retrieve("recentFiles");
-    recentFiles_->addRecent(fileName);
-    GetPersistentInfo().save("recentFiles");
-    updateRecentFileActions();
-  } catch (FileUnreadableErr) {
-    LOG(logDEBUG) << "Can't open file " << fileName.toStdString();
-    return false;
-  }
-
-  LOG(logDEBUG) << "Success loading file " << fileName.toStdString();
-  return true;
 }
 
 // Strips the passed filename from its directory part.
