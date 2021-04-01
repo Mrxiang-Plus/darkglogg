@@ -240,12 +240,16 @@ void CrawlerWidget::keyPressEvent(QKeyEvent* keyEvent) {
       moveSplitter(closestLegalPosition(max / 2, 1), 1);
       setHandleWidth(2);
       searchLineEdit->show();
-      lineB->show();
+      if (lineB != nullptr) {
+        lineB->show();
+      }
     } else {
       moveSplitter(closestLegalPosition(0, 1), 1);
       setHandleWidth(0);
       searchLineEdit->hide();
-      lineB->hide();
+      if (lineB != nullptr) {
+        lineB->hide();
+      }
     }
     LOG(logINFO) << "CrawlerWidget::changeTopViewSize " << sizes()[0];
     emit logMainView->exitView();
@@ -1143,6 +1147,8 @@ void CrawlerWidget::setup() {
     lineB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     lineB->setStyleSheet(QString("background-color: #424242;"));
     searchLineLayout->addWidget(lineB);
+  } else {
+    lineB = nullptr;
   }
   // searchLineLayout->addWidget(frqFrame);
 
