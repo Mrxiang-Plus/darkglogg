@@ -445,7 +445,7 @@ bool FramelessWindow::eventFilter(QObject *obj, QEvent *event) {
                      << obj->parent()->metaObject()->className();
         BoxPopupMenu *menu =
             qobject_cast<BoxPopupMenu *>(obj->parent()->parent());
-        if (menu != nullptr) {
+        if (menu != nullptr && menu->toolTip() == "pattern") {
           if (menu->index == 0) {
             QString text = menu->currentText();
             if (!text.isEmpty()) {

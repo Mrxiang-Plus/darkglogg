@@ -1045,6 +1045,7 @@ void CrawlerWidget::setup() {
   searchLineEdit->mainMenu = searchLineEdit;
   searchLineEdit->setEditable(true);
   searchLineEdit->setCompleter(0);
+  searchLineEdit->setToolTip("filter");
   searchLineEdit->addItems(savedSearches_->recentSearches());
   searchLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   searchLineEdit->setSizeAdjustPolicy(
@@ -1083,6 +1084,7 @@ void CrawlerWidget::setup() {
   patternLineEdit->mainMenu = searchLineEdit;
   patternLineEdit->setEditable(true);
   patternLineEdit->setCompleter(0);
+  patternLineEdit->setToolTip("pattern");
   patternLineEdit->addItems(savedPatterns_->recentPatterns());
   patternLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   patternLineEdit->setSizeAdjustPolicy(
