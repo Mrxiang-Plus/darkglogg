@@ -33,7 +33,7 @@ FilteredView::FilteredView(LogFilteredData* newLogData,
   // We keep a copy of the filtered data for fast lookup of the line type
   logFilteredData_ = newLogData;
   setIsFilter(true);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 }
 
 void FilteredView::setVisibility(Visibility visi) {

@@ -40,7 +40,7 @@ LogMainView::LogMainView(const LogData* newLogData,
   // The main data has a real (non NULL) Overview
   setOverview(overview, overview_widget);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   setIsFilter(false);
   // verticalScrollBar()->hide();
   // verticalScrollBar()->resize(0, 0);
