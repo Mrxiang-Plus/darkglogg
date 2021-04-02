@@ -323,11 +323,18 @@ void MainWindow::createActions() {
   saveAsAction->setStatusTip(tr("save as and open file"));
   connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAsFile()));
 
-  saveSelectedAsAction = new QAction(tr("Save Selected As"), this);
+  saveSelectedAsAction = new QAction(tr("Save Selection As"), this);
   saveSelectedAsAction->setShortcut(tr("Ctrl+Shift+S"));
-  saveSelectedAsAction->setStatusTip(tr("save selected as and open file"));
+  saveSelectedAsAction->setStatusTip(
+      tr("save selected content as new file and open the file"));
   connect(saveSelectedAsAction, SIGNAL(triggered()), this,
           SLOT(saveSelectedAsFile()));
+
+  saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
+  saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
+  saveFilteredAsAction->setStatusTip(tr("save Filtered as and open file"));
+  connect(saveFilteredAsAction, SIGNAL(triggered()), this,
+          SLOT(saveFilteredAsFile()));
 
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
@@ -473,6 +480,9 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openAction);
   fileMenu->addAction(saveAsAction);
   fileMenu->addAction(saveSelectedAsAction);
+  fileMenu->addSeparator();
+  fileMenu->addAction(saveFilteredAsAction);
+  fileMenu->addSeparator();
   fileMenu->addAction(closeAction);
   fileMenu->addAction(closeAllAction);
   fileMenu->addSeparator();
@@ -663,10 +673,28 @@ void MainWindow::saveSelectedAsFile() {
            "                            "),
         QLineEdit::Normal, dateTime.toString("yyyy-MM-dd_HH_mm_ss_"), &ok);
     if (ok) {
-      std::shared_ptr<Configuration> config =
-          Persistent<Configuration>("settings");
-      QString zipPath = config->unzipPath();
-      QString dstPath = zipPath + QDir::separator() + text + ".log";
+      QString dstPath = currentPath(text);
+      QFile file(dstPath);
+      file.open(QIODevice::WriteOnly | QIODevice::Text);
+      QTextStream out(&file);
+      out << selectedString;
+      file.close();
+      loadFile(dstPath);
+    }
+  }
+}
+
+void MainWindow::saveFilteredAsFile() {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current) {
+    QString selectedString = current->getFilteredText();
+    if (!selectedString.isEmpty()) {
+      QString path =
+          QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+      QDateTime dateTime = dateTime.currentDateTime();
+      QString text = "result_" + dateTime.toString("yyyy-MM-dd_HH_mm_ss");
+
+      QString dstPath = currentPath(text);
       QFile file(dstPath);
       file.open(QIODevice::WriteOnly | QIODevice::Text);
       QTextStream out(&file);
@@ -690,13 +718,13 @@ void MainWindow::saveAsFile() {
   if (ok) {
     std::shared_ptr<Configuration> config =
         Persistent<Configuration>("settings");
-    QString zipPath = config->unzipPath();
-    QString dstPath = zipPath + QDir::separator() + text + ".log";
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    QString dstPath = currentPath(text);
     QProcess process;
-    process.startDetached(
-        "/bin/bash", QStringList()
-                         << path + "save-and-reopen.sh"
-                         << zipPath + QDir::separator() + "tmp.log" << dstPath);
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "save-and-reopen.sh"
+                                           << current_file << dstPath);
   }
 }
 
@@ -1166,17 +1194,14 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       displayQuickFindBar(QFDirection::Forward);
       break;
     case 'A': {
-      std::shared_ptr<Configuration> config =
-          Persistent<Configuration>("settings");
-      QString zipPath = config->unzipPath() + QDir::separator() + "a.log";
-      saveAs(zipPath);
-
+      QString dstPath = currentPath("a");
+      saveAs(dstPath);
     } break;
     case 'B': {
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
-      QString aPath = config->unzipPath() + QDir::separator() + "a.log";
-      QString bPath = config->unzipPath() + QDir::separator() + "b.log";
+      QString aPath = currentPath("a");
+      QString bPath = currentPath("b");
       saveAs(bPath);
       QProcess process;
 #ifdef _WIN32
@@ -1300,6 +1325,13 @@ bool MainWindow::loadFile(const QString& fileName) {
 // Strips the passed filename from its directory part.
 QString MainWindow::strippedName(const QString& fullFileName) const {
   return QFileInfo(fullFileName).fileName();
+}
+
+QString MainWindow::currentPath(const QString& fileName) const {
+  QString current_file = session_->getFilename(currentCrawlerWidget()).c_str();
+  QString dstPath = QFileInfo(current_file).absoluteDir().path() +
+                    QDir::separator() + fileName + ".log";
+  return dstPath;
 }
 
 // Return the currently active CrawlerWidget, or NULL if none

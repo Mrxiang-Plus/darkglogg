@@ -92,6 +92,7 @@ class MainWindow : public QMainWindow {
   void saveAs(const QString &fileName);
   void saveAsFile();
   void saveSelectedAsFile();
+  void saveFilteredAsFile();
   void find();
   void mark();
   void filters();
@@ -183,6 +184,7 @@ class MainWindow : public QMainWindow {
   void updateTitleBar(const QString &file_name);
   void updateRecentFileActions();
   QString strippedName(const QString &fullFileName) const;
+  QString currentPath(const QString &fileName) const;
   CrawlerWidget *currentCrawlerWidget() const;
   void displayQuickFindBar(QFDirection direction);
   void displayQuickMarkBar(QFDirection direction);
@@ -223,6 +225,7 @@ class MainWindow : public QMainWindow {
   QAction *openAction;
   QAction *saveAsAction;
   QAction *saveSelectedAsAction;
+  QAction *saveFilteredAsAction;
   QAction *closeAction;
   QAction *closeAllAction;
   QAction *exitAction;
