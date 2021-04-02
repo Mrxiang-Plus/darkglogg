@@ -74,13 +74,6 @@ void QuickFindPattern::changeSearchPattern(const QString& pattern) {
       break;
   }
 
-  if (!searchPattern.startsWith(" //.*")) {
-    if (!searchPattern.isEmpty()) {
-      searchPattern = " //.*|" + searchPattern;
-    } else {
-      searchPattern = " //.*";
-    }
-  }
   QStringList newPieces_ = searchPattern.split("|");
   QList<int> removedPieces;
   for (int i = 0; i < pieces_.size(); i++) {
