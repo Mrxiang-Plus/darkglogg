@@ -935,6 +935,15 @@ void CrawlerWidget::reload2() {
 // Build the widget and connect all the signals, this must be done once
 // the data are attached.
 void CrawlerWidget::setup() {
+  auto config = Persistent<Configuration>("settings");
+  QFont font = config->mainFont();
+  // Whatever font we use, we should NOT use kerning
+#if QT_VERSION > 0x040700
+  // Necessary on systems doing subpixel positionning (e.g. Ubuntu 12.04)
+  font.setStyleStrategy(QFont::ForceIntegerMetrics);
+#endif
+  font.setKerning(false);
+  font.setFixedPitch(true);
   setOrientation(Qt::Vertical);
 
   assert(logData_);
@@ -952,17 +961,12 @@ void CrawlerWidget::setup() {
   overviewWidget_->setOverview(&overview_);
   overviewWidget_->setParent(logMainView);
   // Default search checkboxes
-  auto config = Persistent<Configuration>("settings");
 
   // Connect the search to the top view
   logMainView->useNewFiltering(logFilteredData_);
-  QFont font = config->mainFont();
 
   LOG(logDEBUG) << "CrawlerWidget::applyConfiguration";
 
-  // Whatever font we use, we should NOT use kerning
-  font.setKerning(false);
-  font.setFixedPitch(true);
   logMainView->setFont(font);
   filteredView->setFont(font);
 
