@@ -8,9 +8,12 @@ if [ -z $2 ]; then
 else
     for pid in $(adb shell pgrep -f $2)
     do
-        name=$1/`adb shell ps -p $pid -o name=| tr -d '[:space:]'`_$pid.log
-        adb logcat --pid=$pid > $name &
-        glogg $name
+        processName=`adb shell ps -p $pid -o name=| tr -d '[:space:]'`
+        if [ ! -z $processName ]; then
+            name=$1/$processName.log
+            adb logcat --pid=$pid > $name &
+            glogg $name
+        fi
     done
 fi
 
