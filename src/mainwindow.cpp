@@ -336,6 +336,11 @@ void MainWindow::createActions() {
   connect(saveFilteredAsAction, SIGNAL(triggered()), this,
           SLOT(saveFilteredAsFile()));
 
+  retraceLogAction = new QAction(tr("Retrace Selection"), this);
+  retraceLogAction->setShortcut(tr("Ctrl+R"));
+  retraceLogAction->setStatusTip(tr("retrace log"));
+  connect(retraceLogAction, SIGNAL(triggered()), this, SLOT(retraceLog()));
+
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
   closeAction->setStatusTip(tr("Close document"));
@@ -482,6 +487,7 @@ void MainWindow::createMenus() {
   fileMenu->addAction(saveSelectedAsAction);
   fileMenu->addSeparator();
   fileMenu->addAction(saveFilteredAsAction);
+  fileMenu->addAction(retraceLogAction);
   fileMenu->addSeparator();
   fileMenu->addAction(closeAction);
   fileMenu->addAction(closeAllAction);
@@ -681,6 +687,30 @@ void MainWindow::saveSelectedAsFile() {
       file.close();
       loadFile(dstPath);
     }
+  }
+}
+
+void MainWindow::retraceLog() {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current) {
+    QString selectedString = current->getSelectedText();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QDateTime dateTime = dateTime.currentDateTime();
+    QString text = "retrace_" + dateTime.toString("yyyy-MM-dd_HH_mm_ss");
+    QString dstPath = currentPath(text);
+    QFile file(dstPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << selectedString;
+    file.close();
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    QString currentPath = QFileInfo(current_file).absoluteDir().path();
+    QProcess process;
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "retrace.sh" << dstPath
+                                           << currentPath << current_file);
   }
 }
 
