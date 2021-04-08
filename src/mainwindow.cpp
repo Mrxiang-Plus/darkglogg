@@ -337,7 +337,7 @@ void MainWindow::createActions() {
           SLOT(saveFilteredAsFile()));
 
   retraceLogAction = new QAction(tr("Retrace Selection"), this);
-  retraceLogAction->setShortcut(tr("Ctrl+R"));
+  retraceLogAction->setShortcut(tr("Ctrl+Shift+R"));
   retraceLogAction->setStatusTip(tr("retrace log"));
   connect(retraceLogAction, SIGNAL(triggered()), this, SLOT(retraceLog()));
 
