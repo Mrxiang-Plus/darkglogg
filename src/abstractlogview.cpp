@@ -127,6 +127,29 @@ QList<LineChunk> LineChunk::select(int sel_start, int sel_end) const {
   return list;
 }
 
+QList<LineChunk> LineChunk::find(int sel_start, int sel_end) const {
+  QList<LineChunk> list;
+
+  if ((sel_start < start_) && (sel_end < start_)) {
+    // Selection BEFORE this chunk: no change
+    list << LineChunk(*this);
+  } else if (sel_start > end_) {
+    // Selection AFTER this chunk: no change
+    list << LineChunk(*this);
+  } else /* if ( ( sel_start >= start_ ) && ( sel_end <= end_ ) ) */
+  {
+    // We only want to consider what's inside THIS chunk
+    sel_start = qMax(sel_start, start_);
+    sel_end = qMin(sel_end, end_);
+
+    if (sel_start > start_) list << LineChunk(start_, sel_start - 1, type_);
+    list << LineChunk(sel_start, sel_end, Matched);
+    if (sel_end < end_) list << LineChunk(sel_end + 1, end_, type_);
+  }
+
+  return list;
+}
+
 inline void LineDrawer::addChunk(int first_col, int last_col, QColor fore,
                                  QColor back) {
   if (first_col < 0) first_col = 0;
@@ -1261,6 +1284,15 @@ void AbstractLogView::jumpToLine(int line) {
 
   // This will also trigger a scrollContents event
   verticalScrollBar()->setValue(newTopLine);
+
+  int sel_start, sel_end;
+
+  bool isSelection = selection_.getPortionForLine(line, &sel_start, &sel_end);
+
+  if (isSelection) {
+    int leftColumn = sel_start - getNbVisibleCols() / 2 - 1;
+    horizontalScrollBar()->setValue(leftColumn);
+  }
 }
 
 void AbstractLogView::setLineNumbersVisible(bool lineNumbersVisible) {
@@ -1611,6 +1643,12 @@ void AbstractLogView::considerMouseHovering(int x_pos, int y_pos) {
   }
 }
 
+QList<LineChunk> AbstractLogView::highlightFind(QList<LineChunk> input,
+                                                int start, int end) {
+  QList<LineChunk> output;
+  foreach (const LineChunk chunk, input) { output << chunk.find(start, end); }
+  return output;
+}
 void AbstractLogView::updateScrollBars() {
   verticalScrollBar()->setRange(
       0, std::max(0LL, logData->getNbLine() - getNbVisibleLines() + 1));
@@ -1755,9 +1793,11 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
     bool isSelection =
         selection_.getPortionForLine(line_index, &sel_start, &sel_end);
     QList<QuickFindMatch> qmMatchList;
+    QList<QuickFindMatch> qfMatchList;
     bool isMark = quickMarkPattern_->matchLine(line, qmMatchList);
+    bool isMatch = quickFindPattern_->matchLine(line, qfMatchList);
 
-    if (isSelection || isMark) {
+    if (isSelection || isMark || isMatch) {
       // We use the LineDrawer and its chunks because the
       // line has to be somehow highlighted
       if (alpha != 255) {
@@ -1784,6 +1824,9 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
           case -1:
             type = LineChunk::Commented;
             break;
+          case 0:
+            type = LineChunk::Matched;
+            break;
           default:
             type = colorIndexList_[(match.matchedIndex() - 1) %
                                    colorIndexList_.size()] +
@@ -1797,6 +1840,19 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
       if (column <= cutLine.length() - 1)
         chunkList << LineChunk(column, cutLine.length() - 1, LineChunk::Normal);
 
+      if (isMatch) {
+        foreach (const QuickFindMatch match, qfMatchList) {
+          int start = match.startColumn() - firstCol;
+          int end = start + match.length();
+          if ((start < 0 && end < 0)) continue;
+          if (start >= nbCols) {
+            // over = true;
+            continue;
+          }
+          chunkList = highlightFind(chunkList, qMax(start, 0),
+                                    qMin(start + match.length() - 1, nbCols));
+        }
+      }
       // Then we add the selection if needed
       QList<LineChunk> newChunkList;
       if (isSelection) {
@@ -1806,8 +1862,9 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
         foreach (const LineChunk chunk, chunkList) {
           newChunkList << chunk.select(sel_start, sel_end);
         }
-      } else
+      } else {
         newChunkList = chunkList;
+      }
 
       foreach (const LineChunk chunk, newChunkList) {
         // Select the colours
@@ -1822,9 +1879,14 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
             fore = QColor("black");
             back = QColor("green");
             break;
-          case LineChunk::Selected:
+          case LineChunk::Matched:
             fore = QColor("black");
             back = QColor(252, 233, 79);
+            break;
+          case LineChunk::Selected:
+            fore = palette.color(QPalette::HighlightedText),
+            back = palette.color(QPalette::Highlight);
+
             break;
           case LineChunk::Commented:
             fore = QColor(52, 226, 226);

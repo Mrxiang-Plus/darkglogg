@@ -105,6 +105,10 @@ void QuickFindWidget::userActivate() {
   editQuickFind_->setFocus(Qt::ShortcutFocusReason);
 }
 
+void QuickFindWidget::setchecked() {
+  ignoreCaseCheck_->setCheckState(Qt::Checked);
+}
+
 void QuickFindWidget::appendToQuickSearch(const QString& string) {
   QString text = editQuickFind_->text();
 
@@ -222,8 +226,10 @@ void QuickFindWidget::returnHandler() {
 void QuickFindWidget::editingFinishHandler() {
   emit patternChanged(editQuickFind_->text(), isIgnoreCase());
   userRequested_ = false;
-  this->hide();
-  emit close();
+  if (title_->text() == "Mark") {
+    this->hide();
+    emit close();
+  }
 }
 
 // Close and reset flag when the user clicks 'close'

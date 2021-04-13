@@ -233,6 +233,7 @@ MainWindow::MainWindow(
   // Construct the QuickFind bar
   quickFindWidget_.setTitle("Find");
   quickFindWidget_.hide();
+  quickFindWidget_.setchecked();
   quickMarkWidget_.setTitle("Mark");
   quickMarkWidget_.hide();
 

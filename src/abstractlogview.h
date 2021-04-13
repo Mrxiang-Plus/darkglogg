@@ -44,6 +44,7 @@ class LineChunk {
   enum ChunkType {
     Normal,
     Highlighted,
+    Matched,
     Selected,
     Commented,
     Mark1,
@@ -89,6 +90,7 @@ class LineChunk {
   // Returns 'true' if the selection is part of this chunk
   // (at least partially), if so, it should be replaced by the list returned
   QList<LineChunk> select(int selection_start, int selection_end) const;
+  QList<LineChunk> find(int selection_start, int selection_end) const;
 
  private:
   int start_;
@@ -482,6 +484,7 @@ class AbstractLogView : public QAbstractScrollArea,
   void markUsingFunction(qint64 (QuickFind::*search_function)());
 
   void updateScrollBars();
+  QList<LineChunk> highlightFind(QList<LineChunk> input, int start, int end);
 
   void drawTextArea(QPaintDevice* paint_device, int32_t delta_y);
   QPixmap drawPullToFollowBar(int width, float pixel_ratio);

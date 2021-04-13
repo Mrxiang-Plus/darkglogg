@@ -45,6 +45,7 @@ class QuickFindWidget : public QWidget {
   // Show the widget with the given direction
   // when requested by the user (the widget won't timeout)
   void userActivate();
+  void setchecked();
   void setTitle(const QString& title);
 
  public slots:

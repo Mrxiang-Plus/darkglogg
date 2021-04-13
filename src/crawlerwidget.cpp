@@ -488,9 +488,9 @@ void CrawlerWidget::startNewSearch(QString& filter) {
     }
   }
   replaceCurrentSearch(searchText);
-  filteredView->setFocus();
   logMainView->updateData();
   filteredView->updateData();
+  filteredView->setFocus();
 }
 
 void CrawlerWidget::saveNewPattern() {
@@ -1320,6 +1320,8 @@ void CrawlerWidget::setup() {
   connect(filteredView, SIGNAL(exitView()), logMainView, SLOT(setFocus()));
   connect(logMainView, SIGNAL(exitView()), this, SLOT(reload2()));
   connect(filteredView, SIGNAL(exitView()), this, SLOT(reload2()));
+  connect(logMainView, SIGNAL(activity()), this, SLOT(reload2()));
+  connect(filteredView, SIGNAL(activity()), this, SLOT(reload2()));
 }
 
 // Create a new search using the text passed, replace the currently
