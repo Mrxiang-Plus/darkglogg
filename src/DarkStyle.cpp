@@ -60,6 +60,9 @@ void DarkStyle::polish(QPalette &palette) {
     palette.setColor(QPalette::HighlightedText, Qt::white);
     palette.setColor(QPalette::Disabled, QPalette::HighlightedText,
                      QColor(127, 127, 127));
+    palette.setColor(QPalette::NoRole, QColor(70, 70, 70));
+  } else {
+    palette.setColor(QPalette::NoRole, QColor(127, 127, 127));
   }
 }
 

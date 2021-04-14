@@ -1738,7 +1738,6 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
     int lineNumberAreaWidth = 2 * LINE_NUMBER_PADDING + lineNumberWidth;
     lineNumberAreaStartX = contentStartPosX;
 
-    painter.setPen(palette.color(QPalette::Text));
     painter.fillRect(
         contentStartPosX - SEPARATOR_WIDTH, 0,
         lineNumberAreaWidth + SEPARATOR_WIDTH, paintDeviceHeight,
@@ -2092,7 +2091,7 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
       static const QString lineNumberFormat("%1");
       const QString& lineNumberStr = lineNumberFormat.arg(
           displayLineNumber(line_index), nbDigitsInLineNumber);
-
+      painter.setPen(palette.color(QPalette::NoRole));
       painter.drawText(lineNumberAreaStartX + LINE_NUMBER_PADDING,
                        yPos + fontAscent, lineNumberStr);
     }

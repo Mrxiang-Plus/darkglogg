@@ -153,7 +153,7 @@ void QuickFindWidget::addToQuickSearch(const QString& string) {
 
   // Set the focus to lineEdit so that the user can press 'Return' immediately
   //  editQuickFind_->setFocus();
-  emit editQuickFind_->returnPressed();
+  emit editQuickFind_->editingFinished();
 }
 
 //
