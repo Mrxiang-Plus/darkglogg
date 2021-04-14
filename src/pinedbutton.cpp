@@ -21,20 +21,23 @@ void PinedButton::setPressed(bool pressed) {
   pressed_ = pressed;
   mutex_.unlock();
 }
+void PinedButton::hightlightButton() {
+  setStyleSheet(QString("color :rgb(%1,%2,%3);"
+                        "background-color: rgb(%4,%5,%6);")
+                    .arg(backColor_.red())
+                    .arg(backColor_.green())
+                    .arg(backColor_.blue())
+                    .arg(foreColor_.red())
+                    .arg(foreColor_.green())
+                    .arg(foreColor_.blue()));
+}
 
 void PinedButton::onClick() {
   mutex_.lock();
   pressed_ = !pressed_;
   mutex_.unlock();
   if (pressed_) {
-    setStyleSheet(QString("color :rgb(%1,%2,%3);"
-                          "background-color: rgb(%4,%5,%6);")
-                      .arg(foreColor_.red())
-                      .arg(foreColor_.green())
-                      .arg(foreColor_.blue())
-                      .arg(backColor_.red())
-                      .arg(backColor_.green())
-                      .arg(backColor_.blue()));
+    hightlightButton();
     emit clicked(pinedIndex_);
 
   } else {

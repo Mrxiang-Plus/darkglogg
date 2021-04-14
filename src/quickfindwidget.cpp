@@ -140,12 +140,13 @@ void QuickFindWidget::addToQuickSearch(const QString& string) {
     text = QRegularExpression::escape(string);
   else {
     QString markedString = QRegularExpression::escape(string);
-    if (!text.contains(markedString)) {
+
+    QStringList pieces_ = text.split("|");
+    if (!pieces_.contains(markedString)) {
       text += ('|' + markedString);
     } else {
-      text.remove(markedString + "|");
-      text.remove("|" + markedString);
-      text.remove(markedString);
+      pieces_.removeOne(markedString);
+      text = pieces_.join("|");
     }
   }
 

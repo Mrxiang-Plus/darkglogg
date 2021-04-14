@@ -6,7 +6,7 @@ function ex () {
             (*.tar.bz2) tar xvjf $1 ;;
             (*.tar.gz) tar xvzf $1 ;;
             (*.bz2) bunzip2 $1 ;;
-            (*.rar) unrar x $1 ;;
+            (*.rar) unrar -o+ x $1 ;;
             (*.gz) gunzip $1 ;;
             (*.tar) tar xvf $1 ;;
             (*.tbz2) tar xvjf $1 ;;
@@ -28,4 +28,5 @@ ex $1
 find . -type f -name '*.zip' -print0|xargs -I % unzip -o %
 find . -type f -name 'bugreport*.txt' |xargs -I % glogg %
 find . -type f -name 'test*.log' |xargs -I % glogg %
+find . -type f -name 'main_log*' |xargs -I % glogg %
 

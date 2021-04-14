@@ -357,6 +357,7 @@ class CrawlerWidget : public QSplitter,
   bool firstLoadDone_;
   int currentSearchIndex_;
   QList<PinedButton*> buttonList_;
+  QList<int> enableButtonIndex_;
 
   QString currentSearchTitle_;
   QString currentSearchColor_;

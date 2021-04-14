@@ -192,9 +192,11 @@ void CrawlerWidget::updateSearchPattern(int patternIndex) {
   currentSearchTitle_ = "";
   // replaceQuickMark("");
   int index = 0;
+  enableButtonIndex_.clear();
   for (int i = 0; i < buttonList_.size(); i++) {
     index = buttonList_.at(i)->pinedIndex();
     if (buttonList_[i]->getPressed()) {
+      enableButtonIndex_.append(i);
       frqFilterSet->frqFilterList[index].setEnabled(true);
       QString text = frqFilterSet->getPinedFilters(index);
       if (filter.isEmpty()) {
@@ -913,12 +915,13 @@ void CrawlerWidget::addToSearch(const QString& string) {
   else {
     // Escape the regexp chars from the string before adding it.
     QString searchString = QRegularExpression::escape(string);
-    if (!text.contains(searchString)) {
+
+    QStringList pieces_ = text.split("|");
+    if (!pieces_.contains(searchString)) {
       text += ('|' + searchString);
     } else {
-      text.remove(searchString + "|");
-      text.remove("|" + searchString);
-      text.remove(searchString);
+      pieces_.removeOne(searchString);
+      text = pieces_.join("|");
     }
   }
 
@@ -1471,6 +1474,14 @@ void CrawlerWidget::updateButtons() {
   pinnedPatternsLayout_->addStretch(1);
 
   frqFrameLayout->addWidget(scrollArea_);
+  for (int i = 0; i < enableButtonIndex_.size(); i++) {
+    int index = enableButtonIndex_[i];
+    if (index < buttonList_.size()) {
+      buttonList_[index]->setPressed(true);
+      PinedButton* button = buttonList_[index];
+      button->hightlightButton();
+    }
+  }
 }
 
 // Updates the content of the drop down list for the saved searches,

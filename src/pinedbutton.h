@@ -28,6 +28,7 @@ class PinedButton : public QToolButton {
 
  public slots:
   void onClick();
+  void hightlightButton();
   void ContrastColor(QColor* color, QColor* foreColor);
 };
 
