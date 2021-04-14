@@ -83,7 +83,7 @@ const QColor FrqFilter::foreColor() const {
       return QColor(239, 235, 231);
     }
   } else if (foreColorName_.toStdString() == "text") {
-    return QColor(255, 203, 107);
+    return QColor(255, 183, 97);
   } else {
     return QColor(foreColorName_);
   }
