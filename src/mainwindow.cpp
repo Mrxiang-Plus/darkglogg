@@ -774,7 +774,18 @@ void MainWindow::saveAs(const QString& fileName) {
 }
 
 // Display the QuickFind bar
-void MainWindow::find() { displayQuickFindBar(QFDirection::Forward); }
+void MainWindow::find() {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current && current->isSelectedPortion()) {
+    const QString string = current->getSelectedText();
+    QString findString = QRegularExpression::escape(string);
+    if (!quickFindWidget_.getSearchingText().contains(findString)) {
+      emit addToQuickSearch(string);
+      return;
+    }
+  }
+  displayQuickFindBar(QFDirection::Forward);
+}
 
 void MainWindow::mark() { displayQuickMarkBar(QFDirection::Forward); }
 
@@ -1176,7 +1187,7 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
   // special Esc handling here
   if (keyEvent->key() == Qt::Key_F &&
       keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
-    displayQuickFindBar(QFDirection::Forward);
+    find();
   } else if (keyEvent->key() == Qt::Key_M &&
              keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
     displayQuickMarkBar(QFDirection::Forward);

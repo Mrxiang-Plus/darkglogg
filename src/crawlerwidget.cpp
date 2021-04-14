@@ -130,6 +130,13 @@ QString CrawlerWidget::getSelectedText() const {
     return logMainView->getSelection();
 }
 
+bool CrawlerWidget::isSelectedPortion() const {
+  if (filteredView->hasFocus())
+    return filteredView->isSelectionPortion();
+  else
+    return logMainView->isSelectionPortion();
+}
+
 QString CrawlerWidget::getFilteredText() const {
   filteredView->selectAll();
   return filteredView->getSelection();

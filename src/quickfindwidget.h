@@ -59,6 +59,7 @@ class QuickFindWidget : public QWidget {
   void addToQuickSearch(const QString& string);
   void replaceQuickSearch(const QString& string);
   void appendToQuickSearch(const QString& string);
+  QString getSearchingText();
 
  private slots:
   void doSearchForward();

@@ -1249,6 +1249,10 @@ QString AbstractLogView::getSelection() const {
   return selection_.getSelectedText(logData);
 }
 
+bool AbstractLogView::isSelectionPortion() const {
+  return selection_.isPortion();
+}
+
 QString AbstractLogView::getSelectionWithColor() const {
   return selection_.getSelectedTextWithColor(logData);
 }

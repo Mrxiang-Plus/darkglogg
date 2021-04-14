@@ -68,6 +68,7 @@ class CrawlerWidget : public QSplitter,
   int getTopLine() const;
   // Get the selected text as a string (from the main window)
   QString getSelectedText() const;
+  bool isSelectedPortion() const;
   QString getFilteredText() const;
   QString getSelectedTextWithColor() const;
 
