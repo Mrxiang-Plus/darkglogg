@@ -207,6 +207,8 @@ class AbstractLogView : public QAbstractScrollArea,
   void selectAll();
 
   bool isFollowEnabled() const { return followMode_; }
+  bool isEnteringQuickFind() const { return enteringQuickFind_; }
+  void setEnteringQuickFind(bool entering) { enteringQuickFind_ = entering; }
 
  protected:
   virtual void mousePressEvent(QMouseEvent* mouseEvent);
@@ -369,6 +371,8 @@ class AbstractLogView : public QAbstractScrollArea,
 
   // Follow mode
   bool followMode_;
+
+  bool enteringQuickFind_;
 
   // ElasticHook for follow mode
   ElasticHook followElasticHook_;

@@ -1177,6 +1177,7 @@ void AbstractLogView::comment() {
 void AbstractLogView::updateData() {
   LOG(logINFO) << "AbstractLogView::updateData";
 
+  enteringQuickFind_ = false;
   // Check the top Line is within range
   if (firstLine >= logData->getNbLine()) {
     firstLine = 0;
@@ -1771,7 +1772,7 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
     if (selection_.isLineSelected(line_index)) {
       foreColor = palette.color(QPalette::Text);
       // Reverse the selected line
-      if (hasFocus()) {
+      if (hasFocus() || enteringQuickFind_) {
         backColor = QColor(204, 255, 0);
         foreColor = Qt::black;
       } else {

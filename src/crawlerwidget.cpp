@@ -744,15 +744,19 @@ void CrawlerWidget::enteringQuickFind() {
 
   if ((focus_widget == logMainView) || (focus_widget == filteredView)) {
     qfSavedFocus_ = focus_widget;
-  }
-
-  else
+    ((AbstractLogView*)focus_widget)->setEnteringQuickFind(true);
+  } else {
     qfSavedFocus_ = nullptr;
+  }
 }
 
 void CrawlerWidget::exitingQuickFind() {
   // Restore the focus once the QFBar has been hidden
-  if (qfSavedFocus_) qfSavedFocus_->setFocus();
+  if (qfSavedFocus_) {
+    qfSavedFocus_->setFocus();
+  }
+  logMainView->setEnteringQuickFind(false);
+  filteredView->setEnteringQuickFind(false);
 }
 
 void CrawlerWidget::enteringQuickMark() {
@@ -761,15 +765,19 @@ void CrawlerWidget::enteringQuickMark() {
   // Remember who had the focus (only if it is one of our views)
   QWidget* focus_widget = QApplication::focusWidget();
 
-  if ((focus_widget == logMainView) || (focus_widget == filteredView))
+  if ((focus_widget == logMainView) || (focus_widget == filteredView)) {
     qfSavedFocus_ = focus_widget;
-  else
+    ((AbstractLogView*)focus_widget)->setEnteringQuickFind(true);
+  } else {
     qfSavedFocus_ = nullptr;
+  }
 }
 
 void CrawlerWidget::exitingQuickMark() {
   // Restore the focus once the QFBar has been hidden
   if (qfSavedFocus_) qfSavedFocus_->setFocus();
+  logMainView->setEnteringQuickFind(false);
+  filteredView->setEnteringQuickFind(false);
 }
 
 void CrawlerWidget::loadingFinishedHandler(LoadingStatus status) {
