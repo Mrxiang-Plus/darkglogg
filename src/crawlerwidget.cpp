@@ -337,6 +337,7 @@ void CrawlerWidget::resetButtonWithoutSearch(int except) {
   if (except >= 0) {
   } else {
     currentSearchString_ = "";
+    enableButtonIndex_.clear();
     startNewSearch();
   }
   mutex.unlock();
@@ -359,6 +360,7 @@ void CrawlerWidget::resetButton(int except) {
     doSearch(except);
   } else {
     currentSearchString_ = "";
+    enableButtonIndex_.clear();
     startNewSearch();
   }
   mutex.unlock();
