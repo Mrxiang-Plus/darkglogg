@@ -6,7 +6,7 @@ function ex () {
             (*.tar.bz2) tar xvjf "$1" ;;
             (*.tar.gz) tar xvzf "$1" ;;
             (*.bz2) bunzip2 "$1" ;;
-            (*.rar) unrar x "$1" ;;
+            (*.rar) unrar x -o+ "$1" ;;
             (*.gz) gunzip "$1" ;;
             (*.tar) tar xvf "$1" ;;
             (*.tbz2) tar xvjf "$1" ;;
@@ -21,10 +21,12 @@ function ex () {
             fi
 }
 
-filename=$(basename "$1" .zip)
-mkdir -p "$2/$filename"
-cd "$2/$filename"
-find . -type f -name '*.zip' -print0|xargs -I % unzip -o %
-find . -type f -name 'bugreport*.txt' |xargs -I % glogg %
+filename=$(basename "$1")
+name=$(echo "$filename" | cut -f 1 -d '.')
+mkdir -p "$2/$name"
+cd "$2/$name"
+ex "$1"
+find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
+find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
 #find . -type f -name 'test*.log' |xargs -I % glogg %
 
