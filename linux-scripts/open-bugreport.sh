@@ -28,5 +28,17 @@ cd "$2/$name"
 ex "$1"
 find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
 find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
+
+logcat_name="$name"_logcat.txt
+find . -type f -name 'logcatlog.txt.*'|sort -r|xargs cat > "$logcat_name"
+find . -type f -name 'logcatlog.txt'|xargs cat >> "$logcat_name"
+glogg  "$logcat_name"
+
+camera_log_name="$name"_camera_log.txt
+echo ">>>>:"
+echo $camera_log_name
+find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
+find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
+glogg "$camera_log_name"
 #find . -type f -name 'test*.log' |xargs -I % glogg %
 
