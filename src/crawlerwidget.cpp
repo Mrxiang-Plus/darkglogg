@@ -305,6 +305,9 @@ void CrawlerWidget::keyPressEvent(QKeyEvent* keyEvent) {
       emit exitApp();
     } else if (mod == Qt::ShiftModifier && (keyEvent->key() == Qt::Key_F12)) {
       emit fullScreen();
+    } else if (mod == (Qt::ControlModifier | Qt::ShiftModifier) &&
+               keyEvent->key() == Qt::Key_C) {
+      emit copyWithColor();
     }
 
     else

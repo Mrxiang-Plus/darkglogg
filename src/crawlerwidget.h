@@ -135,6 +135,7 @@ class CrawlerWidget : public QSplitter,
   // passing the completion percentage.
   void loadingProgressed(int progress);
   void copyToClipboard();
+  void copyWithColor();
   void fullScreen();
   void openFile();
   void exitApp();

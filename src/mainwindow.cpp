@@ -138,6 +138,7 @@ MainWindow::MainWindow(
   // Register for progress status bar
   signalMux_.connect(SIGNAL(copyToClipboard()), this, SLOT(copy()));
   signalMux_.connect(SIGNAL(fullScreen()), this, SLOT(fullScreen()));
+  signalMux_.connect(SIGNAL(copyWithColor()), this, SLOT(copyWithColor()));
   signalMux_.connect(SIGNAL(openFile()), this, SLOT(open()));
   signalMux_.connect(SIGNAL(exitApp()), titleBar->parent()->parent(),
                      SLOT(close()));
