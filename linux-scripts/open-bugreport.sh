@@ -22,7 +22,9 @@ function ex () {
 }
 
 filename=$(basename "$1")
-name=$(echo "$filename" | cut -f 1 -d '.')
+#name=$(echo "$filename" | cut -f 1 -d '.')
+name=${filename%.*}
+
 mkdir -p "$2/$name"
 cd "$2/$name"
 ex "$1"
@@ -34,7 +36,10 @@ count=$(find . -type f -name 'logcatlog.txt.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'logcatlog.txt.*'|sort -r|xargs cat > "$logcat_name"
     find . -type f -name 'logcatlog.txt'|xargs cat >> "$logcat_name"
-#    glogg  "$logcat_name"
+    var=`find . -type f -name 'bugreport*.txt'`
+    if [ -z "$var" ];then
+        glogg  "$logcat_name"
+    fi
 fi
 
 camera_log_name="$name"_camera_log.txt
