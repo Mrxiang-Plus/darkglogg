@@ -33,7 +33,7 @@ count=$(find . -type f -name 'logcatlog.txt.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'logcatlog.txt.*'|sort -r|xargs cat > "$logcat_name"
     find . -type f -name 'logcatlog.txt'|xargs cat >> "$logcat_name"
-    glogg  "$logcat_name"
+#    glogg  "$logcat_name"
 fi
 
 camera_log_name="$name"_camera_log.txt
@@ -41,7 +41,7 @@ count=$(find . -type f -name 'com.android.camera.log.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
     find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
-    glogg "$camera_log_name"
+#    glogg "$camera_log_name"
 fi
 
 find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
