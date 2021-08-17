@@ -1571,7 +1571,6 @@ void AbstractLogView::createMenu() {
   copyAction_ = new QAction(tr("&Copy"), this);
   // No text as this action title depends on the type of selection
   connect(copyAction_, SIGNAL(triggered()), this, SLOT(copy()));
-
   commentAction_ = new QAction(tr("Comment"), this);
   connect(commentAction_, SIGNAL(triggered()), this, SLOT(comment()));
 

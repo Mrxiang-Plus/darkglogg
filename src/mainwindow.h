@@ -88,6 +88,7 @@ class MainWindow : public QMainWindow {
   void closeAll();
   void selectAll();
   void copy();
+  void copyPath();
   void copyWithColor();
   void saveAs(const QString &fileName);
   void saveAsFile();
@@ -224,6 +225,7 @@ class MainWindow : public QMainWindow {
   QToolBar *toolBar;
 
   QAction *openAction;
+  QAction *copyPathAction;
   QAction *saveAsAction;
   QAction *retraceLogAction;
   QAction *saveSelectedAsAction;

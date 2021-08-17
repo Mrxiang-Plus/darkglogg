@@ -319,6 +319,9 @@ void MainWindow::createActions() {
   openAction->setStatusTip(tr("Open a file"));
   connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+  copyPathAction = new QAction(tr("Copy path"), this);
+  connect(copyPathAction, SIGNAL(triggered()), this, SLOT(copyPath()));
+
   saveAsAction = new QAction(tr("&Save As"), this);
   saveAsAction->setShortcut(tr("Ctrl+S"));
   saveAsAction->setStatusTip(tr("save as and open file"));
@@ -484,6 +487,7 @@ void MainWindow::createActions() {
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
+  fileMenu->addAction(copyPathAction);
   fileMenu->addAction(saveAsAction);
   fileMenu->addAction(saveSelectedAsAction);
   fileMenu->addSeparator();
@@ -642,6 +646,20 @@ void MainWindow::copy() {
 
     // Put it in the global selection as well (X11 only)
     clipboard->setText(string, QClipboard::Selection);
+  }
+}
+
+void MainWindow::copyPath() {
+  static QClipboard* clipboard = QApplication::clipboard();
+  CrawlerWidget* current = currentCrawlerWidget();
+
+  if (current) {
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    clipboard->setText(current_file);
+
+    // Put it in the global selection as well (X11 only)
+    clipboard->setText(current_file, QClipboard::Selection);
   }
 }
 
