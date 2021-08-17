@@ -27,6 +27,7 @@ mkdir -p "$2/$name"
 cd "$2/$name"
 ex "$1"
 find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
+find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
 
 logcat_name="$name"_logcat.txt
 count=$(find . -type f -name 'logcatlog.txt.*'|wc -l)
@@ -44,6 +45,5 @@ if [[ $count -gt 0 ]];then
 #    glogg "$camera_log_name"
 fi
 
-find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
 #find . -type f -name 'test*.log' |xargs -I % glogg %
 
