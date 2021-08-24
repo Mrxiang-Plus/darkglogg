@@ -580,7 +580,8 @@ void MainWindow::open() {
       this, tr("Open file"), defaultDir, tr("All files (*)"));
   if (!fileName.isEmpty()) {
     if (fileName.endsWith(".jpeg") || fileName.endsWith(".mp4") ||
-        fileName.endsWith(".png") || fileName.endsWith(".jpg")) {
+        fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
+        fileName.endsWith(".html")) {
       QProcess process;
       QString path =
           QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
