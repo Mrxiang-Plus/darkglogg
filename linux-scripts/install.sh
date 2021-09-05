@@ -10,10 +10,6 @@ cp linux-scripts/*.sh ~/.glogg/
 cp linux-scripts/*.jar ~/.glogg/
 
 if [ ! -f ~/.config/glogg/glogg2.conf ]; then
-    if [ -f ~/.config/glogg/glogg.conf ]; then
-        cp  ~/.config/glogg/glogg.conf ~/.config/glogg/glogg2.conf
-    else
-        cp linux-scripts/glogg.conf ~/.config/glogg/glogg2.conf
-    fi
+    cp linux-scripts/glogg.conf ~/.config/glogg/glogg2.conf
 fi
 glogg linux-scripts/readme.txt
