@@ -28,8 +28,25 @@ name=${filename%.*}
 mkdir -p "$2/$name"
 cd "$2/$name"
 ex "$1"
+for value in {1..10}
+do
+    var=`find . -type f -name 'bugreport*.txt'`
+    if [ -z "$var" ];then
+        mapfile -d $'\0' array < <(find . -name "*.zip" -print0)
 find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
+        for i in "${!array[@]}";   
+        do   
+            echo "delete ${array[$i]}"  
+            rm "${array[$i]}"  
+        done 
+    else 
+        break
+    fi
+done
+
 find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
+find . -type f -name '*.mp4' -print0|xargs -0 -I % gnome-open %
+
 
 logcat_name="$name"_logcat.txt
 count=$(find . -type f -name 'logcatlog.txt.*'|wc -l)
@@ -42,13 +59,15 @@ if [[ $count -gt 0 ]];then
     fi
 fi
 
-camera_log_name="$name"_camera_log.txt
+camera_log_name="$name"_cam_log.txt
 count=$(find . -type f -name 'com.android.camera.log.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
     find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
-#    glogg "$camera_log_name"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) - \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
+    sed -i -r "s/^([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*) (.*$)/printf '%s %s %5s %5s %s' '\1' '\2' '\3' '\4' '\5'/e"  "$camera_log_name"
+else
+    find . -type f -name 'com.android.camera.log'|xargs -I % cp % "$camera_log_name"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) - \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
+    sed -i -r "s/^([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*) (.*$)/printf '%s %s %5s %5s %s' '\1' '\2' '\3' '\4' '\5'/e"  "$camera_log_name"
 fi
-
-#find . -type f -name 'test*.log' |xargs -I % glogg %
-
