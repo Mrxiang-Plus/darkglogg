@@ -94,6 +94,7 @@ class MainWindow : public QMainWindow {
   void saveAsFile();
   void saveSelectedAsFile();
   void retraceLog();
+  void reformatLog();
   void saveFilteredAsFile();
   void find();
   void mark();
@@ -228,6 +229,7 @@ class MainWindow : public QMainWindow {
   QAction *copyPathAction;
   QAction *saveAsAction;
   QAction *retraceLogAction;
+  QAction *reformatLogAction;
   QAction *saveSelectedAsAction;
   QAction *saveFilteredAsAction;
   QAction *closeAction;

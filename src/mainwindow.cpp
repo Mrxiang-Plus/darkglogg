@@ -342,9 +342,13 @@ void MainWindow::createActions() {
           SLOT(saveFilteredAsFile()));
 
   retraceLogAction = new QAction(tr("Retrace Selection"), this);
-  retraceLogAction->setShortcut(tr("Ctrl+Shift+R"));
   retraceLogAction->setStatusTip(tr("retrace log"));
   connect(retraceLogAction, SIGNAL(triggered()), this, SLOT(retraceLog()));
+
+  reformatLogAction = new QAction(tr("Reformat"), this);
+  reformatLogAction->setShortcut(tr("Ctrl+Shift+R"));
+  reformatLogAction->setStatusTip(tr("reformat log"));
+  connect(reformatLogAction, SIGNAL(triggered()), this, SLOT(reformatLog()));
 
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
@@ -494,6 +498,7 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(saveFilteredAsAction);
   fileMenu->addAction(retraceLogAction);
+  fileMenu->addAction(reformatLogAction);
   fileMenu->addSeparator();
   fileMenu->addAction(closeAction);
   fileMenu->addAction(closeAllAction);
@@ -732,6 +737,20 @@ void MainWindow::retraceLog() {
     process.startDetached("/bin/bash", QStringList()
                                            << path + "retrace.sh" << dstPath
                                            << currentPath << current_file);
+  }
+}
+
+void MainWindow::reformatLog() {
+  CrawlerWidget* current = currentCrawlerWidget();
+
+  if (current) {
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QProcess process;
+    process.startDetached(
+        "/bin/bash", QStringList() << path + "reformat_log.sh" << current_file);
   }
 }
 

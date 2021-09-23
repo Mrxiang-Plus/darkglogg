@@ -64,10 +64,16 @@ count=$(find . -type f -name 'com.android.camera.log.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
     find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
-    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) - \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
-    sed -i -r "s/^([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*) (.*$)/printf '%s %s %5s %5s %s' '\1' '\2' '\3' '\4' '\5'/e"  "$camera_log_name"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$1"
+    awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
+    sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
+    mv tmp.txt "$camera_log_name"
+    touch "$camera_log_name"
 else
     find . -type f -name 'com.android.camera.log'|xargs -I % cp % "$camera_log_name"
-    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) - \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
-    sed -i -r "s/^([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*) (.*$)/printf '%s %s %5s %5s %s' '\1' '\2' '\3' '\4' '\5'/e"  "$camera_log_name"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$1"
+    awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
+    sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
+    mv tmp.txt "$camera_log_name"
+    touch "$camera_log_name"
 fi
