@@ -25,21 +25,24 @@ filename=$(basename "$1")
 #name=$(echo "$filename" | cut -f 1 -d '.')
 name=${filename%.*}
 
+echo "$name"
+rm -rf "$2/$name"
 mkdir -p "$2/$name"
 cd "$2/$name"
 ex "$1"
+rm -rf "$1"
 for value in {1..10}
 do
     var=`find . -type f -name 'bugreport*.txt'`
     if [ -z "$var" ];then
         mapfile -d $'\0' array < <(find . -name "*.zip" -print0)
 find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
-        for i in "${!array[@]}";   
-        do   
-            echo "delete ${array[$i]}"  
-            rm "${array[$i]}"  
-        done 
-    else 
+        for i in "${!array[@]}";
+        do
+            echo "delete ${array[$i]}"
+            rm "${array[$i]}"
+        done
+    else
         break
     fi
 done
@@ -64,14 +67,14 @@ count=$(find . -type f -name 'com.android.camera.log.*'|wc -l)
 if [[ $count -gt 0 ]];then
     find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
     find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
-    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$1"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
     awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
     sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
     mv tmp.txt "$camera_log_name"
     touch "$camera_log_name"
 else
     find . -type f -name 'com.android.camera.log'|xargs -I % cp % "$camera_log_name"
-    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$1"
+    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
     awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
     sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
     mv tmp.txt "$camera_log_name"
