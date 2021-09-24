@@ -45,9 +45,10 @@ QRegularExpression::PatternOptions getFilterPatternOptions(bool ignoreCase) {
 FrqFilter::FrqFilter() {}
 
 FrqFilter::FrqFilter(const QString& description, const QString& pattern,
-                     bool ignoreCase, const QString& foreColorName,
-                     const QString& backColorName)
+                     bool ignoreCase, bool ignoreColor,
+                     const QString& foreColorName, const QString& backColorName)
     : regexp_(pattern, getFilterPatternOptions(ignoreCase)),
+      ignoreColor_(ignoreColor),
       foreColorName_(foreColorName),
       backColorName_(backColorName),
       description_(description),
@@ -70,6 +71,9 @@ bool FrqFilter::ignoreCase() const {
 void FrqFilter::setIgnoreCase(bool ignoreCase) {
   regexp_.setPatternOptions(getFilterPatternOptions(ignoreCase));
 }
+
+bool FrqFilter::ignoreColor() const { return ignoreColor_; }
+void FrqFilter::setIgnoreColor(bool ignoreColor) { ignoreColor_ = ignoreColor; }
 
 const QString& FrqFilter::foreColorName() const { return foreColorName_; }
 
@@ -152,6 +156,7 @@ bool FrqFilter::hasMatch(const QString& string) const {
 QDataStream& operator<<(QDataStream& out, const FrqFilter& object) {
   LOG(logDEBUG) << "<<operator from FrqFilter";
   out << object.regexp_;
+  out << object.ignoreColor_;
   out << object.foreColorName_;
   out << object.backColorName_;
   out << object.description_;
@@ -163,6 +168,7 @@ QDataStream& operator<<(QDataStream& out, const FrqFilter& object) {
 QDataStream& operator>>(QDataStream& in, FrqFilter& object) {
   LOG(logDEBUG) << ">>operator from FrqFilter";
   in >> object.regexp_;
+  in >> object.ignoreColor_;
   in >> object.foreColorName_;
   in >> object.backColorName_;
   in >> object.description_;
@@ -201,9 +207,9 @@ int FrqFilterSet::getSize() const { return frqFilterList.size(); }
 bool FrqFilterSet::matchLine(const QString& line, QColor* foreColor,
                              QColor* backColor) const {
   if (frqFilterList.size() > 0) {
-    for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin() + 1;
+    for (QList<FrqFilter>::const_iterator i = frqFilterList.constBegin();
          i != frqFilterList.constEnd(); i++) {
-      if (i->hasMatch(line) && i->getEnabled()) {
+      if (i->hasMatch(line) && i->getEnabled() && !i->ignoreColor()) {
         QColor fColor = i->foreColor();
         QColor bColor = i->backColor();
         foreColor->setRgb(fColor.red(), fColor.green(), fColor.blue());
@@ -261,6 +267,7 @@ void FrqFilter::saveToStorage(QSettings& settings) const {
   settings.setValue("ignore_case",
                     regexp_.patternOptions().testFlag(
                         QRegularExpression::CaseInsensitiveOption));
+  settings.setValue("ignore_color", ignoreColor_);
   settings.setValue("fore_colour", foreColorName_);
   settings.setValue("back_colour", backColorName_);
   settings.setValue("enabled", enabled_);
@@ -274,6 +281,7 @@ void FrqFilter::retrieveFromStorage(QSettings& settings) {
       settings.value("regexp").toString(),
       getFilterPatternOptions(settings.value("ignore_case", false).toBool()));
 
+  ignoreColor_ = settings.value("ignore_color").toBool();
   foreColorName_ = settings.value("fore_colour").toString();
   backColorName_ = settings.value("back_colour").toString();
   enabled_ = settings.value("enabled").toBool();

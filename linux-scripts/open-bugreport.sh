@@ -48,32 +48,40 @@ find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
 done
 
 find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
+#find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % sed -i 's/\(^[0-9]*-[0-9]* [0-9:]*[^\.]*\.[0-9]*\) [^ ]*/\1/g' %
+#find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % touch %
 find . -type f -name '*.mp4' -print0|xargs -0 -I % gnome-open %
+find . -type f -iname "*.png" -print0|xargs -0 feh -t -Sfilename -E 479 -y 479 -W 960 &
+var=`find . -type f -name 'bugreport*.txt'`
+if [ -z "$var" ];then
+    find . -type f -name 'test_*Times*[0-9].log' -print0|xargs -0 -I % glogg %
+#    find . -type f -name 'test_*Times*[0-9].log' -print0|xargs -0 -I % sed -i 's/\(^[0-9]*-[0-9]* [0-9:]*[^\.]*\.[0-9]*\) [^ ]*/\1/g' %
+#    find . -type f -name 'test_*Times*[0-9].log' -print0|xargs -0 -I % touch %
+fi
 
 
+echo "find and merge logcat"
 logcat_name="$name"_logcat.txt
-count=$(find . -type f -name 'logcatlog.txt.*'|wc -l)
+count=$(find . -type f -name 'logcatlog.txt'|wc -l)
+count=$[$(find . -type f -name 'logcatlog.txt.*'|wc -l)+$count]
+echo $count
 if [[ $count -gt 0 ]];then
-    find . -type f -name 'logcatlog.txt.*'|sort -r|xargs cat > "$logcat_name"
-    find . -type f -name 'logcatlog.txt'|xargs cat >> "$logcat_name"
+    touch "$logcat_name"
+    find . -type f -name 'logcatlog.txt.*' -print0|sort -z -r|xargs -0 -I % dd if=% bs=4k of="$logcat_name" oflag=append conv=notrunc
+    find . -type f -name 'logcatlog.txt'|xargs -I % dd if=% bs=4k of="$logcat_name" oflag=append conv=notrunc
     var=`find . -type f -name 'bugreport*.txt'`
     if [ -z "$var" ];then
         glogg  "$logcat_name"
     fi
 fi
 
+echo "find and merge camera app logcat"
 camera_log_name="$name"_cam_log.txt
-count=$(find . -type f -name 'com.android.camera.log.*'|wc -l)
+count=$(find . -type f -name 'com.android.camera.log'|wc -l)
+count=$[$(find . -type f -name 'com.android.camera.log.*'|wc -l)+$count]
 if [[ $count -gt 0 ]];then
-    find . -type f -name 'com.android.camera.log.*'|sort -r|xargs cat > "$camera_log_name"
-    find . -type f -name 'com.android.camera.log'|xargs cat >> "$camera_log_name"
-    sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
-    awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
-    sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
-    mv tmp.txt "$camera_log_name"
-    touch "$camera_log_name"
-else
-    find . -type f -name 'com.android.camera.log'|xargs -I % cp % "$camera_log_name"
+    find . -type f -name 'com.android.camera.log.*' -print0|sort -z -r|xargs -0 -I % dd if=% bs=4k of="$camera_log_name" oflag=append conv=notrunc
+    find . -type f -name 'com.android.camera.log'|xargs -I % dd if=% bs=4k of="$camera_log_name" oflag=append conv=notrunc
     sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
     awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
     sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt

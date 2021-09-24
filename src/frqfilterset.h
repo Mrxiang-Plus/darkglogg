@@ -33,7 +33,8 @@ class FrqFilter {
   // Construct an uninitialized FrqFilter (when reading from a config file)
   FrqFilter();
   FrqFilter(const QString& description, const QString& pattern, bool ignoreCase,
-            const QString& foreColor, const QString& backColor);
+            bool ignoreColor, const QString& foreColor,
+            const QString& backColor);
 
   bool hasMatch(const QString& string) const;
 
@@ -41,7 +42,9 @@ class FrqFilter {
   QString pattern() const;
   void setPattern(const QString& pattern);
   bool ignoreCase() const;
+  bool ignoreColor() const;
   void setIgnoreCase(bool ignoreCase);
+  void setIgnoreColor(bool ignoreColor);
   const QString& foreColorName() const;
   const QColor foreColor() const;
   void setForeColor(const QString& foreColorName);
@@ -69,6 +72,7 @@ class FrqFilter {
   QString foreColorName_;
   QString backColorName_;
   QString description_;
+  bool ignoreColor_;
   bool enabled_;
 };
 

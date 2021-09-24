@@ -64,6 +64,8 @@ class FiltersDialog : public QDialog, public Ui::FiltersDialog {
 
   void on_pinnedListWidget_clicked(const QModelIndex& index);
 
+  void on_ignoreColorCheckBox_stateChanged(int arg1);
+
  private:
   QListWidget* focusedListWidget_;
   // Temporary filterset modified by the dialog

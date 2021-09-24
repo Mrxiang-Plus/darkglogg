@@ -1258,6 +1258,10 @@ QString AbstractLogView::getSelectionWithColor() const {
   return selection_.getSelectedTextWithColor(logData);
 }
 
+QStringList AbstractLogView::getSelectionListWithColor() const {
+  return selection_.getSelectedTextListWithColor(logData);
+}
+
 void AbstractLogView::selectAll() {
   selection_.selectRange(0, logData->getNbLine() - 1);
   textAreaCache_.invalid_ = true;
@@ -1783,9 +1787,10 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
     } else if (frqFilterSet->matchLine(filterLine, &foreColor, &backColor)) {
     } else if (filterSet->matchLine(filterLine, &foreColor, &backColor)) {
       // Apply a filter to the line
-    } else if (frqFilterSet->matchFirstLine(filterLine, &foreColor,
-                                            &backColor)) {
-    } else {
+    }  // else if (frqFilterSet->matchFirstLine(filterLine, &foreColor,
+       //                                       &backColor)) {
+       // }
+    else {
       // Use the default colors
       foreColor = palette.color(QPalette::Text);
       backColor = palette.color(QPalette::Window);

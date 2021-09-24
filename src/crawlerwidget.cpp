@@ -141,12 +141,213 @@ QString CrawlerWidget::getFilteredText() const {
   filteredView->selectAll();
   return filteredView->getSelection();
 }
+QColor getColor(int index) {
+  QColor fore;
+  QColor back;
+  switch (index) {
+    case -1:
+      fore = QColor("black");
+      back = QColor(52, 226, 226);
+      break;
+    case 1:
+      fore = QColor("black");
+      back = QColor(52, 226, 226);
+      break;
+    case 2:
+      fore = QColor("black");
+      back = QColor(138, 226, 52);
+      break;
+    case 3:
+      fore = QColor(227, 225, 174);
+      back = QColor(204, 0, 0);
+      break;
+    case 4:
+      fore = QColor("black");
+      back = QColor(123, 120, 158);
+      break;
+    case 5:
+      fore = QColor("black");
+      back = QColor(114, 159, 207);
+      break;
+    case 6:
+      fore = QColor("black");
+      back = QColor(6, 153, 154);
+      break;
+    case 7:
+      fore = QColor("black");
+      back = QColor(175, 95, 0);
+      break;
+    case 8:
+      fore = QColor("black");
+      back = QColor(168, 168, 168);
+      break;
+    case 9:
+      fore = QColor("black");
+      back = QColor(227, 172, 46);
+      break;
+    case 10:
+      fore = QColor("black");
+      back = QColor(207, 112, 255);
+      break;
+    case 11:
+      // https://htmlcolorcodes.com/color-chart/
+      fore = QColor(227, 225, 174);
+      back = QColor(144, 12, 63);
+      break;
+    case 12:
+      fore = QColor(227, 225, 174);
+      // fore = QColor( "black" );
+      back = QColor(88, 24, 69);
+      break;
+    case 13:
+      fore = QColor("black");
+      back = QColor(204, 255, 255);
+      break;
+    case 14:
+      fore = QColor("black");
+      back = QColor(153, 204, 255);
+      break;
+    case 15:
+      fore = QColor("black");
+      back = QColor(255, 0, 153);
+      break;
+    case 16:
+      fore = QColor(227, 225, 174);
+      back = QColor(102, 0, 255);
+      break;
+    case 17:
+      fore = QColor("black");
+      back = QColor(153, 51, 255);
+      break;
+    case 18:
+      fore = QColor("black");
+      back = QColor(102, 102, 0);
+      break;
+    case 19:
+      fore = QColor("black");
+      back = QColor(0, 255, 103);
+      break;
+    case 20:
+      fore = QColor("black");
+      back = QColor(102, 153, 51);
+      break;
+    case 21:
+      fore = QColor("black");
+      back = QColor(244, 67, 54);
+      break;
+    case 22:
+      fore = QColor("black");
+      back = QColor(233, 30, 99);
+      break;
+    case 23:
+      fore = QColor("black");
+      back = QColor(156, 39, 176);
+      break;
+    case 24:
+      fore = QColor("black");
+      back = QColor(94, 53, 177);
+      break;
+    case 25:
+      fore = QColor("black");
+      back = QColor(63, 81, 181);
+      break;
+    case 26:
+      fore = QColor("black");
+      back = QColor(33, 150, 243);
+      break;
+    case 27:
+      fore = QColor("black");
+      back = QColor(3, 169, 244);
+      break;
+    case 28:
+      fore = QColor("black");
+      back = QColor(0, 150, 136);
+      break;
+    case 29:
+      fore = QColor("black");
+      back = QColor(76, 175, 80);
+      break;
+    case 30:
+      fore = QColor("black");
+      back = QColor(205, 220, 57);
+      break;
+    case 31:
+      fore = QColor("black");
+      back = QColor(255, 152, 0);
+      break;
+  }
+  return back;
+}
+
+void ContrastColor(QColor* foreColor, QColor* fColor) {
+  // Counting the perceptive luminance - human eye favors green color...
+  double luminance = (0.299 * 199 + 0.587 * 255 + 0.114 * 206) / 255;
+  double foreLuminance =
+      (0.299 * foreColor->red() + 0.587 * foreColor->green() +
+       0.114 * foreColor->blue()) /
+      255;
+  double brightest = qMax(luminance, foreLuminance);
+  double darkest = qMin(luminance, foreLuminance);
+
+  if ((brightest + 0.05) / (darkest + 0.05) < 4.5) {
+    // bright colors - black font
+    fColor->setRgb(foreColor->red() * (1 - 0.6 * 0.299),
+                   foreColor->green() * (1 - 0.6 * 0.578),
+                   foreColor->blue() * (1 - 0.6 * 0.114));
+  } else {
+    fColor->setRgb(foreColor->red(), foreColor->green(), foreColor->blue());
+  }
+}
 
 QString CrawlerWidget::getSelectedTextWithColor() const {
+  QStringList selection;
   if (filteredView->hasFocus())
-    return filteredView->getSelectionWithColor();
+    selection = filteredView->getSelectionListWithColor();
   else
-    return logMainView->getSelectionWithColor();
+    selection = logMainView->getSelectionListWithColor();
+  QList<QuickFindMatch> qmMatchList;
+  QStringList stringList;
+  QString head;
+  QString tail;
+  QColor foreColor, backColor, fColor;
+  for (QString string : selection) {
+    head = "";
+    tail = "";
+    if (string.startsWith("{color:#")) {
+      head = string.mid(0, 15);
+      tail = "{color}";
+    }
+    quickMarkPattern_->matchLine(string, qmMatchList);
+    if (qmMatchList.size() > 0) {
+      int index = 0;
+      foreach (QuickFindMatch chunk, qmMatchList) {
+        QString ahead = string.mid(index, chunk.startColumn() - index);
+        if (!ahead.trimmed().isEmpty()) {
+          stringList.append(index != 0 ? head : "");
+          stringList.append(ahead);
+          stringList.append(tail);
+        } else {
+          stringList.append(ahead);
+        }
+        stringList.append("{color:");
+        foreColor = getColor(chunk.matchedIndex());
+
+        ContrastColor(&foreColor, &fColor);
+        stringList.append(fColor.name(QColor::HexRgb) + "}");
+        stringList.append(string.mid(chunk.startColumn(), chunk.length()));
+        stringList.append("{color}");
+        index = chunk.startColumn() + chunk.length();
+      }
+      stringList.append(head);
+      stringList.append(head + string.mid(index, string.size() - index) + tail);
+      stringList.append(tail);
+    } else {
+      stringList.append(string);
+    }
+    stringList.append("\n");
+  }
+
+  return stringList.join("");
 }
 
 void CrawlerWidget::selectAll() { activeView()->selectAll(); }

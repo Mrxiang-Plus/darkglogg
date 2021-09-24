@@ -244,6 +244,9 @@ MainWindow::MainWindow(
   main_layout->addWidget(&mainTabWidget_);
   main_layout->addWidget(&quickFindWidget_);
   main_layout->addWidget(&quickMarkWidget_);
+  main_layout->addWidget(infoLine);
+  //  main_layout->addWidget(lineNbField);
+  infoLine->setVisible(false);
   central_widget->setLayout(main_layout);
 
   setCentralWidget(central_widget);
@@ -335,6 +338,11 @@ void MainWindow::createActions() {
   connect(saveSelectedAsAction, SIGNAL(triggered()), this,
           SLOT(saveSelectedAsFile()));
 
+  calculateTimeDiffAction =
+      new QAction(tr("Calculation time consumption"), this);
+  connect(calculateTimeDiffAction, SIGNAL(triggered()), this,
+          SLOT(calculateTimeDiff()));
+
   saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
   saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
   saveFilteredAsAction->setStatusTip(tr("save Filtered as and open file"));
@@ -343,6 +351,7 @@ void MainWindow::createActions() {
 
   retraceLogAction = new QAction(tr("Retrace Selection"), this);
   retraceLogAction->setStatusTip(tr("retrace log"));
+  retraceLogAction->setShortcut(tr("Ctrl+R"));
   connect(retraceLogAction, SIGNAL(triggered()), this, SLOT(retraceLog()));
 
   reformatLogAction = new QAction(tr("Reformat"), this);
@@ -350,10 +359,28 @@ void MainWindow::createActions() {
   reformatLogAction->setStatusTip(tr("reformat log"));
   connect(reformatLogAction, SIGNAL(triggered()), this, SLOT(reformatLog()));
 
+  viewPicturesAction = new QAction(tr("Open Pictures"), this);
+  viewPicturesAction->setShortcut(tr("Ctrl+P"));
+  viewPicturesAction->setStatusTip(tr("reformat log"));
+  connect(viewPicturesAction, SIGNAL(triggered()), this, SLOT(viewPictures()));
+
+  cutLogAction = new QAction(tr("Cut Upper Lines"), this);
+  cutLogAction->setShortcut(tr("Ctrl+Shift+X"));
+  cutLogAction->setStatusTip(tr("cut upper lines"));
+  connect(cutLogAction, SIGNAL(triggered()), this, SLOT(cutLog()));
+
   closeAction = new QAction(tr("&Close"), this);
   closeAction->setShortcut(tr("Ctrl+W"));
   closeAction->setStatusTip(tr("Close document"));
   connect(closeAction, SIGNAL(triggered()), this, SLOT(closeTab()));
+
+  closeLeftAction = new QAction(tr("Close tabs to the left"), this);
+  closeLeftAction->setStatusTip(tr("closeLeft document"));
+  connect(closeLeftAction, SIGNAL(triggered()), this, SLOT(closeTabToLeft()));
+
+  closeRightAction = new QAction(tr("Close tabs to the right"), this);
+  closeRightAction->setStatusTip(tr("closeRight document"));
+  connect(closeRightAction, SIGNAL(triggered()), this, SLOT(closeTabToRight()));
 
   closeAllAction = new QAction(tr("Close &All"), this);
   closeAllAction->setStatusTip(tr("Close all documents"));
@@ -492,15 +519,20 @@ void MainWindow::createActions() {
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
+  fileMenu->addAction(viewPicturesAction);
   fileMenu->addAction(copyPathAction);
   fileMenu->addAction(saveAsAction);
   fileMenu->addAction(saveSelectedAsAction);
+  fileMenu->addAction(calculateTimeDiffAction);
   fileMenu->addSeparator();
   fileMenu->addAction(saveFilteredAsAction);
   fileMenu->addAction(retraceLogAction);
   fileMenu->addAction(reformatLogAction);
+  fileMenu->addAction(cutLogAction);
   fileMenu->addSeparator();
   fileMenu->addAction(closeAction);
+  fileMenu->addAction(closeLeftAction);
+  fileMenu->addAction(closeRightAction);
   fileMenu->addAction(closeAllAction);
   fileMenu->addSeparator();
   for (int i = 0; i < MaxRecentFiles; ++i) {
@@ -555,8 +587,8 @@ void MainWindow::createMenus() {
 }
 
 void MainWindow::createToolBars() {
-  infoLine = new InfoLine();
-  infoLine->setLineWidth(0);
+  infoLine = new QLineEdit();
+  //  infoLine->setLineWidth(0);
 
   lineNbField = new QLabel();
   lineNbField->setText("Line 0");
@@ -617,6 +649,28 @@ void MainWindow::open() {
 void MainWindow::openRecentFile() {
   QAction* action = qobject_cast<QAction*>(sender());
   if (action) loadFile(action->data().toString());
+}
+
+void MainWindow::closeTabToRight() {
+  int currentIndex = mainTabWidget_.currentIndex();
+  while (mainTabWidget_.count() - 1 > currentIndex) {
+    currentIndex = mainTabWidget_.currentIndex() + 1;
+    if (currentIndex >= 0) {
+      closeTab(currentIndex);
+    }
+  }
+}
+
+void MainWindow::closeTabToLeft() {
+  int currentIndex = mainTabWidget_.count() - mainTabWidget_.currentIndex();
+  while (mainTabWidget_.count() > currentIndex) {
+    closeTab(0);
+  }
+}
+
+void MainWindow::closeOtherTabs() {
+  closeTabToRight();
+  closeTabToLeft();
 }
 
 // Close current tab
@@ -691,6 +745,38 @@ void MainWindow::copyWithColor() {
   }
 }
 
+void MainWindow::calculateTimeDiff() {
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current) {
+    QString selectedString = current->getSelectedText();
+    bool ok;
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QDateTime dateTime = dateTime.currentDateTime();
+    QString dstPath = currentPath("time_cost");
+    QFile file(dstPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << selectedString;
+    file.close();
+
+    process_ = new QProcess();
+    QObject::connect(process_, SIGNAL(readyReadStandardOutput()), this,
+                     SLOT(updateInfoLine1()));
+
+    QObject::connect(
+        process_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+          infoLine->setVisible(false);
+          process_->deleteLater();
+        });
+    infoLine->setVisible(true);
+    process_->start("/bin/bash", QStringList()
+                                     << path + "calculate_time_diff.sh"
+                                     << dstPath);
+  }
+}
+
 void MainWindow::saveSelectedAsFile() {
   CrawlerWidget* current = currentCrawlerWidget();
   if (current) {
@@ -751,6 +837,41 @@ void MainWindow::reformatLog() {
     QProcess process;
     process.startDetached(
         "/bin/bash", QStringList() << path + "reformat_log.sh" << current_file);
+  }
+}
+
+void MainWindow::viewPictures() {
+  CrawlerWidget* current = currentCrawlerWidget();
+
+  if (current) {
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+    QString unzipPath = config->unzipPath();
+    QProcess process;
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "view_pictures_log.sh"
+                                           << current_file << unzipPath);
+  }
+}
+
+void MainWindow::cutLog() {
+  CrawlerWidget* current = currentCrawlerWidget();
+
+  if (current) {
+    QString current_file =
+        session_->getFilename(currentCrawlerWidget()).c_str();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QProcess process;
+    process.startDetached("/bin/bash", QStringList()
+                                           << path + "cut-upper-lines.sh"
+                                           << QString::number(lineNumber_)
+                                           << current_file);
   }
 }
 
@@ -925,6 +1046,7 @@ void MainWindow::changeFollowMode(bool follow) {
 
 void MainWindow::lineNumberHandler(int line) {
   // The line number received is the internal (starts at 0)
+  lineNumber_ = line;
   lineNbField->setText(tr("Line %1").arg(line + 1));
 }
 
@@ -936,9 +1058,9 @@ void MainWindow::updateLoadingProgress(int progress) {
   // We ignore 0% and 100% to avoid a flash when the file (or update)
   // is very short.
   if (progress > 0 && progress < 100) {
-    infoLine->setText(current_file +
-                      tr(" - Indexing lines... (%1 %)").arg(progress));
-    infoLine->displayGauge(progress);
+    //    infoLine->setText(current_file +
+    //                      tr(" - Indexing lines... (%1 %)").arg(progress));
+    //    infoLine->displayGauge(progress);
 
     stopAction->setEnabled(true);
     reloadAction->setEnabled(false);
@@ -953,7 +1075,7 @@ void MainWindow::handleLoadingFinished(LoadingStatus status) {
   loadingFileName.clear();
 
   if (status == LoadingStatus::Successful) {
-    infoLine->hideGauge();
+    //    infoLine->hideGauge();
     stopAction->setEnabled(false);
     reloadAction->setEnabled(true);
 
@@ -987,6 +1109,11 @@ void MainWindow::handleIgnoreCaseChanged(int state) {
 void MainWindow::addToQuickSearch(const QString& string) {
   displayQuickFindBar(QFDirection::Forward);
   quickFindWidget_.addToQuickSearch(string);
+}
+
+void MainWindow::updateInfoLine1() {
+  QByteArray data = process_->readAllStandardOutput();
+  infoLine->setText(QString(data));
 }
 
 void MainWindow::addToQuickMark(const QString& string) {
@@ -1036,7 +1163,7 @@ void MainWindow::currentTabChanged(int index) {
     quickFindMux_.registerSelector(nullptr);
     quickMarkMux_.registerSelector(nullptr);
 
-    infoLine->hideGauge();
+    //    infoLine->hideGauge();
     infoLine->clear();
 
     updateTitleBar(QString());
@@ -1212,6 +1339,13 @@ void MainWindow::fullScreen() {
   }
 }
 
+QString getSavedPath(const QString& fileName) {
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString unzipPath = config->unzipPath();
+  QString dstPath = unzipPath + QDir::separator() + fileName + ".log";
+  return dstPath;
+}
+
 void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
   LOG(logDEBUG4) << "keyPressEvent received";
   QString path =
@@ -1275,14 +1409,14 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       displayQuickFindBar(QFDirection::Forward);
       break;
     case 'A': {
-      QString dstPath = currentPath("a");
+      QString dstPath = getSavedPath("a");
       saveAs(dstPath);
     } break;
     case 'B': {
       std::shared_ptr<Configuration> config =
           Persistent<Configuration>("settings");
-      QString aPath = currentPath("a");
-      QString bPath = currentPath("b");
+      QString aPath = getSavedPath("a");
+      QString bPath = getSavedPath("b");
       saveAs(bPath);
       QProcess process;
 #ifdef _WIN32
@@ -1330,7 +1464,7 @@ bool MainWindow::loadFile(const QString& fileName) {
   if (fileName.endsWith(".zip") || fileName.endsWith(".tar.gz") ||
       fileName.endsWith(".gz") || fileName.endsWith(".tar") ||
       fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
-    QProcess process;
+    process_ = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
 
@@ -1348,9 +1482,25 @@ bool MainWindow::loadFile(const QString& fileName) {
                                        << dir.toNativeSeparators(fileName)
                                        << QDir::currentPath());
 #else
-    process.startDetached("/bin/bash", QStringList()
-                                           << path + "open-bugreport.sh"
-                                           << fileName << unzipPath);
+    //    QObject::connect(process, &QProcess::readyRead, [process]() {
+    //      QByteArray a = process->readAll();
+    //      LOG(logDEBUG) << a.toStdString();
+    //    });
+    //        QObject::connect(process, SIGNAL(readyReadStdError()), this,
+    //                         SLOT(updateInfoLine(process)));
+    //        updateInfoLine1();
+    QObject::connect(process_, SIGNAL(readyReadStandardOutput()), this,
+                     SLOT(updateInfoLine1()));
+
+    QObject::connect(
+        process_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+          infoLine->setVisible(false);
+          process_->deleteLater();
+        });
+    infoLine->setVisible(true);
+    process_->start("/bin/bash", QStringList() << path + "open-bugreport.sh"
+                                               << fileName << unzipPath);
 #endif
   } else {
     LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
@@ -1478,18 +1628,18 @@ void MainWindow::updateInfoLine() {
   if (lastModified.isValid()) {
     const QString date =
         defaultLocale.toString(lastModified, QLocale::NarrowFormat);
-    infoLine->setText(tr("%1 (%2 - %3 lines - modified on %4 - %5)")
-                          .arg(current_file)
-                          .arg(readableSize(fileSize))
-                          .arg(fileNbLine)
-                          .arg(date)
-                          .arg(currentCrawlerWidget()->encodingText()));
+    //    infoLine->setText(tr("%1 (%2 - %3 lines - modified on %4 - %5)")
+    //                          .arg(current_file)
+    //                          .arg(readableSize(fileSize))
+    //                          .arg(fileNbLine)
+    //                          .arg(date)
+    //                          .arg(currentCrawlerWidget()->encodingText()));
   } else {
-    infoLine->setText(tr("%1 (%2 - %3 lines - %4)")
-                          .arg(current_file)
-                          .arg(readableSize(fileSize))
-                          .arg(fileNbLine)
-                          .arg(currentCrawlerWidget()->encodingText()));
+    //    infoLine->setText(tr("%1 (%2 - %3 lines - %4)")
+    //                          .arg(current_file)
+    //                          .arg(readableSize(fileSize))
+    //                          .arg(fileNbLine)
+    //                          .arg(currentCrawlerWidget()->encodingText()));
   }
 }
 

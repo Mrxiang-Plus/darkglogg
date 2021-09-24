@@ -108,6 +108,8 @@ class Selection {
   // Returns the text selected from the passed AbstractLogData
   QString getSelectedText(const AbstractLogData* logData) const;
   QString getSelectedTextWithColor(const AbstractLogData* logData) const;
+  QStringList getSelectedTextListWithColor(
+      const AbstractLogData* logData) const;
 
   // Return the position immediately after the current selection
   // (used for searches).

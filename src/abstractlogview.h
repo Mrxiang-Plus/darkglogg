@@ -203,6 +203,7 @@ class AbstractLogView : public QAbstractScrollArea,
   QString getSelection() const;
   bool isSelectionPortion() const;
   QString getSelectionWithColor() const;
+  QStringList getSelectionListWithColor() const;
   // Instructs the widget to select the whole text.
   void selectAll();
 

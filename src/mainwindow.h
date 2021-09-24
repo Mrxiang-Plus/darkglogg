@@ -85,6 +85,9 @@ class MainWindow : public QMainWindow {
   void open();
   void openRecentFile();
   void closeTab();
+  void closeTabToRight();
+  void closeTabToLeft();
+  void closeOtherTabs();
   void closeAll();
   void selectAll();
   void copy();
@@ -93,8 +96,11 @@ class MainWindow : public QMainWindow {
   void saveAs(const QString &fileName);
   void saveAsFile();
   void saveSelectedAsFile();
+  void calculateTimeDiff();
   void retraceLog();
   void reformatLog();
+  void viewPictures();
+  void cutLog();
   void saveFilteredAsFile();
   void find();
   void mark();
@@ -138,6 +144,7 @@ class MainWindow : public QMainWindow {
   void replaceQuickMark(const QString &string);
   void appendToQuickMark(const QString &string);
 
+  void updateInfoLine1();
   // Close the tab with the passed index
   void closeTab(int index);
   // Setup the tab with current index for view
@@ -220,8 +227,9 @@ class MainWindow : public QMainWindow {
   QMenu *encodingMenu;
   QMenu *helpMenu;
   uint32_t transparent_ = 255;
+  int lineNumber_;
 
-  InfoLine *infoLine;
+  QLineEdit *infoLine;
   QLabel *lineNbField;
   QToolBar *toolBar;
 
@@ -230,9 +238,14 @@ class MainWindow : public QMainWindow {
   QAction *saveAsAction;
   QAction *retraceLogAction;
   QAction *reformatLogAction;
+  QAction *viewPicturesAction;
+  QAction *cutLogAction;
   QAction *saveSelectedAsAction;
+  QAction *calculateTimeDiffAction;
   QAction *saveFilteredAsAction;
   QAction *closeAction;
+  QAction *closeLeftAction;
+  QAction *closeRightAction;
   QAction *closeAllAction;
   QAction *exitAction;
   QAction *copyAction;
@@ -258,6 +271,7 @@ class MainWindow : public QMainWindow {
   QActionGroup *encodingGroup;
   QAction *encodingAction[static_cast<int>(Encoding::ENCODING_MAX)];
 
+  QProcess *process_;
   QIcon mainIcon_;
 
   // Multiplex signals to any of the CrawlerWidgets

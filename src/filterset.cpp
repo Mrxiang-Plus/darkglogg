@@ -42,9 +42,10 @@ QRegularExpression::PatternOptions getPatternOptions(bool ignoreCase) {
 Filter::Filter() {}
 
 Filter::Filter(const QString& description, const QString& pattern,
-               bool ignoreCase, const QString& foreColorName,
+               bool ignoreCase, bool ignoreColor, const QString& foreColorName,
                const QString& backColorName)
     : regexp_(pattern, getPatternOptions(ignoreCase)),
+      ignoreColor_(ignoreColor),
       foreColorName_(foreColorName),
       backColorName_(backColorName),
       description_(description),
@@ -61,6 +62,10 @@ bool Filter::ignoreCase() const {
   return regexp_.patternOptions().testFlag(
       QRegularExpression::CaseInsensitiveOption);
 }
+
+bool Filter::ignoreColor() const { return ignoreColor_; }
+
+void Filter::setIgnoreColor(bool ignoreColor) { ignoreColor_ = ignoreColor; }
 
 void Filter::setIgnoreCase(bool ignoreCase) {
   regexp_.setPatternOptions(getPatternOptions(ignoreCase));
@@ -127,6 +132,7 @@ bool Filter::hasMatch(const QString& string) const {
 QDataStream& operator<<(QDataStream& out, const Filter& object) {
   LOG(logDEBUG) << "<<operator from Filter";
   out << object.regexp_;
+  out << object.ignoreColor_;
   out << object.foreColorName_;
   out << object.backColorName_;
   out << object.description_;
@@ -137,6 +143,7 @@ QDataStream& operator<<(QDataStream& out, const Filter& object) {
 QDataStream& operator>>(QDataStream& in, Filter& object) {
   LOG(logDEBUG) << ">>operator from Filter";
   in >> object.regexp_;
+  in >> object.ignoreColor_;
   in >> object.foreColorName_;
   in >> object.backColorName_;
   in >> object.description_;
@@ -198,6 +205,7 @@ void Filter::saveToStorage(QSettings& settings) const {
   settings.setValue("ignore_case",
                     regexp_.patternOptions().testFlag(
                         QRegularExpression::CaseInsensitiveOption));
+  settings.setValue("ignore_color", ignoreColor_);
   settings.setValue("fore_colour", foreColorName_);
   settings.setValue("back_colour", backColorName_);
 }
@@ -209,6 +217,7 @@ void Filter::retrieveFromStorage(QSettings& settings) {
   regexp_ = QRegularExpression(
       settings.value("regexp").toString(),
       getPatternOptions(settings.value("ignore_case", false).toBool()));
+  ignoreColor_ = settings.value("ignore_color").toBool();
   foreColorName_ = settings.value("fore_colour").toString();
   backColorName_ = settings.value("back_colour").toString();
 }

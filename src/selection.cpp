@@ -171,6 +171,27 @@ QString Selection::getSelectedTextWithColor(
   return text;
 }
 
+QStringList Selection::getSelectedTextListWithColor(
+    const AbstractLogData* logData) const {
+  QStringList list;
+
+  if (selectedLine_ >= 0) {
+    list.append(logData->getLineString(selectedLine_));
+  } else if (selectedPartial_.line >= 0) {
+    list.append(
+        logData->getExpandedLineString(selectedPartial_.line)
+            .mid(selectedPartial_.startColumn,
+                 (selectedPartial_.endColumn - selectedPartial_.startColumn) +
+                     1));
+  } else if (selectedRange_.startLine >= 0) {
+    list = logData->getLinesWithColor(
+        selectedRange_.startLine,
+        selectedRange_.endLine - selectedRange_.startLine + 1);
+  }
+
+  return list;
+}
+
 FilePosition Selection::getNextPosition() const {
   qint64 line = 0;
   int column = 0;

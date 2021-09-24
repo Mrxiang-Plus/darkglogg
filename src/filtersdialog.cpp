@@ -29,6 +29,7 @@
 static const QString DEFAULT_DESCRIPTION = "Pattern";
 static const QString DEFAULT_PATTERN = "New Filter";
 static const bool DEFAULT_IGNORE_CASE = false;
+static const bool DEFAULT_IGNORE_COLOR = false;
 static const QString DEFAULT_FORE_COLOUR = "silver";
 static const QString DEFAULT_BACK_COLOUR = "window";
 
@@ -71,6 +72,8 @@ FiltersDialog::FiltersDialog(QWidget* parent) : QDialog(parent) {
           SLOT(updateFilterProperties()));
   connect(ignoreCaseCheckBox, SIGNAL(clicked(bool)), this,
           SLOT(updateFilterProperties()));
+  connect(ignoreColorCheckBox, SIGNAL(clicked(bool)), this,
+          SLOT(updateFilterProperties()));
   connect(foreColorBox, SIGNAL(activated(int)), this,
           SLOT(updateFilterProperties()));
   connect(backColorBox, SIGNAL(activated(int)), this,
@@ -93,7 +96,7 @@ void FiltersDialog::on_addFilterButton_clicked() {
 
   Filter newFilter =
       Filter(DEFAULT_DESCRIPTION, DEFAULT_PATTERN, DEFAULT_IGNORE_CASE,
-             DEFAULT_FORE_COLOUR, DEFAULT_BACK_COLOUR);
+             DEFAULT_IGNORE_COLOR, DEFAULT_FORE_COLOUR, DEFAULT_BACK_COLOUR);
   filterSet->filterList << newFilter;
 
   // Add and select the newly created filter
@@ -195,6 +198,8 @@ void FiltersDialog::updatePropertyFields() {
 
       ignoreCaseCheckBox->setChecked(currentFilter.ignoreCase());
       ignoreCaseCheckBox->setEnabled(true);
+      ignoreColorCheckBox->setChecked(currentFilter.ignoreColor());
+      ignoreColorCheckBox->setEnabled(true);
 
       index = foreColorBox->findText(currentFilter.foreColorName());
       if (index != -1) {
@@ -251,6 +256,8 @@ void FiltersDialog::updatePropertyFields() {
 
     ignoreCaseCheckBox->setChecked(DEFAULT_IGNORE_CASE);
     ignoreCaseCheckBox->setEnabled(false);
+    ignoreColorCheckBox->setChecked(DEFAULT_IGNORE_CASE);
+    ignoreColorCheckBox->setEnabled(false);
     removeFilterButton->setEnabled(false);
     upFilterButton->setEnabled(false);
     downFilterButton->setEnabled(false);
@@ -268,6 +275,7 @@ void FiltersDialog::updateFilterProperties() {
       // Update the internal data
       currentFilter.setPattern(patternEdit->text());
       currentFilter.setIgnoreCase(ignoreCaseCheckBox->isChecked());
+      currentFilter.setIgnoreCase(ignoreColorCheckBox->isChecked());
       currentFilter.setForeColor(foreColorBox->currentText());
       currentFilter.setBackColor(backColorBox->currentText());
       currentFilter.setDescription(descriptionEdit->text());
@@ -284,6 +292,7 @@ void FiltersDialog::updateFilterProperties() {
       // Update the internal data
       currentFilter.setPattern(patternEdit->text());
       currentFilter.setIgnoreCase(ignoreCaseCheckBox->isChecked());
+      currentFilter.setIgnoreColor(ignoreColorCheckBox->isChecked());
       currentFilter.setForeColor(foreColorBox->currentText());
       currentFilter.setBackColor(backColorBox->currentText());
       currentFilter.setDescription(descriptionEdit->text());
@@ -410,8 +419,8 @@ void FiltersDialog::on_pinnedButton_clicked() {
     const Filter& currentFilter = filterSet->filterList.at(selectedRow_);
     FrqFilter newFilter =
         FrqFilter(currentFilter.description(), currentFilter.pattern(),
-                  currentFilter.ignoreCase(), currentFilter.foreColorName(),
-                  currentFilter.backColorName());
+                  currentFilter.ignoreCase(), currentFilter.ignoreColor(),
+                  currentFilter.foreColorName(), currentFilter.backColorName());
     bool isContained = false;
     int i = 0;
     foreach (FrqFilter filter, frqFilterSet->frqFilterList) {
@@ -474,7 +483,7 @@ void FiltersDialog::on_addFilterButton_4_clicked() {
 
   FrqFilter newFilter =
       FrqFilter(DEFAULT_DESCRIPTION, DEFAULT_PATTERN, DEFAULT_IGNORE_CASE,
-                DEFAULT_FORE_COLOUR, DEFAULT_BACK_COLOUR);
+                DEFAULT_IGNORE_COLOR, DEFAULT_FORE_COLOUR, DEFAULT_BACK_COLOUR);
   frqFilterSet->frqFilterList << newFilter;
 
   // Add and select the newly created filter
@@ -527,3 +536,5 @@ void FiltersDialog::on_pinnedListWidget_clicked(const QModelIndex& index) {
   selectedRow_ =
       focusedListWidget_->row(focusedListWidget_->selectedItems().at(0));
 }
+
+void FiltersDialog::on_ignoreColorCheckBox_stateChanged(int arg1) {}
