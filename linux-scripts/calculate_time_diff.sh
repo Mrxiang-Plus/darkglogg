@@ -23,4 +23,5 @@ while read d1_2; do
     fi 
 done < time.txt
 echo "$index times, avg: `bc -l <<< $timeSum/$index` ms" >> $1
+touch $1
 glogg $1

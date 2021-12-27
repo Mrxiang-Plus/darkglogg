@@ -51,7 +51,11 @@ find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
 #find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % sed -i 's/\(^[0-9]*-[0-9]* [0-9:]*[^\.]*\.[0-9]*\) [^ ]*/\1/g' %
 #find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % touch %
 find . -type f -name '*.mp4' -print0|xargs -0 -I % gnome-open %
-find . -type f -iname "*.png" -print0|xargs -0 feh -t -Sfilename -E 479 -y 479 -W 960 &
+
+var=`find . -type f \( -name '*.png' -o -name '*.jpg' \)`
+if [ ! -z "$var" ];then
+    find . -type f \( -name '*.png' -o -name '*.jpg' \) -print0|xargs -0 feh -t -Sfilename -E 492 -y 479 -W 960 --scale-down &
+fi
 var=`find . -type f -name 'bugreport*.txt'`
 if [ -z "$var" ];then
     find . -type f -name 'test_*Times*[0-9].log' -print0|xargs -0 -I % glogg %

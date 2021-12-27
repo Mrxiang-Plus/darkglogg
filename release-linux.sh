@@ -1,9 +1,9 @@
 #!/bin/bash
-PATH=/pc2/work/qt_static/bin:$PATH
+PATH=/usr/local/Qt-5.9.5/bin/:$PATH
 export PATH
 rm -rf release
 make clean
-qmake -config release
+/usr/local/Qt-5.9.5/bin/qmake -config release
 make -j16
 # Rememeber start dir
 START_DIR=$PWD

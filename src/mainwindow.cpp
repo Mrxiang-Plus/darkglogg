@@ -820,9 +820,13 @@ void MainWindow::retraceLog() {
         session_->getFilename(currentCrawlerWidget()).c_str();
     QString currentPath = QFileInfo(current_file).absoluteDir().path();
     QProcess process;
-    process.startDetached("/bin/bash", QStringList()
-                                           << path + "retrace.sh" << dstPath
-                                           << currentPath << current_file);
+    std::shared_ptr<Configuration> config =
+        Persistent<Configuration>("settings");
+
+    QString unzipPath = config->unzipPath();
+    process.startDetached(
+        "/bin/bash", QStringList() << path + "retrace.sh" << dstPath
+                                   << currentPath << current_file << unzipPath);
   }
 }
 
