@@ -58,7 +58,8 @@ void PersistentInfo::migrateAndInit() {
   }
 #else
   // We use default Qt storage on proper OSes
-  settings_ = new QSettings("glogg", "glogg2");
+  settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
+                            "glogg");
   settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
   initialised_ = true;

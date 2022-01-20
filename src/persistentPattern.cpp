@@ -59,7 +59,8 @@ void PersistentPattern::migrateAndInit() {
   }
 #else
   // We use default Qt storage on proper OSes
-  settings_ = new QSettings("glogg", "glogg_pattern");
+  settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
+                            "glogg_pattern");
   settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
   initialised_ = true;

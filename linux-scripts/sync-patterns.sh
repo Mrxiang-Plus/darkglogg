@@ -12,14 +12,14 @@ function uploadToRemote() {
     if [ ! -d glogg ]; then
         mkdir -p glogg
     fi
-    cp ~/.config/glogg/glogg_pattern.conf .
+    cp ~/.config/glogg/glogg_pattern.ini .
 
-    grep "searchPattern\\\[0-9]\+\\\string=" glogg_pattern.conf > pattern.txt
+    grep "searchPattern\\\[0-9]\+\\\string=" glogg_pattern.ini > pattern.txt
     sed -i "s/\([^\]\)\"/\1/g" pattern.txt
     sed -i "s/searchPattern\\\[0-9]\+\\\string=[\"]*//g" pattern.txt
     sed -i '/^$/d' pattern.txt
     sort pattern.txt | sed '$!N; /^\(.*\)\n\1$/!P; D' > glogg_pattern.txt
-    rm glogg_pattern.conf
+    rm glogg_pattern.ini
 
 
     if [ ! -d glogg ]; then
@@ -54,7 +54,7 @@ function uploadToRemote() {
         count=$(cat glogg_pattern.txt|wc -l)
         echo "searchPattern\\size=$count" >> tmp.txt
         echo "version=1" >> tmp.txt
-        mv tmp.txt ~/.config/glogg/glogg_pattern.conf
+        mv tmp.txt ~/.config/glogg/glogg_pattern.ini
         rm glogg_pattern.txt
     fi
     #git stash pop
