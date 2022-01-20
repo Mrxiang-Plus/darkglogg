@@ -36,6 +36,6 @@ rm osx_${VERSION}_installer.json
 rm -rf package
 mkdir package
 cp -rf linux-scripts package/
-cp -f release/linux-scripts/install-macos.sh package/
+cp -f package/linux-scripts/install-macos.sh package/
 cp -f glogg_${VERSION}_installer.dmg package/
 tar -czvf glogg_macos_$VERSION.tar.gz package
