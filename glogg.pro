@@ -128,8 +128,13 @@ HEADERS += \
     src/pinedbutton.h
 
 //https://github.com/nickbnf/glogg/blob/master/release-osx.sh
-//BOOST_PATH = /Users/xu/work/boost_1_73_0
-BOOST_PATH = ../boost_1_71_0
+
+macx {
+    BOOST_PATH = ../boost_1_73_0
+}
+else {
+    BOOST_PATH = ../boost_1_71_0
+}
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)
@@ -235,7 +240,12 @@ CONFIG += c++11
 CONFIG += static
 #QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++
 #QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++ -lstdc++  -L/pc2/work/Qt/Tools/QtCreator/lib/Qt/lib
-QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lstdc++  -L/usr/local/Qt-5.9.5/lib
+macx{
+    QMAKE_LFLAGS += -static-libstdc++ -lstdc++  -L/usr/local/Qt-5.9.5/lib
+}
+else {
+    QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lstdc++  -L/usr/local/Qt-5.9.5/lib
+}
 DEFINES += STATIC
 #QMAKE_LFLAGS = -static-libgcc –static-libstdc++
 
@@ -352,6 +362,7 @@ else {
         }
     }
 }
+
 
 # Performance measurement
 perf {
