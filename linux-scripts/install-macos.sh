@@ -1,7 +1,18 @@
 #!/bin/bash
+VOLUME=`hdiutil attach *.dmg | grep Volumes | awk '{print $3}'`
+echo $VOLUME
+cp -rf $VOLUME/*.app /Applications
+cp $VOLUME/*.app/Contents/MacOS/glogg /usr/local/bin/
+hdiutil detach $VOLUME
+
 if [ ! -d ~/.glogg ]; then
     mkdir ~/.glogg
 fi
+
+if [ ! -d ~/.config/glogg ]; then
+    mkdir ~/.config/glogg
+fi
+
 cp linux-scripts/*.sh ~/.glogg/
 cp linux-scripts/*.jar ~/.glogg/
 
@@ -12,3 +23,10 @@ if [ -f ~/.config/glogg/glogg.ini ]; then
 fi
 cp linux-scripts/glogg.ini ~/.config/glogg/glogg.ini
 glogg linux-scripts/readme.txt
+
+bash -c linux-scripts/install-brew.sh
+brew install carlocab/personal/unrar
+brew install android-platform-tools
+brew install feh
+
+

@@ -28,7 +28,7 @@ make -j8
 dsymutil release/glogg.app/Contents/MacOS/glogg
 mv release/glogg.app/Contents/MacOS/glogg.dSYM release/glogg-$VERSION.dSYM
 
-sed -e "s/\"glogg\"/\"glogg $VERSION\"/" osx_installer.json >osx_${VERSION}_installer.json
+sed -e "s/\"glogg\"/\"glogg_$VERSION\"/" osx_installer.json >osx_${VERSION}_installer.json
 rm glogg_${VERSION}_installer.dmg
 appdmg osx_${VERSION}_installer.json glogg_${VERSION}_installer.dmg
 rm osx_${VERSION}_installer.json
