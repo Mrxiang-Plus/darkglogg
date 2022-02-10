@@ -29,6 +29,42 @@
 
 #include "log.h"
 
+QuickFindPattern::QuickFindPattern(int type) : QObject(), regexp_() {
+  type_ = type;
+  active_ = true;
+  QRegularExpression::PatternOptions options =
+      QRegularExpression::UseUnicodePropertiesOption |
+      QRegularExpression::OptimizeOnFirstUsageOption;
+
+  options |= QRegularExpression::CaseInsensitiveOption;
+  regexp_.setPatternOptions(options);
+  QString searchPattern = "";
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString highlightString;
+  if (config->highlightString().isEmpty()) {
+    highlightString = "(fail[a-z]*| //.*|error)";
+  } else {
+    highlightString =
+        "(fail[a-z]*|" + config->highlightString() + "| //.*|error)";
+  }
+  if (!searchPattern.startsWith(highlightString)) {
+    if (!searchPattern.isEmpty()) {
+      searchPattern = highlightString + "|" + searchPattern;
+    } else {
+      searchPattern = highlightString;
+    }
+  }
+  QStringList newPieces_ = searchPattern.split("|");
+  QList<int> removedPieces;
+  for (int i = 0; i < pieces_.size(); i++) {
+    if (!newPieces_.contains(pieces_[i])) {
+      removedPieces.append(i);
+    }
+  }
+  regexp_.setPattern(searchPattern);
+  pieces_ = searchPattern.split("|");
+}
+
 QuickFindPattern::QuickFindPattern() : QObject(), regexp_() { active_ = false; }
 
 #include <iostream>
@@ -36,12 +72,19 @@ void QuickFindPattern::changeMarkPattern(const QString& pattern) {
   // Determine the type of regexp depending on the config
   QString searchPattern;
   searchPattern = pattern;
-
-  if (!searchPattern.startsWith(" //.*")) {
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString highlightString;
+  if (config->highlightString().isEmpty()) {
+    highlightString = "(fail[a-z]*| //.*|error)";
+  } else {
+    highlightString =
+        "(fail[a-z]*|" + config->highlightString() + "| //.*|error)";
+  }
+  if (!searchPattern.startsWith(highlightString)) {
     if (!searchPattern.isEmpty()) {
-      searchPattern = " //.*|" + searchPattern;
+      searchPattern = highlightString + "|" + searchPattern;
     } else {
-      searchPattern = " //.*";
+      searchPattern = highlightString;
     }
   }
   QStringList newPieces_ = searchPattern.split("|");

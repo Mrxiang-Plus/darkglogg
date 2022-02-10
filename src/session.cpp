@@ -44,7 +44,7 @@ Session::Session() {
   savedPatterns_ = PatternPersistent<SavedPatterns>("savedPatterns");
 
   quickFindPattern_ = std::make_shared<QuickFindPattern>();
-  quickMarkPattern_ = std::make_shared<QuickFindPattern>();
+  quickMarkPattern_ = std::make_shared<QuickFindPattern>(1);
 }
 
 Session::~Session() {

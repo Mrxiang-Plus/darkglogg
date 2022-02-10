@@ -153,6 +153,7 @@ void OptionsDialog::updateDialogFromConfig() {
 
   unzipPathEdit->setText(config->unzipPath());
   processFilterEdit->setText(config->processFilter());
+  highlightEdit->setText(config->highlightString());
   // Regexp types
   mainSearchBox->setCurrentIndex(getRegexpIndex(config->mainRegexpType()));
   quickFindSearchBox->setCurrentIndex(
@@ -196,6 +197,7 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setRepoUrl(urlEditLine->text());
   config->setUnzipPath(unzipPathEdit->text());
   config->setProcessFilter(processFilterEdit->text());
+  config->setHighlightString(highlightEdit->text());
 
   config->setMainRegexpType(
       getRegexpTypeFromIndex(mainSearchBox->currentIndex()));

@@ -237,6 +237,7 @@ MainWindow::MainWindow(
   quickFindWidget_.setchecked();
   quickMarkWidget_.setTitle("Mark");
   quickMarkWidget_.hide();
+  quickMarkWidget_.setchecked();
 
   QWidget* central_widget = new QWidget();
   QVBoxLayout* main_layout = new QVBoxLayout();

@@ -51,6 +51,7 @@ class QuickFindPattern : public QObject {
   Q_OBJECT
 
  public:
+  QuickFindPattern(int type);
   // Construct an empty search
   QuickFindPattern();
 
@@ -92,6 +93,7 @@ class QuickFindPattern : public QObject {
 
  private:
   bool active_;
+  int type_;
   QRegularExpression regexp_;
 
   QStringList pieces_;

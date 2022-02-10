@@ -65,6 +65,7 @@ QFont Configuration::mainFont() const { return mainFont_; }
 QString Configuration::repoUrl() const { return repoUrl_; }
 QString Configuration::unzipPath() const { return unzipPath_; }
 QString Configuration::processFilter() const { return processFilter_; }
+QString Configuration::highlightString() const { return highlightString_; }
 
 void Configuration::setMainFont(QFont newFont) {
   LOG(logDEBUG) << "Configuration::setMainFont";
@@ -90,6 +91,12 @@ void Configuration::setProcessFilter(QString processFilter) {
   processFilter_ = processFilter;
 }
 
+void Configuration::setHighlightString(QString highlightString) {
+  LOG(logDEBUG) << "Configuration::setHighlightString";
+
+  highlightString_ = highlightString;
+}
+
 void Configuration::retrieveFromStorage(QSettings& settings) {
   LOG(logDEBUG) << "Configuration::retrieveFromStorage";
 
@@ -111,6 +118,7 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   }
 
   processFilter_ = settings.value("processFilter").toString();
+  highlightString_ = settings.value("highlightString").toString();
 
   // Regexp types
   mainRegexpType_ = static_cast<SearchRegexpType>(
@@ -166,6 +174,7 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("repo.url", repoUrl_);
   settings.setValue("unzip.path", unzipPath_);
   settings.setValue("processFilter", processFilter_);
+  settings.setValue("highlightString", highlightString_);
   settings.setValue("regexpType.main", static_cast<int>(mainRegexpType_));
   settings.setValue("regexpType.quickfind",
                     static_cast<int>(quickfindRegexpType_));

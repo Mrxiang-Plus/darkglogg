@@ -1894,11 +1894,10 @@ void AbstractLogView::drawTextArea(QPaintDevice* paint_device, int32_t) {
           case LineChunk::Selected:
             fore = palette.color(QPalette::HighlightedText),
             back = palette.color(QPalette::Highlight);
-
             break;
           case LineChunk::Commented:
-            fore = QColor(52, 226, 226);
-            back = backColor;
+            fore = QColor("white");
+            back = QColor(199, 0, 57);
             break;
           case LineChunk::Mark1:
             fore = QColor("black");
