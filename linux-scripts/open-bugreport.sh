@@ -47,7 +47,11 @@ find . -type f -name '*.zip' -print0|xargs -0 -I % unzip -o %
     fi
 done
 
-find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % glogg %
+var=`find . -type f -name 'bugreport*.txt'`
+if ! [ -z "$var" ];then
+    glogg  "$var"
+    bash ~/.glogg/mode_mapping.sh  "$var"
+fi
 #find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % sed -i 's/\(^[0-9]*-[0-9]* [0-9:]*[^\.]*\.[0-9]*\) [^ ]*/\1/g' %
 #find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % touch %
 find . -type f -name '*.mp4' -print0|xargs -0 -I % gnome-open %
@@ -76,6 +80,7 @@ if [[ $count -gt 0 ]];then
     var=`find . -type f -name 'bugreport*.txt'`
     if [ -z "$var" ];then
         glogg  "$logcat_name"
+	bash ~/.glogg/mode_mapping.sh  "$logcat_name"
     fi
 fi
 
@@ -86,9 +91,12 @@ count=$[$(find . -type f -name 'com.android.camera.log.*'|wc -l)+$count]
 if [[ $count -gt 0 ]];then
     find . -type f -name 'com.android.camera.log.*' -print0|sort -z -r|xargs -0 -I % dd if=% bs=4k of="$camera_log_name" oflag=append conv=notrunc
     find . -type f -name 'com.android.camera.log'|xargs -I % dd if=% bs=4k of="$camera_log_name" oflag=append conv=notrunc
+    #sed  's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -\(.*\)/printf "%s" "\1.\2";printf "%5s" "\4";printf " %5s" "\5";printf " %s"  "\3\6"/p' com.android.camera.log.3
     sed -i 's/^[^-]*-\(.*\),\([0-9]*\) *- \[\([A-Z]\)[^[]*\[\([^-]*\)-\([^]]*\)\] -/\1.\2 \4 \5 \3/g' "$camera_log_name"
     awk '{$3=sprintf("%5s %5s", $3, $4);$4=""}1' "$camera_log_name" > tmp.txt
     sed -i 's/  \([A-Z]\) / \1 /g' tmp.txt
     mv tmp.txt "$camera_log_name"
     touch "$camera_log_name"
 fi
+glogg "$camera_log_name"
+bash ~/.glogg/mode_mapping.sh  "$camera_log_name"
