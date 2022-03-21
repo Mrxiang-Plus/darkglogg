@@ -11,7 +11,7 @@ function ex () {
             (*.tar) tar xvf "$1" ;;
             (*.tbz2) tar xvjf "$1" ;;
             (*.tgz) tar xvzf "$1" ;;
-            (*.zip) unzip -o "$1" ;;
+            (*.zip) unzip -P x -o "$1" ;;
             (*.Z) uncompress "$1" ;;
             (*.7z) 7z x "$1" ;;
             (*) echo "'$1' cannot be extracted via extract" ;;
