@@ -43,6 +43,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QUrl>
+#include <QDebug>
 
 #include "log.h"
 
@@ -83,6 +84,7 @@ MainWindow::MainWindow(
   titleBar = tb;
   createActions();
   createMenus();
+  createIconToolBars();
   createToolBars();
 
   setAcceptDrops(true);
@@ -320,7 +322,7 @@ void MainWindow::createActions() {
 
   openAction = new QAction(tr("&Open..."), this);
   openAction->setShortcut(QKeySequence::Open);
-  openAction->setIcon(QIcon(":/images/open14.png"));
+  openAction->setIcon(QIcon(":/images/open16.png"));
   openAction->setStatusTip(tr("Open a file"));
   connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
@@ -330,6 +332,7 @@ void MainWindow::createActions() {
   saveAsAction = new QAction(tr("&Save As"), this);
   saveAsAction->setShortcut(tr("Ctrl+S"));
   saveAsAction->setStatusTip(tr("save as and open file"));
+  saveAsAction->setIcon(QIcon(":/images/save.png"));
   connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAsFile()));
 
   saveSelectedAsAction = new QAction(tr("Save Selection As"), this);
@@ -422,12 +425,19 @@ void MainWindow::createActions() {
   startLogcatAction = new QAction(tr("Start Logcat"), this);
   startLogcatAction->setShortcut(QKeySequence(Qt::Key_F1));
   startLogcatAction->setStatusTip(tr("startLogcat the selection"));
+  //enabled_startLogcat = new QPixmap(":/images/start16.png");
+  //disabled_startLogcat = new QPixmap(":/images/disabled_start16.png");
+  //startLogcatIcon = new QIcon(*enabled_startLogcat);
+  //startLogcatIcon->addPixmap(*enabled_startLogcat, QIcon::Disabled, QIcon::Off);
+  startLogcatAction->setIcon(QIcon(":/images/start16.png"));
+
   connect(startLogcatAction, SIGNAL(triggered()), this, SLOT(startLogcat()));
 
   stopLogcatAction = new QAction(tr("Stop Logcat"), this);
   stopLogcatAction->setShortcut(QKeySequence(Qt::Key_F2));
   stopLogcatAction->setStatusTip(tr("stopLogcat the selection"));
   connect(stopLogcatAction, SIGNAL(triggered()), this, SLOT(stopLogcat()));
+  stopLogcatAction->setIcon(QIcon(":/images/stop16.png"));
 
   findAction = new QAction(tr("&Find..."), this);
   findAction->setShortcut(QKeySequence::Find);
@@ -585,6 +595,14 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
+}
+
+void MainWindow::createIconToolBars() {
+    menuToolBar = addToolBar(tr("Menu ToolBar"));
+    menuToolBar->addAction(openAction);
+    menuToolBar->addAction(saveAsAction);
+    menuToolBar->addAction(startLogcatAction);
+    menuToolBar->addAction(stopLogcatAction);
 }
 
 void MainWindow::createToolBars() {
@@ -1290,8 +1308,10 @@ void MainWindow::hideTab() {
 
 void MainWindow::startLogcat() {
   QProcess* process = new QProcess();
+  //path:/home/wanghuiting1/.glogg
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+  qDebug("path:%s", path.toStdString().data());
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),

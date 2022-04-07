@@ -185,6 +185,7 @@ class MainWindow : public QMainWindow {
   void createActions();
   void createMenus();
   void createContextMenu();
+  void createIconToolBars();
   void createToolBars();
   void createStatusBar();
   void createRecentFileToolTipTimer();
@@ -232,6 +233,12 @@ class MainWindow : public QMainWindow {
   QLineEdit *infoLine;
   QLabel *lineNbField;
   QToolBar *toolBar;
+
+  QToolBar *menuToolBar;
+  //QIcon *startLogcatIcon;
+  //QIcon *stopLogcatIcon;
+  //QPixmap *enabled_startLogcat;
+  //QPixmap *disabled_startLogcat;
 
   QAction *openAction;
   QAction *copyPathAction;

@@ -23,5 +23,9 @@
         <file>images/arrowup.png</file>
         <file>images/darkclosebutton.png</file>
         <file>images/close14.png</file>
+        <file>images/open16.png</file>
+        <file>images/save.png</file>
+        <file>images/start16.png</file>
+        <file>images/stop16.png</file>
     </qresource>
 </RCC>
