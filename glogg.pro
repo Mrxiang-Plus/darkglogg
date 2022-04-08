@@ -368,3 +368,6 @@ else {
 perf {
     QMAKE_CXXFLAGS += -DGLOGG_PERF_MEASURE_FPS
 }
+
+DISTFILES += \
+    images/scroll_to_end16.png

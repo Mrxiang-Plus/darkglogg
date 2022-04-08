@@ -27,5 +27,6 @@
         <file>images/save.png</file>
         <file>images/start16.png</file>
         <file>images/stop16.png</file>
+        <file>images/scroll_to_end16.png</file>
     </qresource>
 </RCC>

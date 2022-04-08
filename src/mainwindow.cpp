@@ -478,6 +478,8 @@ void MainWindow::createActions() {
   followAction = new QAction(tr("&Follow File"), this);
   followAction->setShortcut(Qt::Key_F);
   followAction->setCheckable(true);
+  followAction->setIcon(QIcon(":/images/scroll_to_end16.png"));
+  followAction->setStatusTip(tr("scroll to the end"));
   connect(followAction, SIGNAL(toggled(bool)), this, SIGNAL(followSet(bool)));
 
   reloadAction = new QAction(tr("&Reload"), this);
@@ -624,6 +626,7 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addAction(saveAsAction);
     menuToolBar->addAction(startLogcatAction);
     menuToolBar->addAction(stopLogcatAction);
+    menuToolBar->addAction(followAction);
 }
 
 void MainWindow::createToolBars() {
@@ -1058,7 +1061,6 @@ void MainWindow::aboutCustomizedGlogg() {
            "<p>See more information about customized glogg."
            "<p><a "
            "href=\"https://xiaomi.f.mioffice.cn/docs/dock4XNd2Ap5QXr5vWbdmWw1AEg/\">https://xiaomi.f.mioffice.cn/docs/</a></"));
-
 }
 
 void MainWindow::encodingChanged(QAction* action) {
