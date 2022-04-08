@@ -115,6 +115,10 @@ class MainWindow : public QMainWindow {
   void startLogcat();
   void stopLogcat();
   void fullScreen();
+  void dumpCamera();
+  void dumpStream();
+  void dumpDeviceInfo();
+  void aboutCustomizedGlogg();
 
   // Change the view settings
   void toggleOverviewVisibility(bool isVisible);
@@ -227,6 +231,7 @@ class MainWindow : public QMainWindow {
   QMenu *toolsMenu;
   QMenu *encodingMenu;
   QMenu *helpMenu;
+  QMenu *cameraMenu;
   uint32_t transparent_ = 255;
   int lineNumber_;
 
@@ -277,6 +282,10 @@ class MainWindow : public QMainWindow {
   QAction *aboutQtAction;
   QActionGroup *encodingGroup;
   QAction *encodingAction[static_cast<int>(Encoding::ENCODING_MAX)];
+  QAction *dumpCameraAction;
+  QAction *dumpStreamAction;
+  QAction *dumpDeviceInfoAction;\
+  QAction *aboutCustomizedAction;
 
   QProcess *process_;
   QIcon mainIcon_;

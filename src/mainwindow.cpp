@@ -511,6 +511,10 @@ void MainWindow::createActions() {
   aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
   connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
+  aboutCustomizedAction = new QAction(tr("More info"));
+  aboutCustomizedAction->setStatusTip(tr("Show more info about customized glogg"));
+  connect(aboutCustomizedAction, SIGNAL(triggered()), this, SLOT(aboutCustomizedGlogg()));
+
   encodingGroup = new QActionGroup(this);
 
   for (int i = 0; i < static_cast<int>(Encoding::ENCODING_MAX); ++i) {
@@ -525,6 +529,16 @@ void MainWindow::createActions() {
 
   connect(encodingGroup, SIGNAL(triggered(QAction*)), this,
           SLOT(encodingChanged(QAction*)));
+
+  dumpCameraAction = new QAction(tr("Parameters"), this);
+  dumpCameraAction->setStatusTip(tr("dumpsys media.camera"));
+  connect(dumpCameraAction, SIGNAL(triggered()), this, SLOT(dumpCamera()));
+
+  dumpStreamAction = new QAction(tr("Stream"), this);
+  connect(dumpStreamAction, SIGNAL(triggered()), this, SLOT(dumpStream()));
+
+  dumpDeviceInfoAction = new QAction(tr("Device info"));
+  connect(dumpDeviceInfoAction, SIGNAL(triggered()), this, SLOT(dumpDeviceInfo()));
 }
 
 void MainWindow::createMenus() {
@@ -593,8 +607,15 @@ void MainWindow::createMenus() {
 
   menuBar()->addSeparator();
 
+  cameraMenu = menuBar()->addMenu(tr("&Camera"));
+  cameraMenu->addAction(dumpCameraAction);
+  cameraMenu->addAction(dumpStreamAction);
+  cameraMenu->addAction(dumpDeviceInfoAction);
+
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
+  helpMenu->addAction(aboutCustomizedAction);
+
 }
 
 void MainWindow::createIconToolBars() {
@@ -1029,6 +1050,17 @@ void MainWindow::about() {
 // Opens the 'About Qt' dialog box.
 void MainWindow::aboutQt() {}
 
+
+void MainWindow::aboutCustomizedGlogg() {
+    QMessageBox::about(
+        this, tr("About customized glogg"),
+        tr("<h2>customized glogg " GLOGG_VERSION "</h2>"
+           "<p>See more information about customized glogg."
+           "<p><a "
+           "href=\"https://xiaomi.f.mioffice.cn/docs/dock4XNd2Ap5QXr5vWbdmWw1AEg/\">https://xiaomi.f.mioffice.cn/docs/</a></"));
+
+}
+
 void MainWindow::encodingChanged(QAction* action) {
   int i = 0;
   for (i = 0; i < static_cast<int>(Encoding::ENCODING_MAX); ++i)
@@ -1350,6 +1382,33 @@ void MainWindow::stopLogcat() {
 #else
   process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
+}
+
+void MainWindow::dumpCamera() {
+  QProcess* process = new QProcess();
+  QString path =
+      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+//#ifdef _WIN32
+//  process->setWorkingDirectory(path);
+//  QString command = path + "kill-logcat.bat";
+//  process->startDetached(command);
+//#else
+  process->startDetached("/bin/bash", QStringList() << path + "dump-camera.sh");
+//#endif
+}
+
+void MainWindow::dumpStream() {
+    QProcess* process = new QProcess();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process->startDetached("/bin/bash", QStringList() << path + "dump-stream.sh");
+}
+
+void MainWindow::dumpDeviceInfo() {
+    QProcess* process = new QProcess();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process->startDetached("/bin/bash", QStringList() << path + "dump-device-info.sh");
 }
 
 void MainWindow::fullScreen() {
