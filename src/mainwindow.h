@@ -118,6 +118,7 @@ class MainWindow : public QMainWindow {
   void dumpCamera();
   void dumpStream();
   void dumpDeviceInfo();
+  void showShortcuts();
   void aboutCustomizedGlogg();
 
   // Change the view settings
@@ -285,6 +286,7 @@ class MainWindow : public QMainWindow {
   QAction *dumpCameraAction;
   QAction *dumpStreamAction;
   QAction *dumpDeviceInfoAction;\
+  QAction *shortcutAction;
   QAction *aboutCustomizedAction;
 
   QProcess *process_;

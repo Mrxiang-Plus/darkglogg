@@ -1534,7 +1534,8 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       emit focusFilterBar();
       break;
     case '?':
-      emit focusLogBar();
+      emit 
+      focusLogBar();
       break;
     default:
       keyEvent->ignore();
