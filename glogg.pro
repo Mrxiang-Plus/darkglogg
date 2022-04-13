@@ -65,7 +65,9 @@ SOURCES += \
     framelesswindow/framelesswindow.cpp \
     framelesswindow/windowdragger.cpp \
     src/DarkStyle.cpp \
-    src/pinedbutton.cpp
+    src/pinedbutton.cpp \
+    src/sharedfilterdialog.cpp \
+    src/sharedfilter.cpp
 
 INCLUDEPATH += src/ \
                framelesswindow/
@@ -125,7 +127,9 @@ HEADERS += \
     framelesswindow/framelesswindow.h \
     framelesswindow/windowdragger.h \
     src/DarkStyle.h \
-    src/pinedbutton.h
+    src/pinedbutton.h \
+    src/sharedfilterdialog.h \
+    src/sharedfilter.h
 
 //https://github.com/nickbnf/glogg/blob/master/release-osx.sh
 
@@ -165,7 +169,10 @@ else {
 }
 
 FORMS += src/optionsdialog.ui \
-         src/frqframe.ui
+         src/frqframe.ui \
+    src/sharedfilterdialog.ui \
+    src/sharedfilterdialog.ui \
+    src/sharedfilterdialog.ui
 FORMS += src/filtersdialog.ui \
          framelesswindow/framelesswindow.ui
 

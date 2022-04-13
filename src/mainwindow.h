@@ -105,6 +105,7 @@ class MainWindow : public QMainWindow {
   void find();
   void mark();
   void filters();
+  void openSharedFilter();
   void options();
   void about();
   void aboutQt();
@@ -233,6 +234,7 @@ class MainWindow : public QMainWindow {
   QMenu *encodingMenu;
   QMenu *helpMenu;
   QMenu *cameraMenu;
+  QMenu *filterMenu;
   uint32_t transparent_ = 255;
   int lineNumber_;
 
@@ -279,6 +281,7 @@ class MainWindow : public QMainWindow {
   QAction *filtersAction;
   QAction *pinedFiltersAction;
   QAction *optionsAction;
+  QAction *sharedFilterAction;
   QAction *aboutAction;
   QAction *aboutQtAction;
   QActionGroup *encodingGroup;

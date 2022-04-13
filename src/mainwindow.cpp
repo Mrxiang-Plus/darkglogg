@@ -60,6 +60,8 @@
 #include "sessioninfo.h"
 #include "tabbedcrawlerwidget.h"
 #include "windowdragger.h"
+#include "sharedfilterdialog.h"
+#include "sharedfilter.h"
 
 // Returns the size in human readable format
 static QString readableSize(qint64 size);
@@ -496,10 +498,15 @@ void MainWindow::createActions() {
   stopAction->setEnabled(true);
   signalMux_.connect(stopAction, SIGNAL(triggered()), SLOT(stopLoading()));
 
-  filtersAction = new QAction(tr("&Filters..."), this);
-  filtersAction->setStatusTip(tr("Show the Filters box"));
+  filtersAction = new QAction(tr("&Local filter"), this);
+  filtersAction->setStatusTip(tr("Show the local filters"));
   filtersAction->setShortcut(QKeySequence(Qt::Key_F8));
   connect(filtersAction, SIGNAL(triggered()), this, SLOT(filters()));
+
+  sharedFilterAction = new QAction(tr("&Shared filter"), this);
+  sharedFilterAction->setStatusTip(tr("Show the shared filters"));
+  sharedFilterAction->setShortcut(QKeySequence(Qt::Key_F9));
+  connect(sharedFilterAction, SIGNAL(triggered()), this, SLOT(openSharedFilter()));
 
   optionsAction = new QAction(tr("&Options..."), this);
   optionsAction->setStatusTip(tr("Show the Options box"));
@@ -599,7 +606,9 @@ void MainWindow::createMenus() {
   viewMenu->addAction(reloadAction);
 
   toolsMenu = menuBar()->addMenu(tr("Tools"));
-  toolsMenu->addAction(filtersAction);
+  fileMenu = toolsMenu->addMenu(tr("Filter"));
+  fileMenu->addAction(filtersAction);
+  fileMenu->addAction(sharedFilterAction);
   toolsMenu->addSeparator();
   toolsMenu->addAction(optionsAction);
   toolsMenu->addSeparator();
@@ -1013,17 +1022,29 @@ void MainWindow::filters() {
                         SLOT(applyConfiguration()));
 }
 
+void MainWindow::openSharedFilter() {
+//   sharedfilter *dialog = new sharedfilter(this);
+//   sharedfilterdialog *dialog1 = new sharedfilterdialog(this);
+    sharedfilter dialog(this);
+    signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
+                       SLOT(applyConfiguration()));
+    dialog.exec();
+    signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
+                          SLOT(applyConfiguration()));
+//   dialog->show();
+}
+
 // Opens the 'Options' modal dialog box
 void MainWindow::options() {
   OptionsDialog dialog(this);
-  signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
-                     SLOT(applyConfiguration()));
-  connect(&dialog, SIGNAL(optionsChanged()), SLOT(applyConfiguration()));
+//  signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
+//                     SLOT(applyConfiguration()));
+//  connect(&dialog, SIGNAL(optionsChanged()), SLOT(applyConfiguration()));
   dialog.exec();
-  signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
-                        SLOT(applyConfiguration()));
-  disconnect(&dialog, SIGNAL(optionsChanged()), this,
-             SLOT(applyConfiguration()));
+//  signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
+//                        SLOT(applyConfiguration()));
+//  disconnect(&dialog, SIGNAL(optionsChanged()), this,
+//             SLOT(applyConfiguration()));
 }
 
 void MainWindow::showShortcuts() {
@@ -1534,7 +1555,8 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
       emit focusFilterBar();
       break;
     case '?':
-      emit focusLogBar();
+      emit
+      focusLogBar();
       break;
     default:
       keyEvent->ignore();
