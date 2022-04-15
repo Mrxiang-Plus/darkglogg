@@ -16,11 +16,7 @@ sharedfilter::sharedfilter(QWidget *parent):
     addMainLayout();
     addFilterTitle(0);
     addEditFilterBtn(0);
-    QWidget *curTabWidget = mainTabWidget->widget(0);
-    QVBoxLayout *tabVLayout = new QVBoxLayout(curTabWidget);
-    tabVLayout->addWidget(scrollArea);
-    tabVLayout->addWidget(editFilterHLayoutWidget);
-    tabVLayout->setAlignment(Qt::AlignTop|Qt::AlignRight);
+    insertTabVLayout(0);
 }
 
 //               --mainTabWidget
@@ -37,6 +33,7 @@ void sharedfilter::addMainLayout()
     mainTabWidget->addTab(filterTab, QString());
     mainTabWidget->setTabText(0, "Cam App");
     tabCount = 1;
+    filterArray.append(0);
 //    sharedFilterWidget->setTabText(sharedFilterWidget->indexOf(filterTab), QApplication::translate("sharedfilterdialog", "Cam_App", Q_NULLPTR));
 
     editTabHLayoutWidget = new QWidget();
@@ -72,9 +69,11 @@ void sharedfilter::addFilterTitle(int tabIndex)
     scrollArea->setContentsMargins(5, 5, 5, 5);
 
     scrollAreaWidgetContents = new QWidget();
+    scrollAreaWidgetContents->setObjectName(QStringLiteral("scrollwidget"));
     scrollAreaWidgetContents->resize(1200, 300);
 
     mainFilterVLayout = new QVBoxLayout();
+    mainFilterVLayout->setObjectName(QStringLiteral("main_filter_v_layout"));
     mainFilterVLayout->setSpacing(10);
     mainFilterVLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     mainFilterVLayout->setContentsMargins(0, 0, 0, 0);
@@ -82,6 +81,7 @@ void sharedfilter::addFilterTitle(int tabIndex)
     filterTitleHLayout = new QHBoxLayout();
     filterTitleHLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     filterTitleHLayout->setSpacing(10);
+    filterTitleHLayout->setObjectName(QStringLiteral("filter_title_h_layout"));
 
     QLabel *keyLable = new QLabel("Key");
     keyLable->setFixedHeight(30);
@@ -125,6 +125,14 @@ void sharedfilter::addEditFilterBtn(int tabIndex)
 
 }
 
+void sharedfilter::insertTabVLayout(int tabIndex) {
+    curTabWidget = mainTabWidget->widget(tabIndex);
+    tabVLayout = new QVBoxLayout(curTabWidget);
+    tabVLayout->addWidget(scrollArea);
+    tabVLayout->addWidget(editFilterHLayoutWidget);
+    tabVLayout->setAlignment(Qt::AlignTop|Qt::AlignRight);
+}
+
 void sharedfilter::addTab_click()
 {
     bool ok = false;
@@ -139,8 +147,13 @@ void sharedfilter::addTab_click()
         QWidget *tempTab = new QWidget(mainTabWidget);
         mainTabWidget->addTab(tempTab, QString());
         mainTabWidget->setTabText(tabCount, tabText);
+        addFilterTitle(tabCount);
+        addEditFilterBtn(tabCount);
+        insertTabVLayout(tabCount);
         tabCount++;
+        filterArray.append(0);
     }
+
 }
 
 void sharedfilter::delTab_click()
@@ -157,7 +170,10 @@ void sharedfilter::delTab_click()
                                              );
     if (ok && !tabText.isEmpty() && !tabText.compare(curTab))
     {
+        curTabWidget = mainTabWidget->widget(curIndex);
+        deletectItem(curTabWidget->layout());
         mainTabWidget->removeTab(curIndex);
+        filterArray.remove(curIndex, 1);
         tabCount--;
     }
     else if (ok)
@@ -172,8 +188,33 @@ void sharedfilter::delTab_click()
     }
 }
 
+void sharedfilter::deletectItem(QLayout* layout)
+{
+    QLayoutItem *child;
+    while ((child = layout->takeAt(0)) != nullptr)
+    {
+        if(child->widget())
+        {
+            child->widget()->setParent(nullptr);
+            delete child->widget();
+        }
+        else if(child->layout())
+        {
+            deletectItem(child->layout());
+            child->layout()->deleteLater();
+        }
+
+
+    }
+}
+
 void sharedfilter::addFilterItem_click()
 {
+    int curIndex = mainTabWidget->currentIndex();
+    curFilterCount = filterArray[curIndex];
+    curTabWidget = mainTabWidget->widget(curIndex);
+    scrollAreaWidgetContents = curTabWidget->findChild<QWidget *>("scrollwidget");
+    mainFilterVLayout = scrollAreaWidgetContents->findChild<QVBoxLayout *>("main_filter_v_layout");
     bool ok = false;
     QString filterText = QInputDialog :: getText(this,
                                              "Add Tab",
@@ -184,6 +225,8 @@ void sharedfilter::addFilterItem_click()
                                              );
     //parse filter
     QStringList filterList = filterText.split(">");
+    //for scroll debug
+    for (; curFilterCount < 20 ;) {
     if (ok && filterList.size() >= 2) {
         QLineEdit *keyEdit = new QLineEdit();
         keyEdit->setFixedHeight(25);
@@ -200,19 +243,32 @@ void sharedfilter::addFilterItem_click()
         }
 
 
-        filterItemHLayout = new QHBoxLayout();
+        filterItemHLayout = new QHBoxLayout(filterItemHLayoutWidget);
         filterItemHLayout->setSpacing(10);
         filterItemHLayout->addWidget(keyEdit, 1);
         filterItemHLayout->addWidget(filterEdit, 4);
         filterItemHLayout->addWidget(commentEdit, 2);
+        QString filterItemName = "filter_item#" +curFilterCount;
+        filterItemHLayout->setObjectName("filter_item#" +curFilterCount);
 
         mainFilterVLayout->addLayout(filterItemHLayout);
-        filterCount++;
-        scrollAreaWidgetContents->resize(1160, 50 + 35 * filterCount);
+
+        curFilterCount++;
+        filterArray.replace(curIndex, curFilterCount);
+        scrollAreaWidgetContents->resize(1160, 50 + 35 * curFilterCount);
+    }
     }
 }
 
 void sharedfilter::delFilterItem_click()
 {
+    int curIndex = mainTabWidget->currentIndex();
+    curFilterCount = filterArray[curIndex];
+    curTabWidget = mainTabWidget->widget(curIndex);
+    scrollAreaWidgetContents = curTabWidget->findChild<QWidget *>("scrollwidget");
+    mainFilterVLayout = scrollAreaWidgetContents->findChild<QVBoxLayout *>("main_filter_v_layout");
+
+    // todo: how to get the focus filterItemHLayout and delete.
+    mainFilterVLayout->removeItem(filterItemHLayout);
 
 }

@@ -27,6 +27,9 @@ protected:
     void addEditTabBtn();
     void addFilterTitle(int tabIndex);
     void addEditFilterBtn(int tabIndex);
+    void insertTabVLayout(int tabIndex);
+    void deletectItem(QLayout *layout);
+
 
 
 
@@ -41,13 +44,17 @@ signals:
 
 private:
     int tabCount;
-    int filterCount;
+    int curFilterCount;
+    QVector<int> filterArray;
+
+
     QTabWidget *mainTabWidget;
 
     QWidget *editTabHLayoutWidget;
     QWidget *editFilterHLayoutWidget;
     QWidget *filterItemHLayoutWidget;
     QWidget *filterTab;
+    QWidget *curTabWidget;
 
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
@@ -58,6 +65,7 @@ private:
     QPushButton *delFilterItem;
 
     QVBoxLayout *mainVLayout;
+    QVBoxLayout *tabVLayout;
     QHBoxLayout *editTabHLayout;
     QHBoxLayout *editFilterHLayout;
     QVBoxLayout *mainFilterVLayout;
