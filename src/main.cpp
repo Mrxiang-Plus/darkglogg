@@ -231,6 +231,8 @@ int main(int argc, char* argv[]) {
                                              QString("savedPatterns"));
   GetPersistentInfo().registerPersistable(std::make_shared<RecentFiles>(),
                                           QString("recentFiles"));
+  GetPersistentInfo().registerPersistable(std::make_shared<FilterSet>(),
+                                          QString("sharedFilterSet"));
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING
   GetPersistentInfo().registerPersistable(
       std::make_shared<VersionCheckerConfig>(), QString("versionChecker"));

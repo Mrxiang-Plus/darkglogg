@@ -61,7 +61,6 @@
 #include "tabbedcrawlerwidget.h"
 #include "windowdragger.h"
 #include "sharedfilterdialog.h"
-#include "sharedfilter.h"
 
 // Returns the size in human readable format
 static QString readableSize(qint64 size);
@@ -1025,7 +1024,7 @@ void MainWindow::filters() {
 void MainWindow::openSharedFilter() {
 //   sharedfilter *dialog = new sharedfilter(this);
 //   sharedfilterdialog *dialog1 = new sharedfilterdialog(this);
-    sharedfilter dialog(this);
+    SharedFilterDialog dialog(this);
     signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
                        SLOT(applyConfiguration()));
     dialog.exec();
@@ -1797,6 +1796,8 @@ void MainWindow::readSettings() {
   updateRecentFileActions();
   GetPersistentInfo().retrieve(QString("filterSet"));
   GetPersistentInfo().retrieve(QString("frqFilterSet"));
+  GetPersistentInfo().retrieve(QString("sharedFilterSet"));
+
 }
 
 void MainWindow::displayQuickFindBar(QFDirection direction) {
