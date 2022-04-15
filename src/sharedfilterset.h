@@ -26,9 +26,6 @@ class SharedFilter {
   void setPattern(const QString& pattern);
   const QString& comment() const;
   void setComment(const QString& comment);
-//  const QString& key() const;
-
-
 
   // Operators for serialization
   // (must be kept to migrate filters from <=0.8.2)

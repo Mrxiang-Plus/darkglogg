@@ -6,6 +6,7 @@
 #include <QTabWidget>
 #include <QInputDialog>
 #include <QMessageBox>
+#include "filterlineedit.h"
 #include "qdebug.h"
 
 SharedFilterDialog::SharedFilterDialog(QWidget *parent):
@@ -53,6 +54,7 @@ void SharedFilterDialog::addMainLayout()
 
     mainVLayout->addWidget(mainTabWidget);
     mainVLayout->addWidget(editTabHLayoutWidget);
+
 }
 
 void SharedFilterDialog::addFilterTitle(int tabIndex)
@@ -226,30 +228,41 @@ void SharedFilterDialog::addFilterItem_click()
     //parse filter
     QStringList filterList = filterText.split(">");
     //for scroll debug
-    for (; curFilterCount < 20 ;) {
+//    for (; curFilterCount < 20 ;) {
     if (ok && filterList.size() >= 2) {
-        QLineEdit *keyEdit = new QLineEdit();
+        keyEdit = new FilterLineEdit();
         keyEdit->setFixedHeight(25);
         keyEdit->setEnabled(true);
         keyEdit->setText(filterList.at(0));
-        QLineEdit *filterEdit = new QLineEdit();
+        filterEdit = new FilterLineEdit();
         filterEdit->setFixedHeight(25);
         filterEdit->setText(filterList.at(1));
-        QLineEdit *commentEdit = new QLineEdit();
+        commentEdit = new FilterLineEdit();
         commentEdit->setFixedHeight(25);
         if (filterList.size() > 2)
         {
             commentEdit->setText(filterList.at(2));
         }
 
+        QString indexStr = QString::number(curFilterCount);
+        filterLineName.clear();
+        filterLineName << ("filter_Line_" + indexStr) << ("filter_key_" + indexStr)
+                       << ("filter_content_" + indexStr) << ("filter_comment_" + indexStr);
+        keyEdit->setObjectName(filterLineName[1]);
+        filterEdit->setObjectName(filterLineName[2]);
+        commentEdit->setObjectName(filterLineName[3]);
 
-        filterItemHLayout = new QHBoxLayout(filterItemHLayoutWidget);
+        connect(keyEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+        connect(filterEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+        connect(commentEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+
+
+        filterItemHLayout = new QHBoxLayout();
+        filterItemHLayout->setObjectName(filterLineName[0]);
         filterItemHLayout->setSpacing(10);
         filterItemHLayout->addWidget(keyEdit, 1);
         filterItemHLayout->addWidget(filterEdit, 4);
         filterItemHLayout->addWidget(commentEdit, 2);
-        QString filterItemName = "filter_item#" +curFilterCount;
-        filterItemHLayout->setObjectName("filter_item#" +curFilterCount);
 
         mainFilterVLayout->addLayout(filterItemHLayout);
 
@@ -257,7 +270,23 @@ void SharedFilterDialog::addFilterItem_click()
         filterArray.replace(curIndex, curFilterCount);
         scrollAreaWidgetContents->resize(1160, 50 + 35 * curFilterCount);
     }
-    }
+//    }
+}
+
+
+QStringList SharedFilterDialog::getFilterLineName(int index)
+{
+    QString indexStr = QString::number(index);
+    filterLineName.clear();
+    filterLineName << ("filter_Line_" + indexStr) << ("filter_key_" + indexStr)
+                   << ("filter_content_" + indexStr) << ("filter_comment_" + indexStr);
+    return filterLineName;
+}
+
+
+void SharedFilterDialog::handleClick(int index)
+{
+    filterLineNameIndex = index;
 }
 
 void SharedFilterDialog::delFilterItem_click()
@@ -267,8 +296,10 @@ void SharedFilterDialog::delFilterItem_click()
     curTabWidget = mainTabWidget->widget(curIndex);
     scrollAreaWidgetContents = curTabWidget->findChild<QWidget *>("scrollwidget");
     mainFilterVLayout = scrollAreaWidgetContents->findChild<QVBoxLayout *>("main_filter_v_layout");
-
-    // todo: how to get the focus filterItemHLayout and delete.
-    mainFilterVLayout->removeItem(filterItemHLayout);
-
+    QStringList strList = getFilterLineName(filterLineNameIndex);
+    for (int i = 1; i < 4; i++)
+    {
+        FilterLineEdit* lineEdit = scrollAreaWidgetContents->findChild<FilterLineEdit* >(strList[i]);
+        lineEdit->deleteLater();
+    }
 }

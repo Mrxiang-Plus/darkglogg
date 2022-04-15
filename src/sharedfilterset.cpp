@@ -7,6 +7,14 @@
 
 const int SharedFilterSet::SHAREDFILTERSET_VERSION = 1;
 
+QRegularExpression::PatternOptions getPatternOptions() {
+  QRegularExpression::PatternOptions options =
+      QRegularExpression::UseUnicodePropertiesOption |
+      QRegularExpression::OptimizeOnFirstUsageOption |
+      QRegularExpression::CaseInsensitiveOption;
+  return options;
+}
+
 SharedFilterSet::SharedFilterSet()
 {
 
@@ -33,21 +41,22 @@ QDataStream& operator>>(QDataStream& in, SharedFilterSet& object) {
 SharedFilter::SharedFilter() {}
 
 SharedFilter::SharedFilter(const QString& key, const QString& pattern, const QString& comment)
-    : regexp_(key),
+    : regexp_(key, getPatternOptions()),
       pattern_(pattern),
       comment_(comment)
 {
-//  LOG(logDEBUG) << "New Filter, key: " << regexp_.toStdString()
-//                << " pattern: " << pattern_.toStdString()
-//                << " comment: " << comment_.toStdString();
+  LOG(logDEBUG) << "New Filter, key: " << regexp_.pattern().toStdString()
+                << " pattern: " << pattern_.toStdString()
+                << " comment: " << comment_.toStdString();
 }
 
-//const QString& SharedFilter::key() const { return regexp_; }
 
-//void SharedFilter::setKey(const QString& key)
-//{
-//  regexp_ = key;
-//}
+const QString& SharedFilter::key() const { return regexp_.pattern(); }
+
+void SharedFilter::setKey(const QString& key)
+{
+  regexp_.setPattern(key);
+}
 
 const QString& SharedFilter::pattern() const { return pattern_; }
 

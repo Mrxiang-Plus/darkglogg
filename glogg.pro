@@ -67,7 +67,8 @@ SOURCES += \
     src/DarkStyle.cpp \
     src/pinedbutton.cpp \
     src/sharedfilterset.cpp \
-    src/sharedfilterdialog.cpp
+    src/sharedfilterdialog.cpp \
+    src/filterlineedit.cpp
 
 INCLUDEPATH += src/ \
                framelesswindow/
@@ -129,7 +130,8 @@ HEADERS += \
     src/DarkStyle.h \
     src/pinedbutton.h \
     src/sharedfilterset.h \
-    src/sharedfilterdialog.h
+    src/sharedfilterdialog.h \
+    src/filterlineedit.h
 
 //https://github.com/nickbnf/glogg/blob/master/release-osx.sh
 

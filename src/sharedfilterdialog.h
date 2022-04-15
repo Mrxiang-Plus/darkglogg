@@ -15,12 +15,14 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include "filterlineedit.h"
 
 class SharedFilterDialog : public QDialog
 {
     Q_OBJECT
 public:
     SharedFilterDialog(QWidget *parent = nullptr);
+//    ~SharedFilterDialog();
 
 protected:
     void addMainLayout();
@@ -29,8 +31,8 @@ protected:
     void addEditFilterBtn(int tabIndex);
     void insertTabVLayout(int tabIndex);
     void deletectItem(QLayout *layout);
-
-
+    QStringList getFilterLineName(int index);
+    void delFilterLineByName();
 
 
 private slots:
@@ -39,12 +41,20 @@ private slots:
     void addFilterItem_click();
     void delFilterItem_click();
 
+//    void getFilterLineIndex(int index);
+    void handleClick(int index);
+
+
 signals:
     void optionsChanged();
 
 private:
     int tabCount;
     int curFilterCount;
+    int filterLineNameIndex;
+
+    QStringList filterLineName;
+
     QVector<int> filterArray;
 
 
@@ -73,6 +83,9 @@ private:
     QHBoxLayout *filterItemHLayout;
 
 
+    FilterLineEdit *keyEdit;
+    FilterLineEdit *filterEdit;
+    FilterLineEdit *commentEdit;
 
 
     QSpacerItem *horizontalSpacer;
