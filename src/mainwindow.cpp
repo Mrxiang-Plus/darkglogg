@@ -1022,15 +1022,13 @@ void MainWindow::filters() {
 }
 
 void MainWindow::openSharedFilter() {
-//   sharedfilter *dialog = new sharedfilter(this);
-//   sharedfilterdialog *dialog1 = new sharedfilterdialog(this);
+
     SharedFilterDialog dialog(this);
     signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
                        SLOT(applyConfiguration()));
     dialog.exec();
     signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
                           SLOT(applyConfiguration()));
-//   dialog->show();
 }
 
 // Opens the 'Options' modal dialog box

@@ -58,6 +58,7 @@ using namespace std;
 #include "framelesswindow/framelesswindow.h"
 
 #include "log.h"
+#include "sharedfilterset.h"
 
 static void print_version();
 
@@ -231,7 +232,7 @@ int main(int argc, char* argv[]) {
                                              QString("savedPatterns"));
   GetPersistentInfo().registerPersistable(std::make_shared<RecentFiles>(),
                                           QString("recentFiles"));
-  GetPersistentInfo().registerPersistable(std::make_shared<FilterSet>(),
+  GetPersistentInfo().registerPersistable(std::make_shared<SharedFilterSet>(),
                                           QString("sharedFilterSet"));
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING
   GetPersistentInfo().registerPersistable(

@@ -15,14 +15,16 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <QDialogButtonBox>
 #include "filterlineedit.h"
+#include "sharedfilterset.h"
+
 
 class SharedFilterDialog : public QDialog
 {
     Q_OBJECT
 public:
     SharedFilterDialog(QWidget *parent = nullptr);
-//    ~SharedFilterDialog();
 
 protected:
     void addMainLayout();
@@ -33,7 +35,12 @@ protected:
     void deletectItem(QLayout *layout);
     QStringList getFilterLineName(int index);
     void delFilterLineByName();
-
+    //remove the sharedfilter from sharedFilterSet by key.
+    void delFilterDataByKey(QString keyStr);
+    void delFilterDataByTab(QString tabStr);
+    void rebuildDialog();
+    void rebuildTab(QString tabName);
+    void rebuildFilter(int tabIndex, QString key, QString pattern, QString comment);
 
 private slots:
     void addTab_click();
@@ -43,7 +50,7 @@ private slots:
 
 //    void getFilterLineIndex(int index);
     void handleClick(int index);
-
+    void buttonBox_clicked(QAbstractButton* button);
 
 signals:
     void optionsChanged();
@@ -54,6 +61,10 @@ private:
     int filterLineNameIndex;
 
     QStringList filterLineName;
+
+//    QSet <QString> tabNameSet;
+    QStringList tabNameSet;
+
 
     QVector<int> filterArray;
 
@@ -73,6 +84,7 @@ private:
     QPushButton *delTab;
     QPushButton *addFilterItem;
     QPushButton *delFilterItem;
+    QDialogButtonBox* buttonBox;
 
     QVBoxLayout *mainVLayout;
     QVBoxLayout *tabVLayout;
@@ -89,6 +101,9 @@ private:
 
 
     QSpacerItem *horizontalSpacer;
+
+    std::shared_ptr<SharedFilterSet> sharedFilterSet;
+
 
 };
 

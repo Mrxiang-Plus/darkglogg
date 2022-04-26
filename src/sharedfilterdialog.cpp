@@ -6,8 +6,12 @@
 #include <QTabWidget>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QDialogButtonBox>
 #include "filterlineedit.h"
 #include "qdebug.h"
+#include "persistentinfo.h"
+#include "configuration.h"
+#include "log.h"
 
 SharedFilterDialog::SharedFilterDialog(QWidget *parent):
     QDialog(parent)
@@ -15,9 +19,18 @@ SharedFilterDialog::SharedFilterDialog(QWidget *parent):
     this->setWindowTitle("Shared Filter");
     this->resize(1300, 800);
     addMainLayout();
-    addFilterTitle(0);
-    addEditFilterBtn(0);
-    insertTabVLayout(0);
+//    addFilterTitle(0);
+//    addEditFilterBtn(0);
+//    insertTabVLayout(0);
+
+    // Reload the filter list from disk (in case it has been changed
+    // by another glogg instance) and copy it to here.
+    GetPersistentInfo().retrieve("sharedFilterSet");
+    sharedFilterSet = PersistentCopy<SharedFilterSet>("sharedFilterSet");
+    if (!sharedFilterSet->sharedFilterList.empty())
+    {
+        rebuildDialog();
+    }
 }
 
 //               --mainTabWidget
@@ -29,13 +42,14 @@ void SharedFilterDialog::addMainLayout()
     mainTabWidget = new QTabWidget();
     mainTabWidget->setGeometry(QRect(10, 10, 1260, 720));
 
-    filterTab = new QWidget(mainTabWidget);
-    filterTab->setObjectName("App");
-    mainTabWidget->addTab(filterTab, QString());
-    mainTabWidget->setTabText(0, "Cam App");
-    tabCount = 1;
-    filterArray.append(0);
-//    sharedFilterWidget->setTabText(sharedFilterWidget->indexOf(filterTab), QApplication::translate("sharedfilterdialog", "Cam_App", Q_NULLPTR));
+//    filterTab = new QWidget(mainTabWidget);
+//    filterTab->setObjectName("App");
+//    mainTabWidget->addTab(filterTab, QString());
+//    mainTabWidget->setTabText(0, "Cam App");
+//    filterArray.append(0);
+//    tabCount = 1;
+
+    tabCount = 0;
 
     editTabHLayoutWidget = new QWidget();
     editTabHLayoutWidget->setFixedSize(300, 40);
@@ -52,8 +66,14 @@ void SharedFilterDialog::addMainLayout()
     editTabHLayout->addWidget(addTab);
     editTabHLayout->addWidget(delTab);
 
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                                      | QDialogButtonBox::Apply
+                                                      | QDialogButtonBox::Cancel);
+    connect(buttonBox, SIGNAL(clicked(QAbstractButton*)), this, SLOT(buttonBox_clicked(QAbstractButton*)));
+
     mainVLayout->addWidget(mainTabWidget);
     mainVLayout->addWidget(editTabHLayoutWidget);
+    mainVLayout->addWidget(buttonBox);
 
 }
 
@@ -127,12 +147,111 @@ void SharedFilterDialog::addEditFilterBtn(int tabIndex)
 
 }
 
-void SharedFilterDialog::insertTabVLayout(int tabIndex) {
+void SharedFilterDialog::insertTabVLayout(int tabIndex)
+{
     curTabWidget = mainTabWidget->widget(tabIndex);
     tabVLayout = new QVBoxLayout(curTabWidget);
     tabVLayout->addWidget(scrollArea);
     tabVLayout->addWidget(editFilterHLayoutWidget);
     tabVLayout->setAlignment(Qt::AlignTop|Qt::AlignRight);
+}
+
+// restore the sharedFilterDialog from sharedFilterSet
+void SharedFilterDialog::rebuildDialog()
+{
+    QList<SharedFilter> filterList = sharedFilterSet->sharedFilterList;
+    tabNameSet.clear();
+    int size = filterList.size();
+    foreach (SharedFilter sharedFilter, filterList)
+    {
+        QString tabName = sharedFilter.tab();
+        if (! tabNameSet.contains(tabName)) {
+            rebuildTab(tabName);
+            tabNameSet << tabName;
+        }
+        rebuildFilter(tabNameSet.indexOf(tabName), sharedFilter.key(), sharedFilter.pattern(), sharedFilter.comment());
+    }
+
+
+}
+
+void SharedFilterDialog::rebuildTab(QString tabName)
+{
+    QWidget *tempTab = new QWidget(mainTabWidget);
+    mainTabWidget->addTab(tempTab, QString());
+    mainTabWidget->setTabText(tabCount, tabName);
+    addFilterTitle(tabCount);
+    addEditFilterBtn(tabCount);
+    insertTabVLayout(tabCount);
+    mainTabWidget->setCurrentIndex(tabCount);
+    tabCount++;
+    filterArray.append(0);
+}
+
+void SharedFilterDialog::rebuildFilter(int tabIndex, QString key, QString pattern, QString comment)
+{
+    int curIndex = mainTabWidget->currentIndex();
+    curFilterCount = filterArray[curIndex];
+    QString curTabText = mainTabWidget->tabText(curIndex);
+    curTabWidget = mainTabWidget->widget(curIndex);
+    scrollAreaWidgetContents = curTabWidget->findChild<QWidget *>("scrollwidget");
+    mainFilterVLayout = scrollAreaWidgetContents->findChild<QVBoxLayout *>("main_filter_v_layout");
+
+
+    keyEdit = new FilterLineEdit();
+    keyEdit->setFixedHeight(25);
+    keyEdit->setText(key);
+    filterEdit = new FilterLineEdit();
+    filterEdit->setFixedHeight(25);
+    filterEdit->setText(pattern);
+    commentEdit = new FilterLineEdit();
+    commentEdit->setFixedHeight(25);
+    if (comment != NULL)
+    {
+        commentEdit->setText(comment);
+    }
+
+    QString indexStr = QString::number(curFilterCount);
+    filterLineName.clear();
+    filterLineName << ("filter_Line_" + indexStr) << ("filter_key_" + indexStr)
+                   << ("filter_content_" + indexStr) << ("filter_comment_" + indexStr);
+    keyEdit->setObjectName(filterLineName[1]);
+    filterEdit->setObjectName(filterLineName[2]);
+    commentEdit->setObjectName(filterLineName[3]);
+
+    connect(keyEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+    connect(filterEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+    connect(commentEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
+
+    filterItemHLayout = new QHBoxLayout();
+    filterItemHLayout->setObjectName(filterLineName[0]);
+    filterItemHLayout->setSpacing(10);
+    filterItemHLayout->addWidget(keyEdit, 1);
+    filterItemHLayout->addWidget(filterEdit, 4);
+    filterItemHLayout->addWidget(commentEdit, 2);
+
+    mainFilterVLayout->addLayout(filterItemHLayout);
+
+    curFilterCount++;
+    filterArray.replace(curIndex, curFilterCount);
+    scrollAreaWidgetContents->resize(1160, 50 + 35 * curFilterCount);
+}
+
+void SharedFilterDialog::buttonBox_clicked(QAbstractButton *button)
+{
+    QDialogButtonBox::ButtonRole role = buttonBox->buttonRole(button);
+    if ((role == QDialogButtonBox::AcceptRole) ||
+        (role == QDialogButtonBox::ApplyRole)) {
+      // Copy the sharedfilter set and persist it to disk
+      *(Persistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
+      GetPersistentInfo().save("sharedFilterSet");
+      emit optionsChanged();
+    }
+
+    if (role == QDialogButtonBox::AcceptRole)
+      accept();
+    else if (role == QDialogButtonBox::RejectRole)
+      reject();
 }
 
 void SharedFilterDialog::addTab_click()
@@ -152,6 +271,7 @@ void SharedFilterDialog::addTab_click()
         addFilterTitle(tabCount);
         addEditFilterBtn(tabCount);
         insertTabVLayout(tabCount);
+        mainTabWidget->setCurrentIndex(tabCount);
         tabCount++;
         filterArray.append(0);
     }
@@ -177,6 +297,7 @@ void SharedFilterDialog::delTab_click()
         mainTabWidget->removeTab(curIndex);
         filterArray.remove(curIndex, 1);
         tabCount--;
+        delFilterDataByTab(curTab);
     }
     else if (ok)
     {
@@ -214,6 +335,7 @@ void SharedFilterDialog::addFilterItem_click()
 {
     int curIndex = mainTabWidget->currentIndex();
     curFilterCount = filterArray[curIndex];
+    QString curTabText = mainTabWidget->tabText(curIndex);
     curTabWidget = mainTabWidget->widget(curIndex);
     scrollAreaWidgetContents = curTabWidget->findChild<QWidget *>("scrollwidget");
     mainFilterVLayout = scrollAreaWidgetContents->findChild<QVBoxLayout *>("main_filter_v_layout");
@@ -239,10 +361,15 @@ void SharedFilterDialog::addFilterItem_click()
         filterEdit->setText(filterList.at(1));
         commentEdit = new FilterLineEdit();
         commentEdit->setFixedHeight(25);
+        SharedFilter newFilter = SharedFilter(curTabText, filterList.at(0), filterList.at(1), "");
         if (filterList.size() > 2)
         {
             commentEdit->setText(filterList.at(2));
+            newFilter.setComment(filterList.at(2));
         }
+
+        //save filter data
+        sharedFilterSet->sharedFilterList << newFilter;
 
         QString indexStr = QString::number(curFilterCount);
         filterLineName.clear();
@@ -255,7 +382,6 @@ void SharedFilterDialog::addFilterItem_click()
         connect(keyEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
         connect(filterEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
         connect(commentEdit, SIGNAL(click(int)), this, SLOT(handleClick(int)));
-
 
         filterItemHLayout = new QHBoxLayout();
         filterItemHLayout->setObjectName(filterLineName[0]);
@@ -299,7 +425,42 @@ void SharedFilterDialog::delFilterItem_click()
     QStringList strList = getFilterLineName(filterLineNameIndex);
     for (int i = 1; i < 4; i++)
     {
-        FilterLineEdit* lineEdit = scrollAreaWidgetContents->findChild<FilterLineEdit* >(strList[i]);
-        lineEdit->deleteLater();
+        if (strList.size() > 3)
+        {
+            FilterLineEdit* lineEdit = scrollAreaWidgetContents->findChild<FilterLineEdit* >(strList[i]);
+            if (i == 1) {
+                delFilterDataByKey(lineEdit->text());
+            }
+            lineEdit->deleteLater();
+        }
     }
+}
+
+void SharedFilterDialog::delFilterDataByKey(QString keyStr)
+{
+    for (int i = 0; i < sharedFilterSet->sharedFilterList.size(); i++)
+    {
+        if (sharedFilterSet->sharedFilterList[i].hasMatch(keyStr)) {
+            sharedFilterSet->sharedFilterList.removeAt(i);
+            i--;
+        }
+    }
+}
+
+void SharedFilterDialog::delFilterDataByTab(QString tabStr)
+{
+    for (int i = 0; i < sharedFilterSet->sharedFilterList.size(); i++)
+    {
+        if (!QString::compare(sharedFilterSet->sharedFilterList[i].tab(), tabStr)) {
+            sharedFilterSet->sharedFilterList.removeAt(i);
+            i--;
+        }
+    }
+//    for (SharedFilter curSharedFilter : sharedFilterSet->sharedFilterList)
+//    {
+//        while (!QString::compare(curSharedFilter.tab(), tabStr))
+//        {
+//            sharedFilterSet->sharedFilterList.removeOne(curSharedFilter);
+//        }
+//    }
 }

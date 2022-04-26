@@ -15,12 +15,14 @@ class SharedFilter {
  public:
   // Construct an uninitialized Filter (when reading from a config file)
   SharedFilter();
-  SharedFilter(const QString& key, const QString& pattern, const QString& comment);
+  SharedFilter(const QString& tab, const QString& key, const QString& pattern, const QString& comment);
 
   bool hasMatch(const QString& string) const;
 
   // Accessor functions
-  const QString& key() const;
+  const QString& tab() const;
+  void setTab(const QString& tab);
+  QString key() const;
   void setKey(const QString& key);
   const QString& pattern() const;
   void setPattern(const QString& pattern);
@@ -37,6 +39,7 @@ class SharedFilter {
   void retrieveFromStorage(QSettings& settings);
 
  private:
+  QString tab_;
   QRegularExpression  regexp_;
   QString pattern_;
   QString comment_;
@@ -58,6 +61,7 @@ public:
     // Should be private really, but I don't know how to have
     // it recognised by QVariant then.
     typedef QList<SharedFilter> SharedFilterList;
+//    typedef QVector<QVector<SharedFilter>> SharedFilterArray;
 
     // Operators for serialization
     // (must be kept to migrate filters from <=0.8.2)
@@ -68,10 +72,12 @@ public:
     static const int SHAREDFILTERSET_VERSION;
 
     SharedFilterList sharedFilterList;
+//    SharedFilterArray sharedFilterArray;
+
 
     // To simplify this class interface, FilterDialog can access our
     // internal structure directly.
-    friend class SharedFilter;
+    friend class SharedFilterDialog;
 };
 
   Q_DECLARE_METATYPE(SharedFilter)

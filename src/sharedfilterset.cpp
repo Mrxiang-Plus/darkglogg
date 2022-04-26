@@ -40,18 +40,26 @@ QDataStream& operator>>(QDataStream& in, SharedFilterSet& object) {
 
 SharedFilter::SharedFilter() {}
 
-SharedFilter::SharedFilter(const QString& key, const QString& pattern, const QString& comment)
-    : regexp_(key, getPatternOptions()),
+SharedFilter::SharedFilter(const QString& tab, const QString& key, const QString& pattern, const QString& comment)
+    : tab_(tab),
+      regexp_(key, getPatternOptions()),
       pattern_(pattern),
       comment_(comment)
 {
-  LOG(logDEBUG) << "New Filter, key: " << regexp_.pattern().toStdString()
+  LOG(logDEBUG) << "New Filter, tab: " << tab_.toStdString()
+                << "key: " << regexp_.pattern().toStdString()
                 << " pattern: " << pattern_.toStdString()
                 << " comment: " << comment_.toStdString();
 }
 
+const QString& SharedFilter::tab() const { return tab_; }
 
-const QString& SharedFilter::key() const { return regexp_.pattern(); }
+void SharedFilter::setTab(const QString& tab)
+{
+    tab_ = tab;
+}
+
+QString SharedFilter::key() const { return regexp_.pattern(); }
 
 void SharedFilter::setKey(const QString& key)
 {
@@ -74,7 +82,7 @@ void SharedFilter::setComment(const QString& comment)
 }
 
 bool SharedFilter::hasMatch(const QString& string) const {
-  return regexp_.match(string).hasMatch();
+  return QString::compare(regexp_.pattern(), string) == 0;
 }
 
 //
@@ -83,6 +91,7 @@ bool SharedFilter::hasMatch(const QString& string) const {
 
 QDataStream& operator<<(QDataStream& out, const SharedFilter& object) {
   LOG(logDEBUG) << "<<operator from SharedFilter";
+  out << object.tab_;
   out << object.regexp_;
   out << object.pattern_;
   out << object.comment_;
@@ -92,6 +101,7 @@ QDataStream& operator<<(QDataStream& out, const SharedFilter& object) {
 
 QDataStream& operator>>(QDataStream& in, SharedFilter& object) {
   LOG(logDEBUG) << ">>operator from SharedFilter";
+  in >> object.tab_;
   in >> object.regexp_;
   in >> object.pattern_;
   in >> object.comment_;
@@ -106,7 +116,8 @@ QDataStream& operator>>(QDataStream& in, SharedFilter& object) {
 void SharedFilter::saveToStorage(QSettings& settings) const {
   LOG(logDEBUG) << "SharedFilter::saveToStorage";
 
-  settings.setValue("key", regexp_);
+  settings.setValue("tab", tab_);
+  settings.setValue("key", regexp_.pattern());
   settings.setValue("pattern", pattern_);
   settings.setValue("comment", comment_);
 }
@@ -114,21 +125,15 @@ void SharedFilter::saveToStorage(QSettings& settings) const {
 void SharedFilter::retrieveFromStorage(QSettings& settings) {
   LOG(logDEBUG) << "SharedFilter::retrieveFromStorage";
 
-//  regexp_ = settings.value("key").toString();
+  tab_ = settings.value("tab").toString();
+  regexp_ = QRegularExpression(
+              settings.value("key").toString(),
+              getPatternOptions());
   pattern_ = settings.value("pattern").toString();
   comment_ = settings.value("comment").toString();
 }
 
 //============================================================//
-
-
-
-
-
-
-
-
-
 
 
 
