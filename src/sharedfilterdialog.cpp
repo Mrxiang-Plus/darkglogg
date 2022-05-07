@@ -12,6 +12,13 @@
 #include "persistentinfo.h"
 #include "configuration.h"
 #include "log.h"
+#include "savedpatterns.h"
+#include "persistentpattern.h"
+#include "syncfilterdialog.h"
+
+#include <QDir>
+#include <QProcess>
+#include <QTimer>
 
 SharedFilterDialog::SharedFilterDialog(QWidget *parent):
     QDialog(parent)
@@ -25,8 +32,9 @@ SharedFilterDialog::SharedFilterDialog(QWidget *parent):
 
     // Reload the filter list from disk (in case it has been changed
     // by another glogg instance) and copy it to here.
-    GetPersistentInfo().retrieve("sharedFilterSet");
-    sharedFilterSet = PersistentCopy<SharedFilterSet>("sharedFilterSet");
+//    importSavedPattern();
+    GetPersistentPattern().retrieve("sharedFilterSet");
+    sharedFilterSet = PatternPersistentCopy<SharedFilterSet>("sharedFilterSet");
     if (!sharedFilterSet->sharedFilterList.empty())
     {
         rebuildDialog();
@@ -52,19 +60,29 @@ void SharedFilterDialog::addMainLayout()
     tabCount = 0;
 
     editTabHLayoutWidget = new QWidget();
-    editTabHLayoutWidget->setFixedSize(300, 40);
+    editTabHLayoutWidget->setFixedHeight( 40);
     editTabHLayout = new QHBoxLayout(editTabHLayoutWidget);
     editTabHLayout->setAlignment(Qt::AlignCenter);
     addTab = new QPushButton();
     addTab->setText("New Tab");
     addTab->setFixedHeight(30);
+    addTab->setFixedWidth(90);
     connect(addTab, SIGNAL(clicked()), this, SLOT(addTab_click()));
     delTab = new QPushButton();
     delTab->setText("Del Tab");
     delTab->setFixedHeight(30);
+    delTab->setFixedWidth(90);
     connect(delTab, SIGNAL(clicked()), this, SLOT(delTab_click()));
+
+    syncFilterGroup = new QPushButton();
+    syncFilterGroup->setText("Sync");
+    syncFilterGroup->setFixedHeight(30);
+    syncFilterGroup->setFixedWidth(90);
+    connect(syncFilterGroup, SIGNAL(clicked()), this, SLOT(syncFilterGroup_click()));
+
     editTabHLayout->addWidget(addTab);
     editTabHLayout->addWidget(delTab);
+    editTabHLayout->addWidget(syncFilterGroup);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                                       | QDialogButtonBox::Apply
@@ -74,12 +92,18 @@ void SharedFilterDialog::addMainLayout()
     mainVLayout->addWidget(mainTabWidget);
     mainVLayout->addWidget(editTabHLayoutWidget);
     mainVLayout->addWidget(buttonBox);
-
+    mainTabWidget->setStyleSheet("QTabWidget:pane{ \
+                        border: 2px solid darkgray;top: -1px;background-color:transparent;}\
+                        QTabBar::tab{height:22px; background-color:black; margin-right: 2px; margin-bottom:-2px;}\
+                        QTabBar::tab:selected{border:2px solid darkgray;border-bottom-color: none;background:rgb(33,33,33);color:white;}\
+                        QTabBar::tab:!selected{background:rgb(80,78,71);color:white;}\
+                        ");
 }
 
 void SharedFilterDialog::addFilterTitle(int tabIndex)
 {
     QWidget *curTabWidget = mainTabWidget->widget(tabIndex);
+
     scrollArea = new QScrollArea();
 
     scrollArea->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -138,12 +162,12 @@ void SharedFilterDialog::addEditFilterBtn(int tabIndex)
     connect(delFilterItem, SIGNAL(clicked()), this, SLOT(delFilterItem_click()));
 
     editFilterHLayoutWidget = new QWidget();
-    editFilterHLayoutWidget->setFixedSize(300, 40);
+    editFilterHLayoutWidget->setFixedHeight(40);
+
     editFilterHLayout = new QHBoxLayout(editFilterHLayoutWidget);
     editFilterHLayout->setAlignment(Qt::AlignRight);
-    editFilterHLayout->addWidget(addFilterItem, 2);
-    editFilterHLayout->addStretch(1);
-    editFilterHLayout->addWidget(delFilterItem, 2);
+    editFilterHLayout->addWidget(addFilterItem, 1);
+    editFilterHLayout->addWidget(delFilterItem, 1);
 
 }
 
@@ -156,14 +180,44 @@ void SharedFilterDialog::insertTabVLayout(int tabIndex)
     tabVLayout->setAlignment(Qt::AlignTop|Qt::AlignRight);
 }
 
+void SharedFilterDialog::doSetSavedPatterns(
+    std::shared_ptr<SavedPatterns> saved_patterns) {
+  savedPatterns_ = saved_patterns;
+}
+
+void SharedFilterDialog::importSavedPattern()
+{
+    GetPersistentPattern().retrieve(QString("savedPatterns"));
+    savedPatterns_ = PatternPersistent<SavedPatterns>("savedPatterns");
+    QListIterator<QString> itr(savedPatterns_->recentPatterns());
+    GetPersistentPattern().retrieve("sharedFilterSet");
+    sharedFilterSet = PatternPersistentCopy<SharedFilterSet>("sharedFilterSet");
+    while (itr.hasNext())
+    {
+        QStringList filterList = itr.next().split(">");
+        if (filterList.size() >= 2) {
+            SharedFilter newFilter = SharedFilter("Cam-APP", filterList.at(0), filterList.at(1), "");
+            if (filterList.size() > 2)
+            {
+                newFilter.setComment(filterList.at(2));
+            }
+            newFilter.setFilterItem();
+            sharedFilterSet->sharedFilterList << newFilter;
+        }
+    }
+    *(PatternPersistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
+    GetPersistentPattern().save("sharedFilterSet");
+    emit optionsChanged();
+}
+
 // restore the sharedFilterDialog from sharedFilterSet
 void SharedFilterDialog::rebuildDialog()
 {
     QList<SharedFilter> filterList = sharedFilterSet->sharedFilterList;
     tabNameSet.clear();
-    int size = filterList.size();
     foreach (SharedFilter sharedFilter, filterList)
     {
+        sharedFilter.retrieveFromFilterItem();
         QString tabName = sharedFilter.tab();
         if (! tabNameSet.contains(tabName)) {
             rebuildTab(tabName);
@@ -171,14 +225,70 @@ void SharedFilterDialog::rebuildDialog()
         }
         rebuildFilter(tabNameSet.indexOf(tabName), sharedFilter.key(), sharedFilter.pattern(), sharedFilter.comment());
     }
+}
 
+QStringList SharedFilterDialog::getLocalTabSet()
+{
+    QList<SharedFilter> filterList = sharedFilterSet->sharedFilterList;
+    QStringList tabSet;
+    int size = filterList.size();
+    foreach (SharedFilter sharedFilter, filterList)
+    {
+        sharedFilter.retrieveFromFilterItem();
+        QString tabName = sharedFilter.tab();
+        if (! tabSet.contains(tabName)) {
+            tabSet << tabName;
+        }
+    }
+    return tabSet;
+}
 
+QStringList SharedFilterDialog::getRemoteTabSet()
+{
+    //  QProcess process;
+    QProcess* process = new QProcess();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+    QString repoUrl = config->repoUrl();
+
+    //clone the git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git
+  #ifdef _WIN32
+    process->setWorkingDirectory(path);
+    QString command = path + "sync-filter-group.bat" + sync_tabName;
+    process->startDetached(command);
+  #else
+
+    QObject::connect(
+        process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+          process->deleteLater();
+        });
+    //for sync sharedFilter from remote
+    process->start("/bin/bash", QStringList() << path + "sync-filter-group.sh"
+                                              << repoUrl);
+
+  #endif
+
+    //get the remote filter group by getting basename of .txt file.
+    QDir remoteDir(path + "miuicameratool" + QDir::separator() + "glogg");
+    QStringList filtername;
+    filtername << "*.txt";
+    remoteDir.setNameFilters(filtername);
+    QStringList fileList = remoteDir.entryList();
+    QFileInfoList fileInfoList = remoteDir.entryInfoList();
+    QStringList ret;
+    foreach (QFileInfo info, fileInfoList) {
+        ret << info.baseName();
+    }
+    return ret;
 }
 
 void SharedFilterDialog::rebuildTab(QString tabName)
 {
     QWidget *tempTab = new QWidget(mainTabWidget);
     mainTabWidget->addTab(tempTab, QString());
+
     mainTabWidget->setTabText(tabCount, tabName);
     addFilterTitle(tabCount);
     addEditFilterBtn(tabCount);
@@ -237,14 +347,102 @@ void SharedFilterDialog::rebuildFilter(int tabIndex, QString key, QString patter
     scrollAreaWidgetContents->resize(1160, 50 + 35 * curFilterCount);
 }
 
+void SharedFilterDialog::syncFilterGroup_click()
+{
+    //apply settings before sync
+    GetPersistentPattern().migrateAndInit("sharedFilterSet");
+    *(PatternPersistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
+    GetPersistentPattern().save("sharedFilterSet");
+    emit optionsChanged();
+
+    SyncFilterDialog syncDialog(this);
+    // combine remote and local group.
+    QStringList remoteTabSet = getRemoteTabSet();
+    QStringList localTabSet = getLocalTabSet();
+    foreach (QString localStr, localTabSet)
+    {
+        if (!remoteTabSet.contains(localStr))
+        {
+            remoteTabSet << localStr;
+        }
+    }
+    //show sync dialog
+    syncDialog.built(remoteTabSet);  
+
+    connect(&syncDialog, SIGNAL(sync_applied(const QString &)), this, SLOT(handleSyncApplied(const QString &)));
+    syncDialog.exec();
+}
+
+void SharedFilterDialog::handleSyncApplied(const QString &sync_tabName)
+{
+
+    QProcess* process = new QProcess();
+    QProcess* process1 = new QProcess();
+
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+
+    std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+    QString repoUrl = config->repoUrl();
+
+
+  #ifdef _WIN32
+    process->setWorkingDirectory(path);
+    QString command = path + "sync-filter-group.bat" + sync_tabName;
+    process->startDetached(command);
+  #else
+
+    // catch data output
+    // QObject::connect(process, &QProcess::readyRead, [process]() {
+    // QByteArray a = process->readAll();
+    // qDebug() << a;
+    // });
+
+    // delete process instance when done, and get the exit status to handle
+    // errors.
+    QObject::connect(
+        process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+//          emit refreshPatterns();
+          process->deleteLater();
+        });
+    if (sync_tabName.compare("end") != 0)
+    {
+        //for sync sharedFilter from remote
+        process->start("/bin/bash", QStringList() << path + "sync-filter-group.sh"
+                                                  << repoUrl
+                                                  << sync_tabName);
+    }
+    //for recover local sharedFilter setting
+    process1->start("/bin/bash", QStringList() << path + "update_filter_setting.sh"
+                                              << repoUrl
+                                              << sync_tabName);
+
+  #endif
+    if (sync_tabName.compare("end") == 0)
+    {
+        QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,
+                                              tr("Hint"),
+                                              tr("Sync Success."
+                                              "<p>Please restart the shared filter dialog."));
+        msgBox->show();
+        QTimer::singleShot(2000, msgBox, SLOT(accept()));
+
+//        GetPersistentPattern().retrieve("sharedFilterSet");
+//        sharedFilterSet = PatternPersistentCopy<SharedFilterSet>("sharedFilterSet");
+        reject();
+    }
+}
+
 void SharedFilterDialog::buttonBox_clicked(QAbstractButton *button)
 {
     QDialogButtonBox::ButtonRole role = buttonBox->buttonRole(button);
     if ((role == QDialogButtonBox::AcceptRole) ||
         (role == QDialogButtonBox::ApplyRole)) {
       // Copy the sharedfilter set and persist it to disk
-      *(Persistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
-      GetPersistentInfo().save("sharedFilterSet");
+      GetPersistentPattern().migrateAndInit("sharedFilterSet");
+      *(PatternPersistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
+      GetPersistentPattern().save("sharedFilterSet");
       emit optionsChanged();
     }
 
@@ -273,6 +471,7 @@ void SharedFilterDialog::addTab_click()
         insertTabVLayout(tabCount);
         mainTabWidget->setCurrentIndex(tabCount);
         tabCount++;
+//        localTabSet<<tabText;
         filterArray.append(0);
     }
 
@@ -368,6 +567,7 @@ void SharedFilterDialog::addFilterItem_click()
             newFilter.setComment(filterList.at(2));
         }
 
+        newFilter.setFilterItem();
         //save filter data
         sharedFilterSet->sharedFilterList << newFilter;
 
@@ -456,11 +656,4 @@ void SharedFilterDialog::delFilterDataByTab(QString tabStr)
             i--;
         }
     }
-//    for (SharedFilter curSharedFilter : sharedFilterSet->sharedFilterList)
-//    {
-//        while (!QString::compare(curSharedFilter.tab(), tabStr))
-//        {
-//            sharedFilterSet->sharedFilterList.removeOne(curSharedFilter);
-//        }
-//    }
 }

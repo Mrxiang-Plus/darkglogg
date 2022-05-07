@@ -61,6 +61,8 @@
 #include "tabbedcrawlerwidget.h"
 #include "windowdragger.h"
 #include "sharedfilterdialog.h"
+#include "persistentpattern.h"
+#include "syncfilterdialog.h"
 
 // Returns the size in human readable format
 static QString readableSize(qint64 size);
@@ -1794,7 +1796,7 @@ void MainWindow::readSettings() {
   updateRecentFileActions();
   GetPersistentInfo().retrieve(QString("filterSet"));
   GetPersistentInfo().retrieve(QString("frqFilterSet"));
-  GetPersistentInfo().retrieve(QString("sharedFilterSet"));
+  GetPersistentPattern().retrieve(QString("sharedFilterSet"));
 
 }
 

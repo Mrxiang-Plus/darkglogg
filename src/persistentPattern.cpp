@@ -38,8 +38,8 @@ PersistentPattern::~PersistentPattern() {
   if (initialised_) delete settings_;
 }
 
-void PersistentPattern::migrateAndInit() {
-  assert(initialised_ == false);
+void PersistentPattern::migrateAndInit(QString filterGroup) {
+//  assert(initialised_ == false);
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
   // "C:\Users\Jason\AppData\Roaming\glogg"
   // On Windows, we use .ini files and import from the registry if no
@@ -47,12 +47,12 @@ void PersistentPattern::migrateAndInit() {
 
   // This store the config file in %appdata%
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
-                            "glogg_pattern");
+                            filterGroup);
 
   settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
   if (settings_->childKeys().count() == 0) {
     LOG(logWARNING) << "INI file empty, trying to import from registry";
-    QSettings registry("glogg", "glogg_pattern");
+    QSettings registry("glogg", "filterGroup");
     foreach (QString key, registry.allKeys()) {
       settings_->setValue(key, registry.value(key));
     }
@@ -60,7 +60,7 @@ void PersistentPattern::migrateAndInit() {
 #else
   // We use default Qt storage on proper OSes
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
-                            "glogg_pattern");
+                            filterGroup);
   settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
   initialised_ = true;
@@ -68,6 +68,7 @@ void PersistentPattern::migrateAndInit() {
 
 void PersistentPattern::registerPersistable(std::shared_ptr<Persistable> object,
                                             const QString& name) {
+  migrateAndInit(name);
   assert(initialised_);
 
   objectList_.insert(name, object);
@@ -75,6 +76,7 @@ void PersistentPattern::registerPersistable(std::shared_ptr<Persistable> object,
 
 std::shared_ptr<Persistable> PersistentPattern::getPersistable(
     const QString& name) {
+  migrateAndInit(name);
   assert(initialised_);
 
   std::shared_ptr<Persistable> object = objectList_.value(name, NULL);
@@ -83,6 +85,7 @@ std::shared_ptr<Persistable> PersistentPattern::getPersistable(
 }
 
 void PersistentPattern::save(const QString& name) {
+  migrateAndInit(name);
   assert(initialised_);
 
   if (objectList_.contains(name))
@@ -95,6 +98,7 @@ void PersistentPattern::save(const QString& name) {
 }
 
 void PersistentPattern::retrieve(const QString& name) {
+  migrateAndInit(name);
   assert(initialised_);
 
   // Sync to ensure it has been propagated from other processes

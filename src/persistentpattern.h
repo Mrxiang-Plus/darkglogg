@@ -34,7 +34,7 @@ class PersistentPattern {
  public:
   // Initialise the storage backend for the Persistable, migrating the settings
   // if needed. Must be called before any other function.
-  void migrateAndInit();
+  void migrateAndInit(QString filterGroup);
   // Register a Persistable
   void registerPersistable(std::shared_ptr<Persistable> object,
                            const QString& name);

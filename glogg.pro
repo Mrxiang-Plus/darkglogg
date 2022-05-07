@@ -68,7 +68,8 @@ SOURCES += \
     src/pinedbutton.cpp \
     src/sharedfilterset.cpp \
     src/sharedfilterdialog.cpp \
-    src/filterlineedit.cpp
+    src/filterlineedit.cpp \
+    src/syncfilterdialog.cpp
 
 INCLUDEPATH += src/ \
                framelesswindow/
@@ -131,7 +132,8 @@ HEADERS += \
     src/pinedbutton.h \
     src/sharedfilterset.h \
     src/sharedfilterdialog.h \
-    src/filterlineedit.h
+    src/filterlineedit.h \
+    src/syncfilterdialog.h
 
 //https://github.com/nickbnf/glogg/blob/master/release-osx.sh
 

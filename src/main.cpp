@@ -217,7 +217,6 @@ int main(int argc, char* argv[]) {
 
   // Register the configuration items
   GetPersistentInfo().migrateAndInit();
-  GetPersistentPattern().migrateAndInit();
   GetPersistentInfo().registerPersistable(std::make_shared<SessionInfo>(),
                                           QString("session"));
   GetPersistentInfo().registerPersistable(std::make_shared<Configuration>(),
@@ -232,7 +231,7 @@ int main(int argc, char* argv[]) {
                                              QString("savedPatterns"));
   GetPersistentInfo().registerPersistable(std::make_shared<RecentFiles>(),
                                           QString("recentFiles"));
-  GetPersistentInfo().registerPersistable(std::make_shared<SharedFilterSet>(),
+  GetPersistentPattern().registerPersistable(std::make_shared<SharedFilterSet>(),
                                           QString("sharedFilterSet"));
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING
   GetPersistentInfo().registerPersistable(

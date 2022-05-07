@@ -28,6 +28,10 @@ class SharedFilter {
   void setPattern(const QString& pattern);
   const QString& comment() const;
   void setComment(const QString& comment);
+  void retrieveFromFilterItem();
+
+  const QString& filterItem() const;
+  void setFilterItem();
 
   // Operators for serialization
   // (must be kept to migrate filters from <=0.8.2)
@@ -43,6 +47,7 @@ class SharedFilter {
   QRegularExpression  regexp_;
   QString pattern_;
   QString comment_;
+  QString filterItem_;
 
 };
 

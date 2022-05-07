@@ -81,6 +81,41 @@ void SharedFilter::setComment(const QString& comment)
   comment_ = comment;
 }
 
+const QString& SharedFilter::filterItem() const
+{
+    return filterItem_;
+}
+
+void SharedFilter::setFilterItem()
+{
+    filterItem_ = tab_;
+    filterItem_.append("#");
+    filterItem_.append(regexp_.pattern());
+    filterItem_.append(">");
+    filterItem_.append(pattern_);
+    if (comment_ != NULL)
+    {
+        filterItem_.append(">");
+        filterItem_.append(comment_);
+    }
+}
+
+void SharedFilter::retrieveFromFilterItem()
+{
+    QStringList tempList = filterItem_.split("#");
+    tab_ = tempList.at(0);
+    if (tempList.size() > 1)
+    {
+        QString tempStr = tempList.at(1);
+        tempList = tempStr.split(">");
+        regexp_.setPattern(tempList.at(0));
+        pattern_ = tempList.at(1);
+        if (tempList.size() > 2) {
+            comment_ = tempList.at(2);
+        }
+    }
+}
+
 bool SharedFilter::hasMatch(const QString& string) const {
   return QString::compare(regexp_.pattern(), string) == 0;
 }
@@ -91,20 +126,23 @@ bool SharedFilter::hasMatch(const QString& string) const {
 
 QDataStream& operator<<(QDataStream& out, const SharedFilter& object) {
   LOG(logDEBUG) << "<<operator from SharedFilter";
-  out << object.tab_;
-  out << object.regexp_;
-  out << object.pattern_;
-  out << object.comment_;
+//  out << object.tab_;
+//  out << object.regexp_;
+//  out << object.pattern_;
+//  out << object.comment_;
+  out << object.filterItem_;
 
   return out;
 }
 
 QDataStream& operator>>(QDataStream& in, SharedFilter& object) {
   LOG(logDEBUG) << ">>operator from SharedFilter";
-  in >> object.tab_;
-  in >> object.regexp_;
-  in >> object.pattern_;
-  in >> object.comment_;
+//  in >> object.tab_;
+//  in >> object.regexp_;
+//  in >> object.pattern_;
+//  in >> object.comment_;
+  in >> object.filterItem_;
+
 
   return in;
 }
@@ -115,22 +153,38 @@ QDataStream& operator>>(QDataStream& in, SharedFilter& object) {
 
 void SharedFilter::saveToStorage(QSettings& settings) const {
   LOG(logDEBUG) << "SharedFilter::saveToStorage";
+  settings.setValue("filterItem", filterItem_);
 
-  settings.setValue("tab", tab_);
-  settings.setValue("key", regexp_.pattern());
-  settings.setValue("pattern", pattern_);
-  settings.setValue("comment", comment_);
+//  settings.setValue("tab", tab_);
+//  settings.setValue("key", regexp_.pattern());
+//  settings.setValue("pattern", pattern_);
+//  settings.setValue("comment", comment_);
 }
 
 void SharedFilter::retrieveFromStorage(QSettings& settings) {
   LOG(logDEBUG) << "SharedFilter::retrieveFromStorage";
 
-  tab_ = settings.value("tab").toString();
-  regexp_ = QRegularExpression(
-              settings.value("key").toString(),
-              getPatternOptions());
-  pattern_ = settings.value("pattern").toString();
-  comment_ = settings.value("comment").toString();
+  filterItem_ = settings.value("filterItem").toString();
+  QStringList tempList = filterItem_.split("#");
+  tab_ = tempList.at(0);
+  if (tempList.size() > 1)
+  {
+      QString tempStr = tempList.at(1);
+      tempList = tempStr.split(">");
+      regexp_.setPattern(tempList.at(0));
+      pattern_ = tempList.at(1);
+      if (tempList.size() > 2) {
+          comment_ = tempList.at(2);
+      }
+  }
+
+
+//  tab_ = settings.value("tab").toString();
+//  regexp_ = QRegularExpression(
+//              settings.value("key").toString(),
+//              getPatternOptions());
+//  pattern_ = settings.value("pattern").toString();
+//  comment_ = settings.value("comment").toString();
 }
 
 //============================================================//

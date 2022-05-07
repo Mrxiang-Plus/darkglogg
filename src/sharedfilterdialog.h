@@ -18,7 +18,9 @@
 #include <QDialogButtonBox>
 #include "filterlineedit.h"
 #include "sharedfilterset.h"
+#include "syncfilterdialog.h"
 
+class SavedPatterns;
 
 class SharedFilterDialog : public QDialog
 {
@@ -41,16 +43,25 @@ protected:
     void rebuildDialog();
     void rebuildTab(QString tabName);
     void rebuildFilter(int tabIndex, QString key, QString pattern, QString comment);
+    QStringList getRemoteTabSet();
+    QStringList getLocalTabSet();
+
+    //sync filter from savedpatterns
+    void importSavedPattern();
+    virtual void doSetSavedPatterns(
+        std::shared_ptr<SavedPatterns> saved_patterns);
 
 private slots:
     void addTab_click();
     void delTab_click();
     void addFilterItem_click();
     void delFilterItem_click();
+    void syncFilterGroup_click();
 
 //    void getFilterLineIndex(int index);
     void handleClick(int index);
-    void buttonBox_clicked(QAbstractButton* button);
+    void buttonBox_clicked(QAbstractButton* button);    
+    void handleSyncApplied(const QString &sync_tabName);
 
 signals:
     void optionsChanged();
@@ -62,8 +73,9 @@ private:
 
     QStringList filterLineName;
 
-//    QSet <QString> tabNameSet;
     QStringList tabNameSet;
+//    QStringList remoteTabSet;
+//    QStringList localTabSet;
 
 
     QVector<int> filterArray;
@@ -84,6 +96,7 @@ private:
     QPushButton *delTab;
     QPushButton *addFilterItem;
     QPushButton *delFilterItem;
+    QPushButton *syncFilterGroup;
     QDialogButtonBox* buttonBox;
 
     QVBoxLayout *mainVLayout;
@@ -94,7 +107,6 @@ private:
     QHBoxLayout *filterTitleHLayout;
     QHBoxLayout *filterItemHLayout;
 
-
     FilterLineEdit *keyEdit;
     FilterLineEdit *filterEdit;
     FilterLineEdit *commentEdit;
@@ -103,7 +115,7 @@ private:
     QSpacerItem *horizontalSpacer;
 
     std::shared_ptr<SharedFilterSet> sharedFilterSet;
-
+    std::shared_ptr<SavedPatterns> savedPatterns_;
 
 };
 
