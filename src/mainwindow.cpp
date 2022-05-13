@@ -1204,7 +1204,19 @@ void MainWindow::addToQuickSearch(const QString& string) {
 
 void MainWindow::updateInfoLine1() {
   QByteArray data = process_->readAllStandardOutput();
+
+  QString str = QString::fromLocal8Bit(data);
   infoLine->setText(QString(data));
+  if (str.contains("invalid file", Qt::CaseInsensitive))
+  {
+      QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,
+                                            "Invaild File",
+                                            tr("The resolvable file must contain one of the following file:"
+                                               "<p> bugreport*.txt"
+                                               "<p> logcatlog.txt.*"
+                                               "<p> com.android.camera.log"));
+      msgBox->show();
+  }
 }
 
 void MainWindow::addToQuickMark(const QString& string) {

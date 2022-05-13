@@ -50,13 +50,6 @@ void SharedFilterDialog::addMainLayout()
     mainTabWidget = new QTabWidget();
     mainTabWidget->setGeometry(QRect(10, 10, 1260, 720));
 
-//    filterTab = new QWidget(mainTabWidget);
-//    filterTab->setObjectName("App");
-//    mainTabWidget->addTab(filterTab, QString());
-//    mainTabWidget->setTabText(0, "Cam App");
-//    filterArray.append(0);
-//    tabCount = 1;
-
     tabCount = 0;
 
     editTabHLayoutWidget = new QWidget();
@@ -102,8 +95,6 @@ void SharedFilterDialog::addMainLayout()
 
 void SharedFilterDialog::addFilterTitle(int tabIndex)
 {
-    QWidget *curTabWidget = mainTabWidget->widget(tabIndex);
-
     scrollArea = new QScrollArea();
 
     scrollArea->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -254,11 +245,8 @@ QStringList SharedFilterDialog::getRemoteTabSet()
 
     //clone the git@git.n.xiaomi.com:MiuiCamera/miuicameratool.git
   #ifdef _WIN32
-    process->setWorkingDirectory(path);
-    QString command = path + "sync-filter-group.bat" + sync_tabName;
-    process->startDetached(command);
-  #else
 
+  #else
     QObject::connect(
         process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
         [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
@@ -266,7 +254,7 @@ QStringList SharedFilterDialog::getRemoteTabSet()
         });
     //for sync sharedFilter from remote
     process->start("/bin/bash", QStringList() << path + "sync-filter-group.sh"
-                                              << repoUrl);
+                                              << repoUrl);   
 
   #endif
 
@@ -387,9 +375,7 @@ void SharedFilterDialog::handleSyncApplied(const QString &sync_tabName)
 
 
   #ifdef _WIN32
-    process->setWorkingDirectory(path);
-    QString command = path + "sync-filter-group.bat" + sync_tabName;
-    process->startDetached(command);
+
   #else
 
     // catch data output
@@ -417,7 +403,6 @@ void SharedFilterDialog::handleSyncApplied(const QString &sync_tabName)
     process1->start("/bin/bash", QStringList() << path + "update_filter_setting.sh"
                                               << repoUrl
                                               << sync_tabName);
-
   #endif
     if (sync_tabName.compare("end") == 0)
     {
@@ -427,9 +412,6 @@ void SharedFilterDialog::handleSyncApplied(const QString &sync_tabName)
                                               "<p>Please restart the shared filter dialog."));
         msgBox->show();
         QTimer::singleShot(2000, msgBox, SLOT(accept()));
-
-//        GetPersistentPattern().retrieve("sharedFilterSet");
-//        sharedFilterSet = PatternPersistentCopy<SharedFilterSet>("sharedFilterSet");
         reject();
     }
 }
@@ -484,7 +466,8 @@ void SharedFilterDialog::delTab_click()
     QString curTab = mainTabWidget->tabText(curIndex);
     QString tabText = QInputDialog :: getText(this,
                                              "Del Tab",
-                                             "Please reconfirm the current tab name.",
+                                             tr ("Warning: the action will delete filters of current group."
+                                                  "<p> Please enter the current group name to reconfirm."),
                                              QLineEdit::Normal,
                                              "",
                                              &ok
@@ -628,7 +611,16 @@ void SharedFilterDialog::delFilterItem_click()
         if (strList.size() > 3)
         {
             FilterLineEdit* lineEdit = scrollAreaWidgetContents->findChild<FilterLineEdit* >(strList[i]);
-            if (i == 1) {
+            if (lineEdit == NULL && i == 1)
+            {
+                QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,
+                                                      tr("Hint"),
+                                                      tr("No filter is selected currently."
+                                                         "<p>Please select a filter first."));
+                msgBox->show();
+            }
+            else if (i == 1)
+            {
                 delFilterDataByKey(lineEdit->text());
             }
             lineEdit->deleteLater();
