@@ -24,6 +24,7 @@ function ex () {
 filename=$(basename "$1")
 #name=$(echo "$filename" | cut -f 1 -d '.')
 name=${filename%.*}
+flag="false"
 
 echo "$name"
 rm -rf "$2/$name"
@@ -50,6 +51,7 @@ done
 var=`find . -type f -name 'bugreport*.txt'`
 if ! [ -z "$var" ];then
     glogg  "$var"
+    flag="true"
     bash ~/.glogg/mode_mapping.sh  "$var"
 fi
 #find . -type f -name 'bugreport*.txt' -print0|xargs -0 -I % sed -i 's/\(^[0-9]*-[0-9]* [0-9:]*[^\.]*\.[0-9]*\) [^ ]*/\1/g' %
@@ -80,7 +82,8 @@ if [[ $count -gt 0 ]];then
     var=`find . -type f -name 'bugreport*.txt'`
     if [ -z "$var" ];then
         glogg  "$logcat_name"
-	bash ~/.glogg/mode_mapping.sh  "$logcat_name"
+        flag="true"
+    	bash ~/.glogg/mode_mapping.sh  "$logcat_name"
     fi
 fi
 
@@ -98,5 +101,14 @@ if [[ $count -gt 0 ]];then
     mv tmp.txt "$camera_log_name"
     touch "$camera_log_name"
 fi
-glogg "$camera_log_name"
-bash ~/.glogg/mode_mapping.sh  "$camera_log_name"
+if [[ -s $camera_log_name ]];then
+    glogg "$camera_log_name"
+    flag="true"
+    bash ~/.glogg/mode_mapping.sh  "$camera_log_name"
+
+fi
+
+
+if [ "$flag" == "false" ];then
+    echo "invalid file"
+fi
