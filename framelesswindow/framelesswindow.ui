@@ -143,7 +143,7 @@
   color:rgb(153,153,153);</string>
            </property>
            <property name="text">
-            <string>glogg_wht</string>
+            <string>glogg</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
