@@ -28,5 +28,7 @@
         <file>images/start16.png</file>
         <file>images/stop16.png</file>
         <file>images/scroll_to_end16.png</file>
+        <file>images/update14.png</file>
+        <file>images/update_hint.png</file>
     </qresource>
 </RCC>

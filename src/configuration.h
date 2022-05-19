@@ -73,6 +73,8 @@ class Configuration : public Persistable {
   void setLoadLastSession(bool enabled) { loadLastSession_ = enabled; }
   bool wasdStyle() const { return wasdStyle_; }
   void setWasdStyle(bool enabled) { wasdStyle_ = enabled; }
+  bool loadCheckUpdate() const { return checkUpate_; }
+  void setCheckUpdate(bool enabled) { checkUpate_ = enabled; }
 
   // View settings
   bool isOverviewVisible() const { return overviewVisible_; }
@@ -117,6 +119,7 @@ class Configuration : public Persistable {
   uint32_t pollIntervalMs_;
   uint32_t transparent_;
   bool loadLastSession_;
+  bool checkUpate_;
 
   // View settings
   bool overviewVisible_;

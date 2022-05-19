@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>952</width>
-    <height>676</height>
+    <height>844</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -288,17 +288,24 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Software update</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
+         <widget class="QCheckBox" name="updateCheckBox">
+          <property name="geometry">
+           <rect>
+            <x>12</x>
+            <y>38</y>
+            <width>888</width>
+            <height>23</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Check for updates automatically</string>
+          </property>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>

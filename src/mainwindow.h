@@ -39,6 +39,7 @@
 #include "gloggapp.h"
 #include "utils.h"
 #include "windowdragger.h"
+#include "version/versionmanager.h"
 
 class QAction;
 class QActionGroup;
@@ -167,6 +168,8 @@ class MainWindow : public QMainWindow {
 
   // Notify the user a new version is available
   void newVersionNotification(const QString &new_version);
+  void updateVersion_click();
+  void updateVersionIcon(bool isExistent);
 
  signals:
   // Is emitted when new settings must be used
@@ -235,6 +238,7 @@ class MainWindow : public QMainWindow {
   QMenu *helpMenu;
   QMenu *cameraMenu;
   QMenu *filterMenu;
+
   uint32_t transparent_ = 255;
   int lineNumber_;
 
@@ -243,10 +247,6 @@ class MainWindow : public QMainWindow {
   QToolBar *toolBar;
 
   QToolBar *menuToolBar;
-  //QIcon *startLogcatIcon;
-  //QIcon *stopLogcatIcon;
-  //QPixmap *enabled_startLogcat;
-  //QPixmap *disabled_startLogcat;
 
   QAction *openAction;
   QAction *copyPathAction;
@@ -291,6 +291,8 @@ class MainWindow : public QMainWindow {
   QAction *dumpDeviceInfoAction;\
   QAction *shortcutAction;
   QAction *aboutCustomizedAction;
+  QAction *updateVersionAction;
+
 
   QProcess *process_;
   QIcon mainIcon_;
@@ -310,6 +312,7 @@ class MainWindow : public QMainWindow {
 
   // The main widget
   TabbedCrawlerWidget mainTabWidget_;
+  VersionManager *versionManager;
 
   // Version checker
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING

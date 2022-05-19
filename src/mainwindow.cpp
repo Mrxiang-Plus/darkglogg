@@ -63,6 +63,7 @@
 #include "sharedfilterdialog.h"
 #include "persistentpattern.h"
 #include "syncfilterdialog.h"
+#include "version/versionmanager.h"
 
 // Returns the size in human readable format
 static QString readableSize(qint64 size);
@@ -256,6 +257,16 @@ MainWindow::MainWindow(
   central_widget->setLayout(main_layout);
 
   setCentralWidget(central_widget);
+
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  if (config->loadCheckUpdate())
+  {
+      VersionManager *manager = new VersionManager(this);
+      connect(manager, SIGNAL(existLatestVersion(bool)), this, SLOT(updateVersionIcon(bool)));
+      //check the latest version when start the program
+      manager->startCheck(true);
+
+  }
 }
 
 void MainWindow::reloadGeometry() {
@@ -525,6 +536,12 @@ void MainWindow::createActions() {
   aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
   connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
+  updateVersionAction = new QAction(tr("Update"), this);
+  updateVersionAction->setStatusTip(tr("Check for updates"));
+  connect(updateVersionAction, SIGNAL(triggered()), this, SLOT(updateVersion_click()));
+
+  updateVersionAction->setIcon(QIcon(":/images/update14.png"));
+
   aboutCustomizedAction = new QAction(tr("More info"));
   aboutCustomizedAction->setStatusTip(tr("Show more info about customized glogg"));
   connect(aboutCustomizedAction, SIGNAL(triggered()), this, SLOT(aboutCustomizedGlogg()));
@@ -630,20 +647,21 @@ void MainWindow::createMenus() {
   cameraMenu->addAction(dumpDeviceInfoAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
-//  helpMenu->addAction(shortcutAction);
-//  helpMenu->addSeparator();
   helpMenu->addAction(aboutAction);
+  helpMenu->addAction(updateVersionAction);
   helpMenu->addAction(aboutCustomizedAction);
-
 }
 
 void MainWindow::createIconToolBars() {
     menuToolBar = addToolBar(tr("Menu ToolBar"));
     menuToolBar->addAction(openAction);
     menuToolBar->addAction(saveAsAction);
+    menuToolBar->addSeparator();
     menuToolBar->addAction(startLogcatAction);
     menuToolBar->addAction(stopLogcatAction);
     menuToolBar->addAction(followAction);
+    menuToolBar->addSeparator();
+    menuToolBar->addAction(updateVersionAction);
 }
 
 void MainWindow::createToolBars() {
@@ -1087,6 +1105,24 @@ void MainWindow::about() {
 // Opens the 'About Qt' dialog box.
 void MainWindow::aboutQt() {}
 
+
+void MainWindow::updateVersion_click()
+{
+    versionManager = new VersionManager(this);
+    versionManager->startCheck(false);
+}
+
+void MainWindow::updateVersionIcon(bool isExistent)
+{
+    if (isExistent)
+    {
+        updateVersionAction->setIcon(QIcon(":/images/update_hint.png"));
+    }
+    else
+    {
+        updateVersionAction->setIcon(QIcon(":/images/update14.png"));
+    }
+}
 
 void MainWindow::aboutCustomizedGlogg() {
     QMessageBox::about(

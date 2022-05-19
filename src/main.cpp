@@ -59,6 +59,7 @@ using namespace std;
 
 #include "log.h"
 #include "sharedfilterset.h"
+#include "version/versionmanager.h"
 
 static void print_version();
 

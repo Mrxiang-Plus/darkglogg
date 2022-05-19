@@ -47,6 +47,7 @@ Configuration::Configuration() {
   transparent_ = 255;
 
   loadLastSession_ = true;
+  checkUpate_ = true;
   wasdStyle_ = true;
 
   overviewVisible_ = true;
@@ -140,6 +141,9 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   if (settings.contains("session.loadLast"))
     loadLastSession_ = settings.value("session.loadLast").toBool();
 
+  if (settings.contains("auto_update.enabled"))
+    checkUpate_ = settings.value("auto_update.enabled").toBool();
+
   if (settings.contains("shortcut.wasd"))
     wasdStyle_ = settings.value("shortcut.wasd").toBool();
 
@@ -183,6 +187,7 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("polling.intervalMs", pollIntervalMs_);
   settings.setValue("transparent", transparent_);
   settings.setValue("session.loadLast", loadLastSession_);
+  settings.setValue("auto_update.enabled", checkUpate_);
   settings.setValue("shortcut.wasd", wasdStyle_);
 
   settings.setValue("view.overviewVisible", overviewVisible_);
