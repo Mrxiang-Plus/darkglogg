@@ -43,6 +43,7 @@ protected:
     void rebuildDialog();
     void rebuildTab(QString tabName);
     void rebuildFilter(int tabIndex, QString key, QString pattern, QString comment);
+    void saveData();
     QStringList getRemoteTabSet();
     QStringList getLocalTabSet();
 
@@ -77,7 +78,7 @@ private:
 //    QStringList remoteTabSet;
 //    QStringList localTabSet;
 
-
+    //count filters contained in each tab.
     QVector<int> filterArray;
 
 

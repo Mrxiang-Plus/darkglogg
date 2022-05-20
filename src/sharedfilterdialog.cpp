@@ -26,9 +26,6 @@ SharedFilterDialog::SharedFilterDialog(QWidget *parent):
     this->setWindowTitle("Shared Filter");
     this->resize(1300, 800);
     addMainLayout();
-//    addFilterTitle(0);
-//    addEditFilterBtn(0);
-//    insertTabVLayout(0);
 
     // Reload the filter list from disk (in case it has been changed
     // by another glogg instance) and copy it to here.
@@ -215,6 +212,36 @@ void SharedFilterDialog::rebuildDialog()
             tabNameSet << tabName;
         }
         rebuildFilter(tabNameSet.indexOf(tabName), sharedFilter.key(), sharedFilter.pattern(), sharedFilter.comment());
+    }
+}
+
+void SharedFilterDialog::saveData()
+{
+    QString saveTab, saveKey, saveFilter, saveComment;
+    FilterLineEdit *comment;
+    QStringList objectList;
+    //number of tabs needed save.
+    int saveTabCount = mainTabWidget->count();
+    for (int i_tab = 0; i_tab < saveTabCount; i_tab++)
+    {
+        QWidget *curSaveTab = mainTabWidget->widget(i_tab);
+        //number of filters contained of current tab.
+        int saveFilterCount = filterArray[i_tab];
+        saveTab = mainTabWidget->tabText(i_tab);
+        for (int i_filter = 0; i_filter < saveFilterCount; i_filter++)
+        {
+           QString indexStr = QString::number(i_filter);
+           objectList.clear();
+           objectList << ("filter_Line_" + indexStr) << ("filter_key_" + indexStr)
+                      << ("filter_content_" + indexStr) << ("filter_comment_" + indexStr);
+           saveKey = curSaveTab->findChild<FilterLineEdit *> (objectList[1])->text();
+           saveFilter = curSaveTab->findChild<FilterLineEdit *> (objectList[2])->text();
+           saveComment = curSaveTab->findChild<FilterLineEdit *> (objectList[3])->text();
+           SharedFilter saveSharedFilter = SharedFilter(saveTab, saveKey, saveFilter, saveComment);
+           saveSharedFilter.setFilterItem();
+           sharedFilterSet->sharedFilterList << saveSharedFilter;
+        }
+
     }
 }
 
@@ -420,7 +447,10 @@ void SharedFilterDialog::buttonBox_clicked(QAbstractButton *button)
 {
     QDialogButtonBox::ButtonRole role = buttonBox->buttonRole(button);
     if ((role == QDialogButtonBox::AcceptRole) ||
-        (role == QDialogButtonBox::ApplyRole)) {
+        (role == QDialogButtonBox::ApplyRole))
+    {
+      sharedFilterSet->sharedFilterList.clear();
+      saveData();
       // Copy the sharedfilter set and persist it to disk
       GetPersistentPattern().migrateAndInit("sharedFilterSet");
       *(PatternPersistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
@@ -543,16 +573,10 @@ void SharedFilterDialog::addFilterItem_click()
         filterEdit->setText(filterList.at(1));
         commentEdit = new FilterLineEdit();
         commentEdit->setFixedHeight(25);
-        SharedFilter newFilter = SharedFilter(curTabText, filterList.at(0), filterList.at(1), "");
         if (filterList.size() > 2)
         {
             commentEdit->setText(filterList.at(2));
-            newFilter.setComment(filterList.at(2));
         }
-
-        newFilter.setFilterItem();
-        //save filter data
-        sharedFilterSet->sharedFilterList << newFilter;
 
         QString indexStr = QString::number(curFilterCount);
         filterLineName.clear();
