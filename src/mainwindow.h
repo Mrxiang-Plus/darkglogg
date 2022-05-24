@@ -120,6 +120,7 @@ class MainWindow : public QMainWindow {
   void dumpCamera();
   void dumpStream();
   void dumpDeviceInfo();
+  void dumpCupInfo();
   void showShortcuts();
   void aboutCustomizedGlogg();
 
@@ -236,8 +237,9 @@ class MainWindow : public QMainWindow {
   QMenu *toolsMenu;
   QMenu *encodingMenu;
   QMenu *helpMenu;
-  QMenu *cameraMenu;
+  QMenu *deviceMenu;
   QMenu *filterMenu;
+  QMenu *cameraMenu;
 
   uint32_t transparent_ = 255;
   int lineNumber_;
@@ -288,7 +290,8 @@ class MainWindow : public QMainWindow {
   QAction *encodingAction[static_cast<int>(Encoding::ENCODING_MAX)];
   QAction *dumpCameraAction;
   QAction *dumpStreamAction;
-  QAction *dumpDeviceInfoAction;\
+  QAction *dumpDeviceInfoAction;
+  QAction *dumpCpuAction;
   QAction *shortcutAction;
   QAction *aboutCustomizedAction;
   QAction *updateVersionAction;

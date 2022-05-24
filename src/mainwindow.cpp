@@ -570,6 +570,9 @@ void MainWindow::createActions() {
 
   dumpDeviceInfoAction = new QAction(tr("Device info"));
   connect(dumpDeviceInfoAction, SIGNAL(triggered()), this, SLOT(dumpDeviceInfo()));
+
+  dumpCpuAction = new QAction(tr("Cpu and thermal"), this);
+  connect(dumpCpuAction, SIGNAL(triggered()), this, SLOT(dumpCupInfo()));
 }
 
 void MainWindow::createMenus() {
@@ -623,7 +626,7 @@ void MainWindow::createMenus() {
   viewMenu->addSeparator();
   viewMenu->addAction(reloadAction);
 
-  toolsMenu = menuBar()->addMenu(tr("Tools"));
+  toolsMenu = menuBar()->addMenu(tr("&Tools"));
   fileMenu = toolsMenu->addMenu(tr("Filter"));
   fileMenu->addAction(filtersAction);
   fileMenu->addAction(sharedFilterAction);
@@ -640,11 +643,13 @@ void MainWindow::createMenus() {
 
   menuBar()->addSeparator();
 
-  cameraMenu = menuBar()->addMenu(tr("&Camera"));
+  deviceMenu = menuBar()->addMenu(tr("&Device"));
+  deviceMenu->addAction(dumpDeviceInfoAction);
+  deviceMenu->addAction(dumpCpuAction);
+  deviceMenu->addSeparator();
+  cameraMenu = deviceMenu->addMenu(tr("Camera"));
   cameraMenu->addAction(dumpCameraAction);
   cameraMenu->addAction(dumpStreamAction);
-  cameraMenu->addSeparator();
-  cameraMenu->addAction(dumpDeviceInfoAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
@@ -1493,6 +1498,14 @@ void MainWindow::dumpDeviceInfo() {
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
     process->startDetached("/bin/bash", QStringList() << path + "dump-device-info.sh");
+}
+
+void MainWindow::dumpCupInfo()
+{
+    QProcess* process = new QProcess();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process->startDetached("/bin/bash", QStringList() << path + "cputools.sh");
 }
 
 void MainWindow::fullScreen() {
