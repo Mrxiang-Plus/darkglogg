@@ -61,8 +61,12 @@ void DarkStyle::polish(QPalette &palette) {
     palette.setColor(QPalette::Disabled, QPalette::HighlightedText,
                      QColor(127, 127, 127));
     palette.setColor(QPalette::NoRole, QColor(70, 70, 70));
-  } else {
-    palette.setColor(QPalette::NoRole, QColor(127, 127, 127));
+  } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL){
+      palette.setColor(QPalette::Window, QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
+      palette.setColor(QPalette::Window, QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
+  }
+  else {
+      palette.setColor(QPalette::NoRole, QColor(127, 127, 127));
   }
 }
 

@@ -52,6 +52,7 @@ OptionsDialog::OptionsDialog(QWidget* parent) : QDialog(parent) {
           SLOT(onIncrementalChanged()));
   connect(pollingCheckBox, SIGNAL(toggled(bool)), this,
           SLOT(onPollingChanged()));
+  custom_lineEdit->setPlaceholderText(QString::fromLocal8Bit("#EFEBE7"));
 
   updateDialogFromConfig();
 
@@ -169,8 +170,11 @@ void OptionsDialog::updateDialogFromConfig() {
   // Last session
   loadLastSessionCheckBox->setChecked(config->loadLastSession());
   updateCheckBox->setChecked(config->loadCheckUpdate());
+
   radioButton->setChecked(config->wasdStyle());
-  radioButton_2->setChecked(!config->wasdStyle());
+  customRatioBtn->setChecked(config->wasCustomStyle());
+  custom_lineEdit->setText(config->getCustomStyle());
+  radioButton_2->setChecked(!config->wasdStyle() && !config->wasCustomStyle());
 }
 
 //
@@ -221,6 +225,9 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setLoadLastSession(loadLastSessionCheckBox->isChecked());
   config->setCheckUpdate(updateCheckBox->isChecked());
   config->setWasdStyle(radioButton->isChecked());
+  config->setCustomChecked(customRatioBtn->isChecked());
+  config->setCustomColor(custom_lineEdit->text());
+
   emit optionsChanged();
 }
 

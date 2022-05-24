@@ -73,6 +73,12 @@ class Configuration : public Persistable {
   void setLoadLastSession(bool enabled) { loadLastSession_ = enabled; }
   bool wasdStyle() const { return wasdStyle_; }
   void setWasdStyle(bool enabled) { wasdStyle_ = enabled; }
+
+  bool wasCustomStyle() const { return wasCustomStyle_; }
+  QString getCustomStyle() { return customColor; }
+  void setCustomChecked(bool enabled) { wasCustomStyle_ = enabled; }
+  void setCustomColor(QString color) { customColor = color; }
+
   bool loadCheckUpdate() const { return checkUpate_; }
   void setCheckUpdate(bool enabled) { checkUpate_ = enabled; }
 
@@ -110,6 +116,8 @@ class Configuration : public Persistable {
   QString repoUrl_;
   QString unzipPath_;
   bool wasdStyle_;
+  bool wasCustomStyle_;
+  QString customColor;
   QString processFilter_;
   QString highlightString_;
   SearchRegexpType mainRegexpType_;

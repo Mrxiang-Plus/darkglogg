@@ -365,7 +365,10 @@ void FiltersDialog::populateColors() {
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   if (config->wasdStyle()) {
     solidPixmap.fill(QColor(33, 33, 33));
-  } else {
+  } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
+      solidPixmap.fill(QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
+  }
+  else {
     solidPixmap.fill(QColor(239, 235, 231));
   }
 

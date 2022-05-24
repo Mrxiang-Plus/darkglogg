@@ -147,6 +147,15 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   if (settings.contains("shortcut.wasd"))
     wasdStyle_ = settings.value("shortcut.wasd").toBool();
 
+  if (settings.contains("custom.color"))
+  {
+      customColor = settings.value("custom.color").toString();
+  }
+  if (settings.contains("custom.enable"))
+  {
+      wasCustomStyle_ = settings.value("custom.enable").toBool();
+  }
+
   // View settings
   if (settings.contains("view.overviewVisible"))
     overviewVisible_ = settings.value("view.overviewVisible").toBool();
@@ -189,6 +198,8 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("session.loadLast", loadLastSession_);
   settings.setValue("auto_update.enabled", checkUpate_);
   settings.setValue("shortcut.wasd", wasdStyle_);
+  settings.setValue("custom.enable", wasCustomStyle_);
+  settings.setValue("custom.color", customColor);
 
   settings.setValue("view.overviewVisible", overviewVisible_);
   settings.setValue("view.lineNumbersVisibleInMain", lineNumbersVisibleInMain_);

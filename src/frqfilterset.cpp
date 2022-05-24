@@ -83,6 +83,8 @@ const QColor FrqFilter::foreColor() const {
         Persistent<Configuration>("settings");
     if (config->wasdStyle()) {
       return QColor(33, 33, 33);
+    } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
+        return QColor(config->getCustomStyle().right(6).toUInt(NULL, 16));
     } else {
       return QColor(239, 235, 231);
     }
@@ -115,7 +117,10 @@ const QColor FrqFilter::backColor() const {
         Persistent<Configuration>("settings");
     if (config->wasdStyle()) {
       return QColor(33, 33, 33);
-    } else {
+    } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
+        return QColor(config->getCustomStyle().right(6).toUInt(NULL, 16));
+    }
+    else {
       return QColor(239, 235, 231);
     }
   } else if (backColorName_.toStdString() == "text") {
