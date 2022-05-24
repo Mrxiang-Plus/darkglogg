@@ -1246,7 +1246,7 @@ void MainWindow::updateInfoLine1() {
   if (str.contains("invalid file", Qt::CaseInsensitive))
   {
       QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,
-                                            "Invaild File",
+                                            "Invalid File",
                                             tr("The resolvable file must contain one of the following file:"
                                                "<p> bugreport*.txt"
                                                "<p> logcatlog.txt.*"

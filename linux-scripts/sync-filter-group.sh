@@ -105,6 +105,8 @@ fi
 if [ ! -n "$group" ];then
     echo "not input the group to sync!"
     echo "only update the miuicameratool project."
+    cd ~/.glogg/$repoName
+    git pull
 else
     uploadToRemote
 fi

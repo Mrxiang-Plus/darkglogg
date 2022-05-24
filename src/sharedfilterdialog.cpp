@@ -234,14 +234,16 @@ void SharedFilterDialog::saveData()
            objectList.clear();
            objectList << ("filter_Line_" + indexStr) << ("filter_key_" + indexStr)
                       << ("filter_content_" + indexStr) << ("filter_comment_" + indexStr);
-           saveKey = curSaveTab->findChild<FilterLineEdit *> (objectList[1])->text();
-           saveFilter = curSaveTab->findChild<FilterLineEdit *> (objectList[2])->text();
-           saveComment = curSaveTab->findChild<FilterLineEdit *> (objectList[3])->text();
-           SharedFilter saveSharedFilter = SharedFilter(saveTab, saveKey, saveFilter, saveComment);
-           saveSharedFilter.setFilterItem();
-           sharedFilterSet->sharedFilterList << saveSharedFilter;
+           if (curSaveTab->findChild<FilterLineEdit *> (objectList[1]) != NULL)
+           {
+               saveKey = curSaveTab->findChild<FilterLineEdit *> (objectList[1])->text();
+               saveFilter = curSaveTab->findChild<FilterLineEdit *> (objectList[2])->text();
+               saveComment = curSaveTab->findChild<FilterLineEdit *> (objectList[3])->text();
+               SharedFilter saveSharedFilter = SharedFilter(saveTab, saveKey, saveFilter, saveComment);
+               saveSharedFilter.setFilterItem();
+               sharedFilterSet->sharedFilterList << saveSharedFilter;
+           }
         }
-
     }
 }
 
@@ -263,6 +265,7 @@ QStringList SharedFilterDialog::getLocalTabSet()
 
 QStringList SharedFilterDialog::getRemoteTabSet()
 {
+    QStringList ret;
     //  QProcess process;
     QProcess* process = new QProcess();
     QString path =
@@ -284,19 +287,43 @@ QStringList SharedFilterDialog::getRemoteTabSet()
                                               << repoUrl);   
 
   #endif
+    QString baseDir = getRemoteDir(repoUrl);
+    if (baseDir == "false")
+    {
+        QMessageBox *msgBox = new QMessageBox("Warning",
+                                              tr("Invalid repo url! Can't pull the remote group."
+                                                 "<p>Please check the repo url setting in tools->options "),
+                                              QMessageBox::Warning,
+                                              QMessageBox::Ok,
+                                              QMessageBox::Escape,
+                                              0);
+        msgBox->show();
+        return ret << "invalid";
+    }
 
     //get the remote filter group by getting basename of .txt file.
-    QDir remoteDir(path + "miuicameratool" + QDir::separator() + "glogg");
+    QDir remoteDir(path + baseDir + QDir::separator() + "glogg");
     QStringList filtername;
     filtername << "*.txt";
     remoteDir.setNameFilters(filtername);
     QStringList fileList = remoteDir.entryList();
     QFileInfoList fileInfoList = remoteDir.entryInfoList();
-    QStringList ret;
     foreach (QFileInfo info, fileInfoList) {
         ret << info.baseName();
     }
     return ret;
+}
+
+QString SharedFilterDialog::getRemoteDir(QString sshStr)
+{
+    QStringList tempList = sshStr.split("/");
+    if (tempList.size() == 2)
+    {
+        QString str = tempList.at(1);
+        tempList = str.split(".git");
+        return tempList.at(0);
+    }
+    return "false";
 }
 
 void SharedFilterDialog::rebuildTab(QString tabName)
@@ -364,6 +391,8 @@ void SharedFilterDialog::rebuildFilter(int tabIndex, QString key, QString patter
 
 void SharedFilterDialog::syncFilterGroup_click()
 {
+    sharedFilterSet->sharedFilterList.clear();
+    saveData();
     //apply settings before sync
     GetPersistentPattern().migrateAndInit("sharedFilterSet");
     *(PatternPersistent<SharedFilterSet>("sharedFilterSet")) = *sharedFilterSet;
@@ -390,7 +419,6 @@ void SharedFilterDialog::syncFilterGroup_click()
 
 void SharedFilterDialog::handleSyncApplied(const QString &sync_tabName)
 {
-
     QProcess* process = new QProcess();
     QProcess* process1 = new QProcess();
 

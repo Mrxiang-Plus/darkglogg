@@ -44,6 +44,7 @@ protected:
     void rebuildTab(QString tabName);
     void rebuildFilter(int tabIndex, QString key, QString pattern, QString comment);
     void saveData();
+    QString getRemoteDir(QString sshStr);
     QStringList getRemoteTabSet();
     QStringList getLocalTabSet();
 

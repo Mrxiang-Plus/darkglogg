@@ -20,7 +20,7 @@ void SyncFilterDialog::built(QStringList tabNameList)
     optionLayout = new QVBoxLayout(this);
     foreach (QString tabName, tabNameList)
     {
-        if (tabName.compare("glogg_pattern") != 0)
+        if (tabName.compare("glogg_pattern") != 0 && tabName.compare("invalid") != 0)
         {
             addTabOption(tabName);
         }
