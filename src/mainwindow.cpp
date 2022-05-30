@@ -44,6 +44,7 @@
 #include <QToolBar>
 #include <QUrl>
 #include <QDebug>
+#include <QDateTime>
 
 #include "log.h"
 
@@ -360,6 +361,10 @@ void MainWindow::createActions() {
       new QAction(tr("Calculation time consumption"), this);
   connect(calculateTimeDiffAction, SIGNAL(triggered()), this,
           SLOT(calculateTimeDiff()));
+  performanceAction = new QAction(tr("Performance"));
+  performanceAction ->setShortcut(tr("Ctrl+Shift+P"));
+  connect(performanceAction, SIGNAL(triggered()), this,
+          SLOT(getPerformance()));
 
   saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
   saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
@@ -646,10 +651,12 @@ void MainWindow::createMenus() {
   deviceMenu = menuBar()->addMenu(tr("&Device"));
   deviceMenu->addAction(dumpDeviceInfoAction);
   deviceMenu->addAction(dumpCpuAction);
-  deviceMenu->addSeparator();
-  cameraMenu = deviceMenu->addMenu(tr("Camera"));
+
+  cameraMenu = menuBar()->addMenu(tr("Camera"));
   cameraMenu->addAction(dumpCameraAction);
   cameraMenu->addAction(dumpStreamAction);
+  cameraMenu->addSeparator();
+  cameraMenu->addAction(performanceAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
@@ -836,7 +843,7 @@ void MainWindow::calculateTimeDiff() {
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
     QDateTime dateTime = dateTime.currentDateTime();
-    QString dstPath = currentPath("time_cost");
+    QString dstPath = currentPath("time_cost" + dateTime.toString("yyyyMMdd_HHmmss"));
     QFile file(dstPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
@@ -859,6 +866,108 @@ void MainWindow::calculateTimeDiff() {
                                      << dstPath);
   }
 }
+
+void MainWindow::getPerformance()
+{
+    //get the unit
+
+    QString dealFlag = "deal";
+    QString openFlag = "open";
+    QStringList timeList;
+    CrawlerWidget* current = currentCrawlerWidget();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    QDateTime dateTime = dateTime.currentDateTime();
+    //write the selected log into dstPath
+    QString dstPath = currentPath("time_cost_" + dateTime.toString("yyyyMMdd_HHmmss"));
+    if (current) {
+      QString selectedString = current->getSelectedText();
+//      bool ok;
+      QFile file(dstPath);
+      file.open(QIODevice::WriteOnly | QIODevice::Text);
+      QTextStream out(&file);
+      out << selectedString;
+      file.close();
+
+      process_ = new QProcess();
+//      QObject::connect(process_, SIGNAL(readyReadStandardOutput()), this,
+//                       SLOT(updateInfoLine1()));
+
+//      QObject::connect(
+//          process_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+//          [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+//            infoLine->setVisible(false);
+//            process_->deleteLater();
+//          });
+//      infoLine->setVisible(true);
+      process_->start("/bin/bash", QStringList()
+                                       << path + "preprocess_time_diff_file.sh"
+                                       << dstPath
+                                       << dealFlag);
+
+      process_->waitForFinished(3000);
+      int minValue=2, maxValue=10,stepValue=1;
+      bool ok = false;
+      int unit = QInputDialog::getInt(this, tr("Input"), tr("please Input the number of unit lines."), minValue, minValue, maxValue, stepValue, &ok);
+      if (!ok)
+      {
+          return;
+      }
+      QString tmpPath = currentPath("time");
+      QFile tmpfile(tmpPath);
+      if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
+      {
+          timeList.clear();
+          QTextStream in(&tmpfile);
+          while (!in.atEnd())
+          {
+              timeList << in.readLine();
+          }
+          tmpfile.close();
+          getAverageTime(timeList, unit, dstPath);
+      }
+      QProcess *process1 = new QProcess();
+      process1->start("/bin/bash", QStringList()
+                                       << path + "preprocess_time_diff_file.sh"
+                                       << dstPath
+                                       << openFlag);
+    }
+
+}
+
+void MainWindow::getAverageTime(QStringList timeList, int unitCount, QString path)
+{
+    QFile file(path);
+    file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append);
+    QTextStream out(&file);
+    QStringList rightTimeList = timeList;
+    rightTimeList.removeAt(0);
+    for (int j = 0; j < unitCount - 1; j++)
+    {
+        out << "===============================================" << endl;
+        out << "start calculate verage Time Diff between " << j+1 << " and " << j+2 << endl;
+        int baseCnt = 0;
+        int sumTime = 0;
+        for (int i = j; i < rightTimeList.size(); )
+        {
+            QString right = rightTimeList.at(i);
+            QString left = timeList.at(i);
+            int time = QDateTime::fromString(left, "hh:mm:ss.zzz").msecsTo(QDateTime::fromString(right, "hh:mm:ss.zzz"));
+            out << right << " - " << left << " = " << time << endl;
+            sumTime += time;
+            i += unitCount;
+            baseCnt++;
+        }
+        if (baseCnt != 0)
+        {
+            float aveTime = sumTime / baseCnt;
+            out << "Average Time Diff between " << j+1 << " and " << j+2 <<": " << aveTime << endl;
+        }
+    }
+    file.close();
+}
+
+
 
 void MainWindow::saveSelectedAsFile() {
   CrawlerWidget* current = currentCrawlerWidget();

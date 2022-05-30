@@ -98,6 +98,8 @@ class MainWindow : public QMainWindow {
   void saveAsFile();
   void saveSelectedAsFile();
   void calculateTimeDiff();
+  void getPerformance();
+  void getAverageTime(QStringList timeList, int unitCount, QString path);
   void retraceLog();
   void reformatLog();
   void viewPictures();
@@ -238,7 +240,6 @@ class MainWindow : public QMainWindow {
   QMenu *encodingMenu;
   QMenu *helpMenu;
   QMenu *deviceMenu;
-  QMenu *filterMenu;
   QMenu *cameraMenu;
 
   uint32_t transparent_ = 255;
@@ -295,6 +296,7 @@ class MainWindow : public QMainWindow {
   QAction *shortcutAction;
   QAction *aboutCustomizedAction;
   QAction *updateVersionAction;
+  QAction *performanceAction;
 
 
   QProcess *process_;
