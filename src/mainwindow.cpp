@@ -361,10 +361,14 @@ void MainWindow::createActions() {
       new QAction(tr("Calculation time consumption"), this);
   connect(calculateTimeDiffAction, SIGNAL(triggered()), this,
           SLOT(calculateTimeDiff()));
-  performanceAction = new QAction(tr("Performance"));
+  performanceAction = new QAction(tr("Performance calculation"));
   performanceAction ->setShortcut(tr("Ctrl+Shift+P"));
   connect(performanceAction, SIGNAL(triggered()), this,
           SLOT(getPerformance()));
+
+  camPerformanceManagerAction = new QAction(tr("CAM_PerformanceManager"));
+  connect(camPerformanceManagerAction, SIGNAL(triggered()), this,
+          SLOT(getCAM_PerformanceManager()));
 
   saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
   saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
@@ -657,6 +661,7 @@ void MainWindow::createMenus() {
   cameraMenu->addAction(dumpStreamAction);
   cameraMenu->addSeparator();
   cameraMenu->addAction(performanceAction);
+  cameraMenu->addAction(camPerformanceManagerAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
@@ -867,6 +872,14 @@ void MainWindow::calculateTimeDiff() {
   }
 }
 
+void MainWindow::getCAM_PerformanceManager()
+{
+    QProcess* process = new QProcess();
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process->start("/bin/bash", QStringList() << path + "dump-stream.sh");
+}
+
 void MainWindow::getPerformance()
 {
     //get the unit
@@ -945,7 +958,7 @@ void MainWindow::getAverageTime(QStringList timeList, int unitCount, QString pat
     for (int j = 0; j < unitCount - 1; j++)
     {
         out << "===============================================" << endl;
-        out << "start calculate verage Time Diff between " << j+1 << " and " << j+2 << endl;
+        out << "start calculate average Time Diff between " << j+1 << " and " << j+2 << endl;
         int baseCnt = 0;
         int sumTime = 0;
         for (int i = j; i < rightTimeList.size(); )
@@ -1016,7 +1029,7 @@ void MainWindow::retraceLog() {
         Persistent<Configuration>("settings");
 
     QString unzipPath = config->unzipPath();
-    process.startDetached(
+    process.start(
         "/bin/bash", QStringList() << path + "retrace.sh" << dstPath
                                    << currentPath << current_file << unzipPath);
   }
@@ -1031,7 +1044,7 @@ void MainWindow::reformatLog() {
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
     QProcess process;
-    process.startDetached(
+    process.start(
         "/bin/bash", QStringList() << path + "reformat_log.sh" << current_file);
   }
 }
@@ -1049,7 +1062,7 @@ void MainWindow::viewPictures() {
         Persistent<Configuration>("settings");
     QString unzipPath = config->unzipPath();
     QProcess process;
-    process.startDetached("/bin/bash", QStringList()
+    process.start("/bin/bash", QStringList()
                                            << path + "view_pictures_log.sh"
                                            << current_file << unzipPath);
   }
@@ -1492,9 +1505,9 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 #ifdef _WIN32
   process.setWorkingDirectory(path);
   QString command = path + "kill-logcat.bat";
-  process.startDetached(command);
+  process.start(command);
 #else
-  process.startDetached("/bin/bash", QStringList() << path + "kill-logcat.sh");
+  process.start("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
   writeSettings();
   event->accept();
@@ -1589,9 +1602,9 @@ void MainWindow::dumpCamera() {
 //#ifdef _WIN32
 //  process->setWorkingDirectory(path);
 //  QString command = path + "kill-logcat.bat";
-//  process->startDetached(command);
+//  process->start(command);
 //#else
-  process->startDetached("/bin/bash", QStringList() << path + "dump-camera.sh");
+  process->start("/bin/bash", QStringList() << path + "dump-camera.sh");
 //#endif
 }
 
@@ -1599,14 +1612,14 @@ void MainWindow::dumpStream() {
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->startDetached("/bin/bash", QStringList() << path + "dump-stream.sh");
+    process->start("/bin/bash", QStringList() << path + "dump-stream.sh");
 }
 
 void MainWindow::dumpDeviceInfo() {
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->startDetached("/bin/bash", QStringList() << path + "dump-device-info.sh");
+    process->start("/bin/bash", QStringList() << path + "dump-device-info.sh");
 }
 
 void MainWindow::dumpCupInfo()
@@ -1614,7 +1627,7 @@ void MainWindow::dumpCupInfo()
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->startDetached("/bin/bash", QStringList() << path + "cputools.sh");
+    process->start("/bin/bash", QStringList() << path + "cputools.sh");
 }
 
 void MainWindow::fullScreen() {

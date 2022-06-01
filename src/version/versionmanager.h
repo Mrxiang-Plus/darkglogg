@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QString>
+#include <QProcess>
 
 class VersionManager : public QObject
 {
@@ -23,15 +24,18 @@ signals:
 
 private slots:
     // Called when reply is finished
-    void replyFinished(QNetworkReply*);
 
 private:
     static const char* VERSION_URL;
     static const char* CUR_VERSION;
+    static const char* VERSION_JSON;
+    static const QString WORK_DIR;
+
     static const uint64_t CHECK_INTERVAL_S;
 
-    void parse_UpdateVersion(QString str);
-    void onlyCheckVersion(QString str);
+    void getVersionJson();
+    void parse_UpdateVersion(QByteArray byteData);
+    void onlyCheckVersion(QByteArray byteData);
 
     bool justCheck;
 

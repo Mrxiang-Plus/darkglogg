@@ -99,6 +99,7 @@ class MainWindow : public QMainWindow {
   void saveSelectedAsFile();
   void calculateTimeDiff();
   void getPerformance();
+  void getCAM_PerformanceManager();
   void getAverageTime(QStringList timeList, int unitCount, QString path);
   void retraceLog();
   void reformatLog();
@@ -297,6 +298,7 @@ class MainWindow : public QMainWindow {
   QAction *aboutCustomizedAction;
   QAction *updateVersionAction;
   QAction *performanceAction;
+  QAction *camPerformanceManagerAction;
 
 
   QProcess *process_;

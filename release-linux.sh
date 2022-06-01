@@ -58,8 +58,9 @@ cd $START_DIR
 
 cp -rf linux-scripts release/
 cp -f release/linux-scripts/install.sh release/
+rm release/linux-scripts/install.sh
 #cp -f release/linux-scripts/glogg.sh release/
-name=$(date '+%Y_%m_%d')
+name=$1
 
 tar -czvf glogg_ubuntu_$name.tar.gz release
 
