@@ -64,3 +64,9 @@ name=$1
 
 tar -czvf glogg_ubuntu_$name.tar.gz release
 
+cd ~/code/gloggversion
+cp ~/code/darkglogg/glogg_ubuntu_V1.0.tar.gz ./Download/Ubuntu
+git add .
+git commit -m "release ubuntu_$name"
+git push
+

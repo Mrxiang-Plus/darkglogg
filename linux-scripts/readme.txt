@@ -43,3 +43,6 @@ glogg 快捷键：
 | ------------------------------- | ---------------------------------------
 | ?                               | 保存过滤器界面 comment > filter > mark
 
+您以前的配置文件是: ~/.config/glogg/glogg_old_2022-06-02_17-21.ini
+如原始配置丢失，请执行:
+mv ~/.config/glogg/glogg2_old_2022-06-02_17-21.conf ~/.config/glogg/glogg2.conf 恢复

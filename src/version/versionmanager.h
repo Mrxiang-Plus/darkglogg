@@ -29,7 +29,6 @@ private:
     static const char* VERSION_URL;
     static const char* CUR_VERSION;
     static const char* VERSION_JSON;
-    static const char* UBUNTU_URL;
     static const QString WORK_DIR;
 
     static const uint64_t CHECK_INTERVAL_S;

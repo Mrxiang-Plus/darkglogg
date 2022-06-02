@@ -14,12 +14,11 @@
 #include <QFile>
 #include <QDir>
 
-const char* VersionManager::CUR_VERSION = "V1.0";
+const char* VersionManager::CUR_VERSION = "V0.0";
 const char* VersionManager::VERSION_URL =
         "https://git.n.xiaomi.com/wanghuiting1/gloggversion/-/raw/master/version.json?inline=false";
 const char* VersionManager::VERSION_JSON = "version.json";
 const QString VersionManager::WORK_DIR = QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-const char* VersionManager::UBUNTU_URL = "https://git.n.xiaomi.com/wanghuiting1/gloggversion/-/raw/master/Download/Ubuntu/glogg_ubuntu_V1.0.tar.gz";
 
 VersionManager::VersionManager(QObject *parent) : QObject(parent)
 {
@@ -114,7 +113,10 @@ void VersionManager::parse_UpdateVersion(QByteArray byteData)
             {
                 QProcess* process = new QProcess();
                 QString path = QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-                process->startDetached("/bin/bash", QStringList() << WORK_DIR + "update_version.sh" << UBUNTU_URL);
+                process->start("/bin/bash", QStringList() << WORK_DIR + "update_version.sh" << UpdateUrl);
+                QMessageBox::information(NULL, "Install", tr("<h4>Download finish. But need user permission.</h4>"
+                                                             "<h4>Please run the following command on the terminal.</h4>"
+                                                             "<h4>cd ~/.glogg/release && ./install.sh</h4>"));
             }
         }
         else
