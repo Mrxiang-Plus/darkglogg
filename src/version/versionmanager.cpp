@@ -19,6 +19,7 @@ const char* VersionManager::VERSION_URL =
         "https://git.n.xiaomi.com/wanghuiting1/gloggversion/-/raw/master/version.json?inline=false";
 const char* VersionManager::VERSION_JSON = "version.json";
 const QString VersionManager::WORK_DIR = QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+const char* VersionManager::UBUNTU_URL = "https://git.n.xiaomi.com/wanghuiting1/gloggversion/-/raw/master/Download/Ubuntu/glogg_ubuntu_V1.0.tar.gz";
 
 VersionManager::VersionManager(QObject *parent) : QObject(parent)
 {
@@ -111,7 +112,9 @@ void VersionManager::parse_UpdateVersion(QByteArray byteData)
             msgBoxUpdate->exec();
             if ((QPushButton*)msgBoxUpdate->clickedButton() == updateBtn)    //点击更新
             {
-                QDesktopServices::openUrl(QUrl(UpdateUrl));
+                QProcess* process = new QProcess();
+                QString path = QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+                process->startDetached("/bin/bash", QStringList() << WORK_DIR + "update_version.sh" << UBUNTU_URL);
             }
         }
         else

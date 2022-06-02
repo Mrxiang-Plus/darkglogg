@@ -1200,7 +1200,7 @@ void MainWindow::showShortcuts() {
 
 // Opens the 'About' dialog box.
 void MainWindow::about() {
-  QMessageBox::about(
+    QMessageBox::about(
       this, tr("About glogg"),
       tr("<h2>glogg " GLOGG_VERSION "</h2>"
          "<p>A fast, advanced log explorer."
