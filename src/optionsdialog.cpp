@@ -154,6 +154,7 @@ void OptionsDialog::updateDialogFromConfig() {
 
   unzipPathEdit->setText(config->unzipPath());
   processFilterEdit->setText(config->processFilter());
+  processFilterEdit->hide();
   highlightEdit->setText(config->highlightString());
   // Regexp types
   mainSearchBox->setCurrentIndex(getRegexpIndex(config->mainRegexpType()));

@@ -45,6 +45,7 @@
 #include <QUrl>
 #include <QDebug>
 #include <QDateTime>
+#include <QCompleter>
 
 #include "log.h"
 
@@ -68,6 +69,9 @@
 
 // Returns the size in human readable format
 static QString readableSize(qint64 size);
+const char* MainWindow::MODE_DEVICEID = "device";
+const char* MainWindow::MODE_PID = "pid";
+const char* MainWindow::MODE_DEVICEID_AND_PID = "device_pid";
 
 MainWindow::MainWindow(
     std::unique_ptr<Session> session,
@@ -679,6 +683,107 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addAction(followAction);
     menuToolBar->addSeparator();
     menuToolBar->addAction(updateVersionAction);
+    menuToolBar->addSeparator();
+
+    deviceBox = new QComboBox();
+    deviceBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    QStringList deviceStrList = updateDeviceBox();
+    modifyComboBox(deviceBox, deviceStrList, tr("no device"));
+    deviceBox->show();
+    deviceBox->installEventFilter(this);
+
+    processLine = new QLineEdit();
+    processLine->setFixedWidth(300);
+    processLine->setPlaceholderText("Enter package here");
+    processList = updateProcessCompleter();
+    QCompleter *allProcess = new QCompleter(processList, this);
+    allProcess->setCaseSensitivity(Qt::CaseInsensitive);
+    processLine->setCompleter(allProcess);
+    menuToolBar->addWidget(deviceBox);
+    menuToolBar->addSeparator();
+    menuToolBar->addWidget(processLine);
+}
+
+void MainWindow::modifyComboBox(QComboBox *comboBox, QStringList strList, QString defaultText) {
+    comboBox->clear();
+    if (strList.size() == 0) {
+        comboBox->addItem(defaultText);
+        comboBox->setDisabled(true);
+    } else {
+        comboBox->addItems(strList);
+        comboBox->setEnabled(true);
+    }
+
+}
+
+QStringList MainWindow::updateDeviceBox() {
+    QProcess process;
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process.startDetached("/bin/bash",
+                          QStringList() << path + "get_device_and_pid.sh"
+                                        << MODE_DEVICEID);
+    QStringList deviceList;
+    QString tmpPath = path + "device.txt";
+    QFile tmpfile(tmpPath);
+    if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        deviceList.clear();
+        QTextStream in(&tmpfile);
+        while (!in.atEnd())
+        {
+            deviceList << in.readLine();
+        }
+        tmpfile.close();
+    }
+    return deviceList;
+}
+
+QString MainWindow::getSelectedDevice() {
+    QStringList list = deviceBox->currentText().split("_");
+    return list.size() == 1 ? "" : list.last();
+}
+
+QStringList MainWindow::updateProcessCompleter() {
+    QProcess process;
+    QString path =
+        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+    process.startDetached("/bin/bash",
+                          QStringList() << path + "get_device_and_pid.sh"
+                                        << MODE_PID
+                                        << getSelectedDevice());
+    QStringList processList;
+    QString tmpPath = path + "process.txt";
+    QFile tmpfile(tmpPath);
+    if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        processList.clear();
+        QTextStream in(&tmpfile);
+        while (!in.atEnd())
+        {
+            processList << in.readLine();
+        }
+        tmpfile.close();
+    }
+    return processList;
+}
+
+QString MainWindow::getSelectedProcess() {
+    QString currentInput = processLine->text();
+    if (processList.contains(currentInput)) {
+        return currentInput;
+    } else {
+        processLine->setText("");
+        return "";
+    }
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+    if (event->type() == QEvent::MouseButtonPress) {
+        if (watched == deviceBox) {
+            modifyComboBox(deviceBox, updateDeviceBox(), tr("no device"));
+        }
+    }
 }
 
 void MainWindow::createToolBars() {
@@ -1556,6 +1661,8 @@ void MainWindow::startLogcat() {
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
   qDebug("path:%s", path.toStdString().data());
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString pid = getSelectedProcess();
+  QString deviceId = getSelectedDevice();
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
       [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
@@ -1570,9 +1677,27 @@ void MainWindow::startLogcat() {
       command, QStringList() << QDir::currentPath() << config->processFilter());
 #else
   QString zipPath = config->unzipPath();
-  process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
-                                            << config->unzipPath()
-                                            << config->processFilter());
+  if (deviceId == NULL && pid == NULL) {
+      process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
+                                                << config->unzipPath());
+  } else if (deviceId == NULL && pid != NULL) {
+      process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
+                                                << config->unzipPath()
+                                                << MODE_PID
+                                                << pid);
+  } else if (deviceId != NULL && pid == NULL) {
+      process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
+                                                << config->unzipPath()
+                                                << MODE_DEVICEID
+                                                << deviceId);
+  } else {
+      process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
+                                                << config->unzipPath()
+                                                << MODE_DEVICEID_AND_PID
+                                                << pid
+                                                << deviceId);
+  }
+
 #endif
 }
 

@@ -175,6 +175,8 @@ class MainWindow : public QMainWindow {
   void updateVersion_click();
   void updateVersionIcon(bool isExistent);
 
+  bool eventFilter(QObject *watched, QEvent *event);
+
  signals:
   // Is emitted when new settings must be used
   void optionsChanged();
@@ -214,11 +216,20 @@ class MainWindow : public QMainWindow {
   void displayQuickMarkBar(QFDirection direction);
   void updateMenuBarFromDocument(const CrawlerWidget *crawler);
   void updateInfoLine();
+//  void createDeviceBox();
+  void modifyComboBox(QComboBox *comboBox, QStringList strList, QString defaultText);
+  QStringList updateDeviceBox();
+  QString getSelectedDevice();
+  QStringList updateProcessCompleter();
+  QString getSelectedProcess();
 
   std::unique_ptr<Session> session_;
   std::shared_ptr<ExternalCommunicator> externalCommunicator_;
   std::shared_ptr<RecentFiles> recentFiles_;
   QString loadingFileName;
+  static const char* MODE_DEVICEID;
+  static const char* MODE_PID;
+  static const char* MODE_DEVICEID_AND_PID;
 
   // Encoding
   struct EncodingList {
@@ -249,8 +260,11 @@ class MainWindow : public QMainWindow {
   QLineEdit *infoLine;
   QLabel *lineNbField;
   QToolBar *toolBar;
-
   QToolBar *menuToolBar;
+
+  QComboBox *deviceBox;
+  QLineEdit *processLine;
+  QStringList processList;
 
   QAction *openAction;
   QAction *copyPathAction;
