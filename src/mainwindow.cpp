@@ -697,6 +697,7 @@ void MainWindow::createIconToolBars() {
     processLine->setPlaceholderText("Enter package here");
     processList = updateProcessCompleter();
     QCompleter *allProcess = new QCompleter(processList, this);
+    allProcess->setFilterMode(Qt::MatchFlag::MatchContains);
     allProcess->setCaseSensitivity(Qt::CaseInsensitive);
     processLine->setCompleter(allProcess);
     menuToolBar->addWidget(deviceBox);
@@ -739,9 +740,25 @@ QStringList MainWindow::updateDeviceBox() {
     return deviceList;
 }
 
+//get the selected deviceID in device box
 QString MainWindow::getSelectedDevice() {
     QStringList list = deviceBox->currentText().split("_");
     return list.size() == 1 ? "" : list.last();
+}
+
+//get current deviceID corresponding to the focus file
+QString MainWindow::getCurDevice() {
+    QString curFileName = mainTabWidget_.tabText(mainTabWidget_.currentIndex());
+    //delete the ".log"
+    curFileName.replace(QRegExp(".log$"), "");
+    QString curFileDeviceID = curFileName.split("_").last();
+    QStringList deviceList = updateDeviceBox();
+    for (QString deviceStr : deviceList) {
+        if (deviceStr.contains(curFileDeviceID, Qt::CaseSensitive)) {
+            return curFileDeviceID;
+        }
+    }
+    return "";
 }
 
 QStringList MainWindow::updateProcessCompleter() {
@@ -1702,6 +1719,7 @@ void MainWindow::startLogcat() {
 }
 
 void MainWindow::stopLogcat() {
+  QString deviceId = getCurDevice();
   QProcess* process = new QProcess();
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -1716,7 +1734,7 @@ void MainWindow::stopLogcat() {
   QString command = path + "kill-logcat.bat";
   process->start(command);
 #else
-  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
+  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh" << deviceId);
 #endif
 }
 

@@ -220,6 +220,7 @@ class MainWindow : public QMainWindow {
   void modifyComboBox(QComboBox *comboBox, QStringList strList, QString defaultText);
   QStringList updateDeviceBox();
   QString getSelectedDevice();
+  QString getCurDevice();
   QStringList updateProcessCompleter();
   QString getSelectedProcess();
 

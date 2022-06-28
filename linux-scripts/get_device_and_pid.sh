@@ -19,12 +19,12 @@ function getDeviceList() {
 }
 
 function getProcesses() {
-    if [ -z $2 ];then
+    if [ -z $deviceId ];then
         adb shell pm list packages -e >> temp2.txt
     else
-        adb -s $2 shell pm list packages -e >> temp2.txt
+        adb -s $deviceId shell pm list packages -e >> temp2.txt
     fi
-    sed "s/package://g" temp2.txt >> process.txt
+    sed "s/package://g" temp2.txt > process.txt
     rm temp2.txt
 }
 
