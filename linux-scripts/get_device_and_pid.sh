@@ -3,6 +3,7 @@ mode=$1
 deviceId=$2
 deviceMode="device"
 pidMode="pid"
+exportMode="export"
 
 function getDeviceList() {
     rm device.txt
@@ -28,6 +29,10 @@ function getProcesses() {
     rm temp2.txt
 }
 
+function exportDevice() {
+    export ANDROID_SERIAL=$deviceId
+}
+
 cd ~/.glogg
 if [ "$mode" = "$deviceMode" ];then
     echo "get device list"
@@ -35,6 +40,9 @@ if [ "$mode" = "$deviceMode" ];then
 elif [ "$mode" = "$pidMode" ];then
     echo "get pid list"
     getProcesses
+elif [ "$mode" = "$exportMode" ];then
+    echo "export device"
+    exportDevice
 else
     echo "invaild mode"
 fi

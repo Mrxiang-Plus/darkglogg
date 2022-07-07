@@ -1,0 +1,41 @@
+dumpMode=$1
+deviceId=$2
+
+function dumpsysCamera() {
+    export ANDROID_SERIAL=$deviceId
+    adb shell dumpsys media.camera > $name
+}
+
+function dumpStream() {
+    adb shell dumpsys media.camera | egrep "Stream[.*]|Consumer name|Dims:" > $name
+}
+
+function dumpDeviceInfo() {
+    adb shell getprop | grep ro.product.marketname > $name
+    adb shell getprop | grep ro.product.device >> $name
+    adb shell getprop | grep ro.product.device >> $name
+    adb shell getprop | grep ro.product.mod_device >> $name
+    adb shell getprop | grep ro.boot.hwc >> $name
+    adb shell getprop | grep ro.miui.build.region >> $name
+    echo >> $name
+    echo "CPU INFO" >> $name
+    adb shell cat /proc/cpuinfo| grep Hardware >> $name
+}
+
+export ANDROID_SERIAL=$deviceId
+if [ "$dumpMode" = "dumpsys_camera" ];then
+    echo "dumpsys_camera"
+    name="dumpsys_media_camera_${deviceId}.txt"
+    dumpsysCamera
+elif [ "$dumpMode" = "stream" ];then
+    echo "dump stream"
+    name="camera_stream_${deviceId}.txt"
+    dumpStream
+elif [ "$dumpMode" = "device_info" ];then
+    echo "dump device info"
+    name="device_info_${deviceId}.txt"
+    dumpDeviceInfo
+else
+    echo "invaild dump mode"
+
+glogg $name

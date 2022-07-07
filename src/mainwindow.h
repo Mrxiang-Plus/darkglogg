@@ -99,7 +99,7 @@ class MainWindow : public QMainWindow {
   void saveSelectedAsFile();
   void calculateTimeDiff();
   void getPerformance();
-  void getCAM_PerformanceManager();
+//  void getCAM_PerformanceManager();
   void getAverageTime(QStringList timeList, int unitCount, QString path);
   void retraceLog();
   void reformatLog();
@@ -175,7 +175,9 @@ class MainWindow : public QMainWindow {
   void updateVersion_click();
   void updateVersionIcon(bool isExistent);
 
-  bool eventFilter(QObject *watched, QEvent *event);
+  void deviceBox_click(QString deviceId);
+  void updateDevice_click();
+
 
  signals:
   // Is emitted when new settings must be used
@@ -221,8 +223,9 @@ class MainWindow : public QMainWindow {
   QStringList updateDeviceBox();
   QString getSelectedDevice();
   QString getCurDevice();
-  QStringList updateProcessCompleter();
+  void updateProcessCompleter();
   QString getSelectedProcess();
+  void exportDevice(QString deviceId);
 
   std::unique_ptr<Session> session_;
   std::shared_ptr<ExternalCommunicator> externalCommunicator_;
@@ -231,6 +234,15 @@ class MainWindow : public QMainWindow {
   static const char* MODE_DEVICEID;
   static const char* MODE_PID;
   static const char* MODE_DEVICEID_AND_PID;
+  static const char* MODE_EXPORT;
+  static const char* MODE_DUMPSYS_CAMERA;
+  static const char* MODE_STREAM;
+  static const char* MODE_DEVICE_INFO;
+
+//  bool deviceChanged;
+//  bool needUpdatePackage;
+//  QString lastDeviceId;
+//  QStringList lastDeviceList;
 
   // Encoding
   struct EncodingList {
@@ -313,7 +325,8 @@ class MainWindow : public QMainWindow {
   QAction *aboutCustomizedAction;
   QAction *updateVersionAction;
   QAction *performanceAction;
-  QAction *camPerformanceManagerAction;
+//  QAction *camPerformanceManagerAction;
+  QAction *updateDeviceAction;
 
 
   QProcess *process_;

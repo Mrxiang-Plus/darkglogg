@@ -72,6 +72,11 @@ static QString readableSize(qint64 size);
 const char* MainWindow::MODE_DEVICEID = "device";
 const char* MainWindow::MODE_PID = "pid";
 const char* MainWindow::MODE_DEVICEID_AND_PID = "device_pid";
+const char* MainWindow::MODE_EXPORT = "export";
+const char* MainWindow::MODE_DUMPSYS_CAMERA = "dumpsys_camera";
+const char* MainWindow::MODE_STREAM = "stream";
+const char* MainWindow::MODE_DEVICE_INFO = "device_info";
+QMutex mutex;
 
 MainWindow::MainWindow(
     std::unique_ptr<Session> session,
@@ -370,9 +375,13 @@ void MainWindow::createActions() {
   connect(performanceAction, SIGNAL(triggered()), this,
           SLOT(getPerformance()));
 
-  camPerformanceManagerAction = new QAction(tr("CAM_PerformanceManager"));
-  connect(camPerformanceManagerAction, SIGNAL(triggered()), this,
-          SLOT(getCAM_PerformanceManager()));
+//  camPerformanceManagerAction = new QAction(tr("CAM_PerformanceManager"));
+//  connect(camPerformanceManagerAction, SIGNAL(triggered()), this,
+//          SLOT(getCAM_PerformanceManager()));
+  updateDeviceAction = new QAction(tr("Refresh device list"));
+  updateDeviceAction->setIcon(QIcon(":/images/updateDevice16.png"));
+  connect(updateDeviceAction, SIGNAL(triggered()), this,
+          SLOT(updateDevice_click()));
 
   saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
   saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
@@ -574,7 +583,7 @@ void MainWindow::createActions() {
   connect(encodingGroup, SIGNAL(triggered(QAction*)), this,
           SLOT(encodingChanged(QAction*)));
 
-  dumpCameraAction = new QAction(tr("Parameters"), this);
+  dumpCameraAction = new QAction(tr("Dumpsys media.camera"), this);
   dumpCameraAction->setStatusTip(tr("dumpsys media.camera"));
   connect(dumpCameraAction, SIGNAL(triggered()), this, SLOT(dumpCamera()));
 
@@ -665,7 +674,7 @@ void MainWindow::createMenus() {
   cameraMenu->addAction(dumpStreamAction);
   cameraMenu->addSeparator();
   cameraMenu->addAction(performanceAction);
-  cameraMenu->addAction(camPerformanceManagerAction);
+//  cameraMenu->addAction(camPerformanceManagerAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(aboutAction);
@@ -690,17 +699,15 @@ void MainWindow::createIconToolBars() {
     QStringList deviceStrList = updateDeviceBox();
     modifyComboBox(deviceBox, deviceStrList, tr("no device"));
     deviceBox->show();
-    deviceBox->installEventFilter(this);
+    connect(deviceBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(deviceBox_click(QString)));
 
     processLine = new QLineEdit();
     processLine->setFixedWidth(300);
     processLine->setPlaceholderText("Enter package here");
-    processList = updateProcessCompleter();
-    QCompleter *allProcess = new QCompleter(processList, this);
-    allProcess->setFilterMode(Qt::MatchFlag::MatchContains);
-    allProcess->setCaseSensitivity(Qt::CaseInsensitive);
-    processLine->setCompleter(allProcess);
+    updateProcessCompleter();
+
     menuToolBar->addWidget(deviceBox);
+    menuToolBar->addAction(updateDeviceAction);
     menuToolBar->addSeparator();
     menuToolBar->addWidget(processLine);
 }
@@ -718,6 +725,7 @@ void MainWindow::modifyComboBox(QComboBox *comboBox, QStringList strList, QStrin
 }
 
 QStringList MainWindow::updateDeviceBox() {
+    mutex.lock();
     QProcess process;
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -737,6 +745,7 @@ QStringList MainWindow::updateDeviceBox() {
         }
         tmpfile.close();
     }
+    mutex.unlock();
     return deviceList;
 }
 
@@ -761,7 +770,7 @@ QString MainWindow::getCurDevice() {
     return "";
 }
 
-QStringList MainWindow::updateProcessCompleter() {
+void MainWindow::updateProcessCompleter() {
     QProcess process;
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -782,7 +791,12 @@ QStringList MainWindow::updateProcessCompleter() {
         }
         tmpfile.close();
     }
-    return processList;
+    if (processList.size() != 0) {
+        QCompleter *allProcess = new QCompleter(processList, this);
+        allProcess->setFilterMode(Qt::MatchFlag::MatchContains);
+        allProcess->setCaseSensitivity(Qt::CaseInsensitive);
+        processLine->setCompleter(allProcess);
+    }
 }
 
 QString MainWindow::getSelectedProcess() {
@@ -795,18 +809,18 @@ QString MainWindow::getSelectedProcess() {
     }
 }
 
-bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
-    if (event->type() == QEvent::MouseButtonPress) {
-        if (watched == deviceBox) {
-            modifyComboBox(deviceBox, updateDeviceBox(), tr("no device"));
-        }
+void MainWindow::updateDevice_click() {
+    modifyComboBox(deviceBox, updateDeviceBox(), tr("no device"));
+}
+
+void MainWindow::deviceBox_click(QString deviceId) {
+    if (deviceId != "") {
+        updateProcessCompleter();
     }
 }
 
 void MainWindow::createToolBars() {
   infoLine = new QLineEdit();
-  //  infoLine->setLineWidth(0);
-
   lineNbField = new QLabel();
   lineNbField->setText("Line 0");
   lineNbField->setStyleSheet("QLabel { color : rgb(0, 119, 201) ; }");
@@ -994,13 +1008,16 @@ void MainWindow::calculateTimeDiff() {
   }
 }
 
-void MainWindow::getCAM_PerformanceManager()
-{
-    QProcess* process = new QProcess();
-    QString path =
-        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->start("/bin/bash", QStringList() << path + "dump-stream.sh");
-}
+//void MainWindow::getCAM_PerformanceManager()
+//{
+//    QString deviceId = getCurDevice();
+//    QProcess* process = new QProcess();
+//    QString path =
+//        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+//    process->start("/bin/bash", QStringList() << path + "dump-tools.sh"
+//                                              << MODE_STREAM
+//                                              << deviceId);
+//}
 
 void MainWindow::getPerformance()
 {
@@ -1739,6 +1756,7 @@ void MainWindow::stopLogcat() {
 }
 
 void MainWindow::dumpCamera() {
+  QString deviceId = getSelectedDevice();
   QProcess* process = new QProcess();
   QString path =
       QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
@@ -1747,22 +1765,30 @@ void MainWindow::dumpCamera() {
 //  QString command = path + "kill-logcat.bat";
 //  process->start(command);
 //#else
-  process->start("/bin/bash", QStringList() << path + "dump-camera.sh");
+  process->start("/bin/bash", QStringList() << path + "dump-tools.sh"
+                                            << MODE_DUMPSYS_CAMERA
+                                            << deviceId);
 //#endif
 }
 
 void MainWindow::dumpStream() {
+    QString deviceId = getSelectedDevice();
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->start("/bin/bash", QStringList() << path + "dump-stream.sh");
+    process->start("/bin/bash", QStringList() << path + "dump-tools.sh"
+                                              << MODE_STREAM
+                                              << deviceId);
 }
 
 void MainWindow::dumpDeviceInfo() {
+    QString deviceId = getSelectedDevice();
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->start("/bin/bash", QStringList() << path + "dump-device-info.sh");
+    process->start("/bin/bash", QStringList() << path + "dump-tools.sh"
+                                              << MODE_DEVICE_INFO
+                                              << deviceId);
 }
 
 void MainWindow::dumpCupInfo()
