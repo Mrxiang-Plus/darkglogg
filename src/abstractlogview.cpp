@@ -1057,44 +1057,46 @@ void AbstractLogView::addToQuickMark() {
 }
 
 void AbstractLogView::startLogcat() {
-  QProcess* process = new QProcess();
-  QString path =
-      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-  QObject::connect(
-      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
-        emit changeFollowMode();
-        process->deleteLater();
-      });
-#ifdef _WIN32
-  process->setWorkingDirectory(path);
-  QString command = path + "start-logcat.bat";
-  process->start(command, QStringList() << QDir::currentPath());
-#else
-  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+//  QProcess* process = new QProcess();
+//  QString path =
+//      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+//  QObject::connect(
+//      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+//      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+//        emit changeFollowMode();
+//        process->deleteLater();
+//      });
+//#ifdef _WIN32
+//  process->setWorkingDirectory(path);
+//  QString command = path + "start-logcat.bat";
+//  process->start(command, QStringList() << QDir::currentPath());
+//#else
+//  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
 
-  process->start("/bin/bash", QStringList() << path + "start-logcat.sh"
-                                            << config->unzipPath());
-#endif
+//  process->start("/bin/bash", QStringList() << path + "start-logcat.sh"
+//                                            << config->unzipPath());
+//#endif
+    emit startLogcat_click();
 }
 
 void AbstractLogView::stopLogcat() {
-  QProcess* process = new QProcess();
-  QString path =
-      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-  QObject::connect(
-      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
-        emit disableFollowMode();
-        process->deleteLater();
-      });
-#ifdef _WIN32
-  process->setWorkingDirectory(path);
-  QString command = path + "kill-logcat.bat";
-  process->start(command);
-#else
-  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
-#endif
+//  QProcess* process = new QProcess();
+//  QString path =
+//      QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+//  QObject::connect(
+//      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+//      [=](int exitCode, QProcess::ExitStatus /*exitStatus*/) {
+//        emit disableFollowMode();
+//        process->deleteLater();
+//      });
+//#ifdef _WIN32
+//  process->setWorkingDirectory(path);
+//  QString command = path + "kill-logcat.bat";
+//  process->start(command);
+//#else
+//  process->start("/bin/bash", QStringList() << path + "kill-logcat.sh");
+//#endif
+    emit stopLogcat_click();
 }
 
 void AbstractLogView::syncPatterns() {

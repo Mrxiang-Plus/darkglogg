@@ -287,6 +287,8 @@ class AbstractLogView : public QAbstractScrollArea,
   void exitView();
   void changeFollowMode();
   void disableFollowMode();
+  void startLogcat_click();
+  void stopLogcat_click();
 
  public slots:
   // Makes the widget select and display the passed line.

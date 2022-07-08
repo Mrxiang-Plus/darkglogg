@@ -175,7 +175,6 @@ class MainWindow : public QMainWindow {
   void updateVersion_click();
   void updateVersionIcon(bool isExistent);
 
-  void deviceBox_click(QString deviceId);
   void updateDevice_click();
 
 
@@ -225,7 +224,7 @@ class MainWindow : public QMainWindow {
   QString getCurDevice();
   void updateProcessCompleter();
   QString getSelectedProcess();
-  void exportDevice(QString deviceId);
+  void setProcessCompleter();
 
   std::unique_ptr<Session> session_;
   std::shared_ptr<ExternalCommunicator> externalCommunicator_;

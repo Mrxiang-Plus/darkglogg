@@ -151,6 +151,11 @@ MainWindow::MainWindow(
   signalMux_.connect(SIGNAL(replaceQuickMark(const QString&)), this,
                      SLOT(replaceQuickMark(const QString&)));
 
+  signalMux_.connect(SIGNAL(startLogcat_click()), this,
+                     SLOT(startLogcat()));
+  signalMux_.connect(SIGNAL(stopLogcat_click()), this,
+                     SLOT(stopLogcat()));
+
   // Register for progress status bar
   signalMux_.connect(SIGNAL(copyToClipboard()), this, SLOT(copy()));
   signalMux_.connect(SIGNAL(fullScreen()), this, SLOT(fullScreen()));
@@ -379,6 +384,7 @@ void MainWindow::createActions() {
 //  connect(camPerformanceManagerAction, SIGNAL(triggered()), this,
 //          SLOT(getCAM_PerformanceManager()));
   updateDeviceAction = new QAction(tr("Refresh device list"));
+  updateDeviceAction->setStatusTip(tr("Refresh device list"));
   updateDeviceAction->setIcon(QIcon(":/images/updateDevice16.png"));
   connect(updateDeviceAction, SIGNAL(triggered()), this,
           SLOT(updateDevice_click()));
@@ -699,7 +705,6 @@ void MainWindow::createIconToolBars() {
     QStringList deviceStrList = updateDeviceBox();
     modifyComboBox(deviceBox, deviceStrList, tr("no device"));
     deviceBox->show();
-    connect(deviceBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(deviceBox_click(QString)));
 
     processLine = new QLineEdit();
     processLine->setFixedWidth(300);
@@ -771,14 +776,13 @@ QString MainWindow::getCurDevice() {
 }
 
 void MainWindow::updateProcessCompleter() {
-    QProcess process;
+//    QProcess process;
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process.startDetached("/bin/bash",
-                          QStringList() << path + "get_device_and_pid.sh"
-                                        << MODE_PID
-                                        << getSelectedDevice());
-    QStringList processList;
+//    process.startDetached("/bin/bash",
+//                          QStringList() << path + "get_device_and_pid.sh"
+//                                        << MODE_PID
+//                                        << getSelectedDevice());
     QString tmpPath = path + "process.txt";
     QFile tmpfile(tmpPath);
     if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -791,12 +795,21 @@ void MainWindow::updateProcessCompleter() {
         }
         tmpfile.close();
     }
-    if (processList.size() != 0) {
-        QCompleter *allProcess = new QCompleter(processList, this);
-        allProcess->setFilterMode(Qt::MatchFlag::MatchContains);
-        allProcess->setCaseSensitivity(Qt::CaseInsensitive);
-        processLine->setCompleter(allProcess);
+    setProcessCompleter();
+}
+
+void MainWindow::setProcessCompleter() {
+    if (processList.size() == 0) {
+        QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning,
+                                              "Empty process list",
+                                              tr("Please check the ~/.glogg/process.txt"));
+        msgBox->show();
+        return;
     }
+    QCompleter *allProcess = new QCompleter(processList, this);
+    allProcess->setFilterMode(Qt::MatchFlag::MatchContains);
+    allProcess->setCaseSensitivity(Qt::CaseInsensitive);
+    processLine->setCompleter(allProcess);
 }
 
 QString MainWindow::getSelectedProcess() {
@@ -804,19 +817,13 @@ QString MainWindow::getSelectedProcess() {
     if (processList.contains(currentInput)) {
         return currentInput;
     } else {
-        processLine->setText("");
-        return "";
+        processLine->setText("com.android.camera");
+        return "com.android.camera";
     }
 }
 
 void MainWindow::updateDevice_click() {
     modifyComboBox(deviceBox, updateDeviceBox(), tr("no device"));
-}
-
-void MainWindow::deviceBox_click(QString deviceId) {
-    if (deviceId != "") {
-        updateProcessCompleter();
-    }
 }
 
 void MainWindow::createToolBars() {
@@ -1793,10 +1800,12 @@ void MainWindow::dumpDeviceInfo() {
 
 void MainWindow::dumpCupInfo()
 {
+    QString deviceId = getSelectedDevice();
     QProcess* process = new QProcess();
     QString path =
         QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->start("/bin/bash", QStringList() << path + "cputools.sh");
+    process->start("/bin/bash", QStringList() << path + "cputools.sh"
+                                              << deviceId);
 }
 
 void MainWindow::fullScreen() {

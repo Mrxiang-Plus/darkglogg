@@ -163,6 +163,8 @@ class CrawlerWidget : public QSplitter,
   void dataStatusChanged(DataStatus status);
   void changeFollowMode();
   void disableFollowMode();
+  void startLogcat_click();
+  void stopLogcat_click();
 
  private slots:
   void doSearch(int patternIndex);

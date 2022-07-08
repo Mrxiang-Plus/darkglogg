@@ -1,5 +1,5 @@
 #!/bin/bash
-cpuMode=$1;
+deviceId=$1
 
 function cpuparams() {
     echo "start print cpu params."
@@ -424,6 +424,7 @@ printf "\n"
 done
 }
 
+export ANDROID_SERIAL=$deviceId
 adb root;
 #if [ $cpuMode -eq 1 ];then
     cpudump > cpu_and_thermal.log &

@@ -1451,6 +1451,11 @@ void CrawlerWidget::setup() {
   connect(this, SIGNAL(updateFocus()), filteredView, SLOT(updateFocus()));
   connect(logMainView, SIGNAL(markLine(qint64)), this,
           SLOT(markLineFromMain(qint64)));
+  connect(logMainView, SIGNAL(startLogcat_click()), this, SIGNAL(startLogcat_click()));
+  connect(logMainView, SIGNAL(stopLogcat_click()), this, SIGNAL(stopLogcat_click()));
+  connect(filteredView, SIGNAL(startLogcat_click()), this, SIGNAL(startLogcat_click()));
+  connect(filteredView, SIGNAL(stopLogcat_click()), this, SIGNAL(stopLogcat_click()));
+
   connect(filteredView, SIGNAL(markLine(qint64)), this,
           SLOT(markLineFromFiltered(qint64)));
 
