@@ -176,6 +176,7 @@ class MainWindow : public QMainWindow {
   void updateVersionIcon(bool isExistent);
 
   void updateDevice_click();
+  void addProcess_click();
 
 
  signals:
@@ -326,6 +327,7 @@ class MainWindow : public QMainWindow {
   QAction *performanceAction;
 //  QAction *camPerformanceManagerAction;
   QAction *updateDeviceAction;
+  QAction *addProcessAction;
 
 
   QProcess *process_;

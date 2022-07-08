@@ -389,6 +389,12 @@ void MainWindow::createActions() {
   connect(updateDeviceAction, SIGNAL(triggered()), this,
           SLOT(updateDevice_click()));
 
+  addProcessAction = new QAction(tr("Add package"));
+  addProcessAction->setStatusTip(tr("Add specified package"));
+  addProcessAction->setIcon(QIcon(":/images/addProcess16.png"));
+  connect(addProcessAction, SIGNAL(triggered()), this,
+          SLOT(addProcess_click()));
+
   saveFilteredAsAction = new QAction(tr("Open Filtered In New Tab"), this);
   saveFilteredAsAction->setShortcut(tr("Ctrl+Shift+T"));
   saveFilteredAsAction->setStatusTip(tr("save Filtered as and open file"));
@@ -715,6 +721,8 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addAction(updateDeviceAction);
     menuToolBar->addSeparator();
     menuToolBar->addWidget(processLine);
+    menuToolBar->addAction(addProcessAction);
+    menuToolBar->addSeparator();
 }
 
 void MainWindow::modifyComboBox(QComboBox *comboBox, QStringList strList, QString defaultText) {
@@ -783,7 +791,7 @@ void MainWindow::updateProcessCompleter() {
 //                          QStringList() << path + "get_device_and_pid.sh"
 //                                        << MODE_PID
 //                                        << getSelectedDevice());
-    QString tmpPath = path + "process.txt";
+    QString tmpPath = path + "packageList.txt";
     QFile tmpfile(tmpPath);
     if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -824,6 +832,21 @@ QString MainWindow::getSelectedProcess() {
 
 void MainWindow::updateDevice_click() {
     modifyComboBox(deviceBox, updateDeviceBox(), tr("no device"));
+}
+
+void MainWindow::addProcess_click() {
+    bool ok = false;
+    QString packageName = QInputDialog :: getText(this,
+                                             "Add package",
+                                             "Please enter the package name",
+                                             QLineEdit::Normal,
+                                             "",
+                                             &ok
+                                             );
+    if (ok && !packageName.isEmpty()) {
+        processList << packageName;
+        setProcessCompleter();
+    }
 }
 
 void MainWindow::createToolBars() {
