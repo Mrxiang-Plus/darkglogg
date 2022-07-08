@@ -825,8 +825,8 @@ QString MainWindow::getSelectedProcess() {
     if (processList.contains(currentInput)) {
         return currentInput;
     } else {
-        processLine->setText("com.android.camera");
-        return "com.android.camera";
+        processLine->setText("");
+        return "";
     }
 }
 
