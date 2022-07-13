@@ -355,6 +355,7 @@ class AbstractLogView : public QAbstractScrollArea,
   void findNextSelected();
   void findPreviousSelected();
   void copy();
+  void copyToJira();
   void comment();
 
  private:
@@ -428,6 +429,7 @@ class AbstractLogView : public QAbstractScrollArea,
   // Popup menu
   QMenu* popupMenu_;
   QAction* copyAction_;
+  QAction* copyWithColorAction_;
   QAction* commentAction_;
   QAction* findNextAction_;
   QAction* findPreviousAction_;

@@ -364,9 +364,11 @@ void AbstractLogView::mousePressEvent(QMouseEvent* mouseEvent) {
     // Prepare the popup depending on selection type
     if (selection_.isSingleLine()) {
       copyAction_->setText("&Copy this line");
+      copyWithColorAction_->setVisible(false);
     } else {
       copyAction_->setText("&Copy");
       copyAction_->setStatusTip(tr("Copy the selection"));
+      copyWithColorAction_->setVisible(true);
     }
 
     if (selection_.isPortion()) {
@@ -1154,6 +1156,13 @@ void AbstractLogView::findPreviousSelected() {
 // Copy the selection to the clipboard
 void AbstractLogView::copy() {
   static QClipboard* clipboard = QApplication::clipboard();
+  QString string = selection_.getSelectedText(logData);
+  clipboard->setText(string);
+}
+
+// Copy the selection to the clipboard
+void AbstractLogView::copyToJira() {
+  static QClipboard* clipboard = QApplication::clipboard();
   QString string = selection_.getSelectedTextWithColor(logData);
   clipboard->setText(string);
 }
@@ -1577,6 +1586,11 @@ void AbstractLogView::createMenu() {
   copyAction_ = new QAction(tr("&Copy"), this);
   // No text as this action title depends on the type of selection
   connect(copyAction_, SIGNAL(triggered()), this, SLOT(copy()));
+  copyWithColorAction_ = new QAction(tr("Copy To Jira"), this);
+  copyWithColorAction_->setStatusTip(
+      tr("Copy the selection with foreground color"));
+  connect(copyWithColorAction_, SIGNAL(triggered()), this,
+          SLOT(copyToJira()));
   commentAction_ = new QAction(tr("Comment"), this);
   connect(commentAction_, SIGNAL(triggered()), this, SLOT(comment()));
 
@@ -1621,6 +1635,7 @@ void AbstractLogView::createMenu() {
 
   popupMenu_ = new QMenu(this);
   popupMenu_->addAction(copyAction_);
+  popupMenu_->addAction(copyWithColorAction_);
   popupMenu_->addAction(commentAction_);
   popupMenu_->addSeparator();
   popupMenu_->addAction(startLogcatAction_);
