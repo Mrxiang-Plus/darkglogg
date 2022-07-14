@@ -126,6 +126,7 @@ class MainWindow : public QMainWindow {
   void dumpCupInfo();
   void showShortcuts();
   void aboutCustomizedGlogg();
+  void installCamera();
 
   // Change the view settings
   void toggleOverviewVisibility(bool isVisible);
@@ -328,6 +329,7 @@ class MainWindow : public QMainWindow {
 //  QAction *camPerformanceManagerAction;
   QAction *updateDeviceAction;
   QAction *addProcessAction;
+  QAction *installCameraAction;
 
 
   QProcess *process_;

@@ -599,6 +599,8 @@ void MainWindow::createActions() {
   dumpCameraAction->setStatusTip(tr("dumpsys media.camera"));
   connect(dumpCameraAction, SIGNAL(triggered()), this, SLOT(dumpCamera()));
 
+  installCameraAction = new QAction(tr("&Install camera"), this);
+  connect(installCameraAction, SIGNAL(triggered()), this, SLOT(installCamera()));
   dumpStreamAction = new QAction(tr("Stream"), this);
   connect(dumpStreamAction, SIGNAL(triggered()), this, SLOT(dumpStream()));
 
@@ -684,6 +686,8 @@ void MainWindow::createMenus() {
   cameraMenu = menuBar()->addMenu(tr("Camera"));
   cameraMenu->addAction(dumpCameraAction);
   cameraMenu->addAction(dumpStreamAction);
+  cameraMenu->addSeparator();
+  cameraMenu->addAction(installCameraAction);
   cameraMenu->addSeparator();
   cameraMenu->addAction(performanceAction);
 //  cameraMenu->addAction(camPerformanceManagerAction);
@@ -948,6 +952,37 @@ void MainWindow::closeAll() {
   while (mainTabWidget_.count()) {
     closeTab(0);
   }
+}
+
+void MainWindow::installCamera() {
+    QString defaultDir = ".";
+
+    // Default to the path of the current file if there is one
+    if (auto current = currentCrawlerWidget()) {
+      std::string current_file = session_->getFilename(current);
+      QFileInfo fileInfo = QFileInfo(QString(current_file.c_str()));
+      defaultDir = fileInfo.path();
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Open file"), defaultDir, tr("Apk files(*.apk)"));
+    if (!fileName.isEmpty()) {
+        QString deviceId = getSelectedDevice();
+        QProcess process;
+        QString path =
+            QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
+        process.startDetached("/bin/bash",
+                              QStringList() << path + "install-camera.sh"
+                              << deviceId
+                              << fileName);
+
+//          QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning,
+//                                                "File format verification failed",
+//                                                tr("Please choose the *.apk file"));
+//          msgBox->show();
+//          return;
+
+    }
 }
 
 // Select all the text in the currently selected view
