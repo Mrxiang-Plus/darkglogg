@@ -290,6 +290,11 @@ class AbstractLogView : public QAbstractScrollArea,
   void startLogcat_click();
   void stopLogcat_click();
 
+  void shotToGallery_click(const QString& str);
+  void shotToShot_click(const QString& str);
+  void shotToView_click(const QString& str);
+  void startCalculate_click();
+
  public slots:
   // Makes the widget select and display the passed line.
   // Scrolling as necessary
@@ -357,6 +362,12 @@ class AbstractLogView : public QAbstractScrollArea,
   void copy();
   void copyToJira();
   void comment();
+
+  void shotToGallery();
+  void shotToShot();
+  void shotToView();
+
+  void startCalculate();
 
  private:
   // Graphic parameters
@@ -428,6 +439,7 @@ class AbstractLogView : public QAbstractScrollArea,
 
   // Popup menu
   QMenu* popupMenu_;
+  QMenu* templateMenu;
   QAction* copyAction_;
   QAction* copyWithColorAction_;
   QAction* commentAction_;
@@ -439,6 +451,13 @@ class AbstractLogView : public QAbstractScrollArea,
   QAction* startLogcatAction_;
   QAction* stopLogcatAction_;
   QAction* syncPatternsAction_;
+
+  // time diff tools
+  QAction *shotToGalleryAction;
+  QAction *shotToShotAction;
+  QAction *shotToViewAction;
+
+  QAction *calculateAction;
 
   // Pointer to the CrawlerWidget's QFP object
   const QuickFindPattern* const quickFindPattern_;

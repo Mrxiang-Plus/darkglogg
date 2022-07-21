@@ -166,6 +166,11 @@ class CrawlerWidget : public QSplitter,
   void startLogcat_click();
   void stopLogcat_click();
 
+  void shotToGallery_click();
+  void shotToShot_click();
+  void shotToView_click();
+  void startCalculate_click();
+
  private slots:
   void doSearch(int patternIndex);
   void updateSearchPattern(int patternIndex);
@@ -236,6 +241,8 @@ class CrawlerWidget : public QSplitter,
   // Called when there was activity in the views
   void activityDetected();
   void followModeChange(bool);
+
+  void applyTemplate(const QString& str);
 
  private:
   QMutex mutex;

@@ -14,7 +14,7 @@
 #include <QFile>
 #include <QDir>
 
-const char* VersionManager::CUR_VERSION = "V1.0";
+const char* VersionManager::CUR_VERSION = "V1.1";
 const char* VersionManager::VERSION_URL =
         "https://git.n.xiaomi.com/wanghuiting1/gloggversion/-/raw/master/version.json?inline=false";
 const char* VersionManager::VERSION_JSON = "version.json";
@@ -42,10 +42,6 @@ void VersionManager::startCheck(bool onlyCheck)
 
 void VersionManager::getVersionJson()
 {
-//    if (exitStatus != QProcess::NormalExit)
-//    {
-//        return;
-//    }
     QFile version(WORK_DIR + VERSION_JSON);
     version.open(QIODevice::ReadOnly);
     QByteArray data = version.readAll();

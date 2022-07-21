@@ -664,6 +664,33 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext()
   return static_cast<std::shared_ptr<const ViewContextInterface>>(context);
 }
 
+void CrawlerWidget::applyTemplate(const QString &str) {
+    QString templateFilter = "";
+    QStringList templateList;
+    templateList.insert(0, "ShotToGallery");
+    templateList.insert(1, "ShotToView");
+    templateList.insert(2, "ShotToShot");
+
+    switch (templateList.indexOf(str)) {
+        case 0: {
+            templateFilter = "onSnapClick|PreviewSaveRequest: image save finished";
+            break;
+    }
+    case 1: {
+        templateFilter = "algo db: finish|CAM_ParallelSaveRequest.*save";
+        break;
+    }
+    case 2: {
+        templateFilter = "onSnapCl|reset Status to Idle";
+        break;
+    }
+    default:
+        break;
+    }
+    searchLineEdit->setEditText(templateFilter);
+    startNewSearch(templateFilter);
+}
+
 //
 // Slots
 //
@@ -1453,8 +1480,17 @@ void CrawlerWidget::setup() {
           SLOT(markLineFromMain(qint64)));
   connect(logMainView, SIGNAL(startLogcat_click()), this, SIGNAL(startLogcat_click()));
   connect(logMainView, SIGNAL(stopLogcat_click()), this, SIGNAL(stopLogcat_click()));
+  connect(logMainView, SIGNAL(shotToGallery_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(logMainView, SIGNAL(shotToShot_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(logMainView, SIGNAL(shotToView_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(logMainView, SIGNAL(startCalculate_click()), this, SIGNAL(startCalculate_click()));
+
   connect(filteredView, SIGNAL(startLogcat_click()), this, SIGNAL(startLogcat_click()));
   connect(filteredView, SIGNAL(stopLogcat_click()), this, SIGNAL(stopLogcat_click()));
+  connect(filteredView, SIGNAL(shotToGallery_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(filteredView, SIGNAL(shotToShot_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(filteredView, SIGNAL(shotToView_click(const QString&)), this, SLOT(applyTemplate(const QString&)));
+  connect(filteredView, SIGNAL(startCalculate_click()), this, SIGNAL(startCalculate_click()));
 
   connect(filteredView, SIGNAL(markLine(qint64)), this,
           SLOT(markLineFromFiltered(qint64)));

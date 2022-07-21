@@ -1101,6 +1101,22 @@ void AbstractLogView::stopLogcat() {
     emit stopLogcat_click();
 }
 
+void AbstractLogView::shotToGallery() {
+    emit shotToGallery_click("ShotToGallery");
+}
+
+void AbstractLogView::shotToView() {
+    emit shotToView_click("ShotToView");
+}
+
+void AbstractLogView::shotToShot() {
+    emit shotToShot_click("ShotToShot");
+}
+
+void AbstractLogView::startCalculate() {
+    emit startCalculate_click();
+}
+
 void AbstractLogView::syncPatterns() {
   //  QProcess process;
   QProcess* process = new QProcess();
@@ -1633,6 +1649,19 @@ void AbstractLogView::createMenu() {
   syncPatternsAction_ = new QAction(tr("Sync Patterns"), this);
   connect(syncPatternsAction_, SIGNAL(triggered()), this, SLOT(syncPatterns()));
 
+  shotToGalleryAction = new QAction(tr("Shot to gallery"), this);
+  shotToGalleryAction->setData(tr("shot to gallery"));
+  connect(shotToGalleryAction, SIGNAL(triggered()), this, SLOT(shotToGallery()));
+
+  shotToShotAction = new QAction(tr("Shot to shot"), this);
+  connect(shotToShotAction, SIGNAL(triggered()), this, SLOT(shotToShot()));
+
+  shotToViewAction = new QAction(tr("Shot to view"), this);
+  connect(shotToViewAction, SIGNAL(triggered()), this, SLOT(shotToView()));
+
+  calculateAction = new QAction(tr("Start Calculate"), this);
+  connect(calculateAction, SIGNAL(triggered()), this, SLOT(startCalculate()));
+
   popupMenu_ = new QMenu(this);
   popupMenu_->addAction(copyAction_);
   popupMenu_->addAction(copyWithColorAction_);
@@ -1640,6 +1669,12 @@ void AbstractLogView::createMenu() {
   popupMenu_->addSeparator();
   popupMenu_->addAction(startLogcatAction_);
   popupMenu_->addAction(stopLogcatAction_);
+  popupMenu_->addSeparator();
+  templateMenu = popupMenu_->addMenu(tr("template"));
+  templateMenu->addAction(shotToGalleryAction);
+  templateMenu->addAction(shotToViewAction);
+  templateMenu->addAction(shotToShotAction);
+  popupMenu_->addAction(calculateAction);
   popupMenu_->addSeparator();
   popupMenu_->addAction(findNextAction_);
   popupMenu_->addAction(findPreviousAction_);

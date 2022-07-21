@@ -156,6 +156,9 @@ MainWindow::MainWindow(
   signalMux_.connect(SIGNAL(stopLogcat_click()), this,
                      SLOT(stopLogcat()));
 
+  signalMux_.connect(this, SIGNAL(applyTemplate(const QString&)), SLOT(applyTemplate(const QString&)));
+  signalMux_.connect(SIGNAL(startCalculate_click()), this, SLOT(startCalculate()));
+
   // Register for progress status bar
   signalMux_.connect(SIGNAL(copyToClipboard()), this, SLOT(copy()));
   signalMux_.connect(SIGNAL(fullScreen()), this, SLOT(fullScreen()));
@@ -558,6 +561,18 @@ void MainWindow::createActions() {
   optionsAction->setStatusTip(tr("Show the Options box"));
   connect(optionsAction, SIGNAL(triggered()), this, SLOT(options()));
 
+  shotToGalleryAction = new QAction(tr("Shot to gallery"), this);
+  shotToGalleryAction->setData(tr("shot to gallery"));
+  connect(shotToGalleryAction, SIGNAL(triggered()), this, SLOT(shotToGallery()));
+
+  shotToShotAction = new QAction(tr("Shot to shot"), this);
+  connect(shotToShotAction, SIGNAL(triggered()), this, SLOT(shotToShot()));
+
+  shotToViewAction = new QAction(tr("Shot to view"), this);
+  connect(shotToViewAction, SIGNAL(triggered()), this, SLOT(shotToView()));
+
+  calculateAction = new QAction(tr("Start Calculate"), this);
+
   shortcutAction = new QAction(tr("&Shortcuts"), this);
   shortcutAction->setStatusTip("Open the shortcut key document");
   connect(shortcutAction, SIGNAL(triggered()), this, SLOT(showShortcuts()));
@@ -669,6 +684,12 @@ void MainWindow::createMenus() {
   toolsMenu->addSeparator();
   toolsMenu->addAction(optionsAction);
   toolsMenu->addSeparator();
+  timeDiffCalculateMenu = toolsMenu->addMenu(tr("Calculate time diff"));
+  templateMenu = timeDiffCalculateMenu->addMenu(tr("template"));
+  templateMenu->addAction(shotToGalleryAction);
+  templateMenu->addAction(shotToViewAction);
+  templateMenu->addAction(shotToShotAction);
+  timeDiffCalculateMenu->addAction(calculateAction);
 
   encodingMenu = menuBar()->addMenu(tr("En&coding"));
   encodingMenu->addAction(encodingAction[0]);
@@ -700,6 +721,10 @@ void MainWindow::createMenus() {
 
 void MainWindow::createIconToolBars() {
     menuToolBar = addToolBar(tr("Menu ToolBar"));
+    menuToolBar->setMovable(true);
+    menuToolBar->setOrientation(Qt::Horizontal);
+    menuToolBar->addAction(updateVersionAction);
+    menuToolBar->addSeparator();
     menuToolBar->addAction(openAction);
     menuToolBar->addAction(saveAsAction);
     menuToolBar->addSeparator();
@@ -707,8 +732,7 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addAction(stopLogcatAction);
     menuToolBar->addAction(followAction);
     menuToolBar->addSeparator();
-    menuToolBar->addAction(updateVersionAction);
-    menuToolBar->addSeparator();
+
 
     deviceBox = new QComboBox();
     deviceBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -726,7 +750,6 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addSeparator();
     menuToolBar->addWidget(processLine);
     menuToolBar->addAction(addProcessAction);
-    menuToolBar->addSeparator();
 }
 
 void MainWindow::modifyComboBox(QComboBox *comboBox, QStringList strList, QString defaultText) {
@@ -975,13 +998,6 @@ void MainWindow::installCamera() {
                               QStringList() << path + "install-camera.sh"
                               << deviceId
                               << fileName);
-
-//          QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning,
-//                                                "File format verification failed",
-//                                                tr("Please choose the *.apk file"));
-//          msgBox->show();
-//          return;
-
     }
 }
 
@@ -1039,6 +1055,22 @@ void MainWindow::copyWithColor() {
     // Put it in the global selection as well (X11 only)
     clipboard->setText(colorString, QClipboard::Selection);
   }
+}
+
+void MainWindow::shotToGallery() {
+    emit applyTemplate("ShotToGallery");
+}
+
+void MainWindow::shotToView() {
+    emit applyTemplate("ShotToView");
+}
+
+void MainWindow::shotToShot() {
+    emit applyTemplate("ShotToShot");
+}
+
+void MainWindow::startCalculate() {
+//    emit applyTemplate("ShotToGallery");
 }
 
 void MainWindow::calculateTimeDiff() {

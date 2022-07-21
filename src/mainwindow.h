@@ -179,7 +179,11 @@ class MainWindow : public QMainWindow {
   void updateDevice_click();
   void addProcess_click();
 
+  void shotToGallery();
+  void shotToShot();
+  void shotToView();
 
+  void startCalculate();
  signals:
   // Is emitted when new settings must be used
   void optionsChanged();
@@ -198,6 +202,7 @@ class MainWindow : public QMainWindow {
   void hideLogBar();
   void focusMainView();
   void startNewSearch();
+  void applyTemplate(const QString& str);
 
  private:
   void createActions();
@@ -267,6 +272,8 @@ class MainWindow : public QMainWindow {
   QMenu *helpMenu;
   QMenu *deviceMenu;
   QMenu *cameraMenu;
+  QMenu *timeDiffCalculateMenu;
+  QMenu *templateMenu;
 
   uint32_t transparent_ = 255;
   int lineNumber_;
@@ -331,6 +338,12 @@ class MainWindow : public QMainWindow {
   QAction *addProcessAction;
   QAction *installCameraAction;
 
+  // time diff tools
+  QAction *shotToGalleryAction;
+  QAction *shotToShotAction;
+  QAction *shotToViewAction;
+
+  QAction *calculateAction;
 
   QProcess *process_;
   QIcon mainIcon_;
