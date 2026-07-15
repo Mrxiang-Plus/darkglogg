@@ -735,7 +735,6 @@ void MainWindow::createIconToolBars() {
     menuToolBar->addAction(followAction);
     menuToolBar->addSeparator();
 
-
     deviceBox = new QComboBox();
     deviceBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QStringList deviceStrList = updateDeviceBox();
@@ -1653,37 +1652,89 @@ void MainWindow::encodingChanged(QAction* action) {
   // updateInfoLine();
 }
 void MainWindow::applyConfiguration() {
-  LOG(logERROR) << "applyConfiguration START";
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   transparent_ = config->transparent();
   int activeIdx = config->activeThemeIndex();
   QString themePath = config->themePath();
-  LOG(logERROR) << "activeIdx=" << activeIdx << " themePath=" << themePath.toStdString();
 
-  // Load theme from JSON
-  LOG(logERROR) << "Loading theme...";
-  bool loaded = ThemeManager::instance().loadTheme(themePath);
-  LOG(logERROR) << "Theme loaded=" << loaded << " name=" << ThemeManager::instance().currentThemeName().toStdString();
+  // Load theme
+  ThemeManager::instance().loadTheme(themePath);
 
-  // Apply theme style based on activeThemeIndex
+  // Apply style using Fusion directly, then set stylesheet
   if (activeIdx == 0 || activeIdx >= 2) {
-    LOG(logERROR) << "Creating DarkStyle...";
-    DarkStyle* style = new DarkStyle(transparent_);
-    LOG(logERROR) << "Setting style...";
-    qApp->setStyle(style);
-    LOG(logERROR) << "Style set OK";
+    // Dark theme: set Fusion base + dark stylesheet
+    qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
+    QFile qfDarkstyle(QStringLiteral(":/darkstyle/darkstyle.qss"));
+    if (qfDarkstyle.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      QString qsStylesheet = QString::fromLatin1(qfDarkstyle.readAll());
+
+      // Inject theme colors
+      ThemeManager& tm = ThemeManager::instance();
+      QColor accent = tm.color("accent", QColor("#007acc"));
+      QColor inputBorder = tm.color("input.border", QColor("#3c3c3c"));
+      QColor focusBorder = tm.color("input.focusBorder", accent);
+      QColor menuSel = tm.color("menu.selectionBackground", QColor("#094771"));
+      QColor scrollHover = tm.color("scrollbarSlider.hoverBackground", QColor("#888888"));
+      QColor tabBorder = tm.color("tab.activeBorder", accent);
+      QColor listSel = tm.color("list.selectionBackground", menuSel);
+      QColor listHover = tm.color("list.hoverBackground", QColor("#2a2a2a"));
+      QColor btnBg = tm.color("button.background", QColor("#0e639c"));
+      QColor btnHover = tm.color("button.hoverBackground", QColor("#1177bb"));
+      QColor statusBg = tm.color("statusBar.background", QColor("#007acc"));
+      QColor statusFg = tm.color("statusBar.foreground", QColor("#ffffff"));
+
+      qsStylesheet += QString("\n"
+        "QLineEdit:focus { border: 1px solid %1; }\n"
+        "QComboBox:focus { border: 1px solid %1; }\n"
+        "QTabBar::tab:selected { border-bottom: 3px solid %2; }\n"
+        "QSplitter::handle:hover { background-color: %1; }\n"
+        "QScrollBar::handle:vertical:hover { background-color: %3; }\n"
+        "QScrollBar::handle:horizontal:hover { background-color: %3; }\n"
+        "QMenu::item:selected { background: %4; border-color: %4; }\n"
+        "QTreeView::item:selected, QTableView::item:selected { background: %5; }\n"
+        "QTreeView::item:hover, QTableView::item:hover { background: %6; }\n"
+        "QPushButton { background-color: %7; border: 1px solid %7; }\n"
+        "QPushButton:hover { background-color: %8; border: 1px solid %8; }\n"
+        "QSlider::handle:horizontal { border: 2px solid %1; }\n"
+        "QSlider::sub-page:horizontal { background: %1; }\n"
+        "QStatusBar { background-color: %9; color: %10; }\n"
+        "QHeaderView::section { border-bottom: 3px solid %2; }\n"
+      ).arg(focusBorder.name())
+       .arg(tabBorder.name())
+       .arg(scrollHover.name())
+       .arg(menuSel.name())
+       .arg(listSel.name())
+       .arg(listHover.name())
+       .arg(btnBg.name())
+       .arg(btnHover.name())
+       .arg(statusBg.name())
+       .arg(statusFg.name());
+
+      qApp->setStyleSheet(qsStylesheet);
+      qfDarkstyle.close();
+    }
+
+    // Set palette from theme
+    ThemeManager& tmPal = ThemeManager::instance();
+    QPalette pal;
+    QColor editorBg = tmPal.color("editor.background", QColor("#1e1e1e"));
+    QColor editorFg = tmPal.color("editor.foreground", QColor("#d4d4d4"));
+    pal.setColor(QPalette::Window, editorBg);
+    pal.setColor(QPalette::WindowText, editorFg);
+    pal.setColor(QPalette::Base, editorBg);
+    pal.setColor(QPalette::Text, tmPal.color("input.foreground", QColor("#cccccc")));
+    pal.setColor(QPalette::Button, tmPal.color("button.background", QColor("#2d2d2d")));
+    pal.setColor(QPalette::ButtonText, tmPal.color("button.foreground", QColor("#d4d4d4")));
+    pal.setColor(QPalette::Highlight, tmPal.color("accent", QColor("#007acc")));
+    pal.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    pal.setColor(QPalette::Link, tmPal.color("link", QColor("#4fc1ff")));
+    qApp->setPalette(pal);
   } else {
-    LOG(logERROR) << "Setting Fusion style...";
+    // White theme
     qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
     qApp->setStyleSheet("");
-    LOG(logERROR) << "Fusion style set OK";
+    qApp->setPalette(QApplication::style()->standardPalette());
   }
-  // Force palette refresh
-  LOG(logERROR) << "Getting standard palette...";
-  QPalette pal = qApp->style()->standardPalette();
-  LOG(logERROR) << "Setting palette...";
-  qApp->setPalette(pal);
-  LOG(logERROR) << "applyConfiguration DONE";
 }
 
 void MainWindow::toggleOverviewVisibility(bool isVisible) {

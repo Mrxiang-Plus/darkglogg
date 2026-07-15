@@ -280,18 +280,11 @@ int main(int argc, char* argv[]) {
   MainWindow mw(std::move(session), externalCommunicator,
                 framelessWindow.getTitleBar());
   mw.setApplication(&app);
-
-  //   .   ui->windowTitlebar->setStyleSheet(QStringLiteral(
-
-  // Geometry
   mw.reloadGeometry();
 
-  // Load the existing session if needed
   if (load_session ||
       (filenames.empty() && !new_session && config->loadLastSession()))
     mw.reloadSession();
-
-  LOG(logDEBUG) << "MainWindow created.";
 
   framelessWindow.setContent(&mw);
   framelessWindow.setWindowIcon(mw.getIcon());

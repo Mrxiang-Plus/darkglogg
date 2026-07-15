@@ -29,6 +29,11 @@ ThemeManager& ThemeManager::instance() {
 }
 
 bool ThemeManager::loadTheme(const QString& path) {
+    LOG(logERROR) << "ThemeManager::loadTheme path=" << path.toStdString();
+    if (path.isEmpty()) {
+        LOG(logWARNING) << "ThemeManager: empty path";
+        return false;
+    }
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
         LOG(logWARNING) << "ThemeManager: cannot open " << path.toStdString();
@@ -37,6 +42,7 @@ bool ThemeManager::loadTheme(const QString& path) {
 
     QByteArray data = file.readAll();
     file.close();
+    LOG(logERROR) << "ThemeManager: read " << data.size() << " bytes";
 
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data, &error);

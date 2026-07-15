@@ -266,28 +266,33 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setCheckUpdate(updateCheckBox->isChecked());
 
   // Theme selection
+  fprintf(stderr, "DBG: updateConfigFromDialog - theme selection\n");
   if (radioButton_2->isChecked()) {
-    // White theme
+    fprintf(stderr, "DBG: White theme selected\n");
     config->setActiveThemeIndex(1);
     config->setWasdStyle(false);
   } else {
-    // Dark theme from combo box
+    fprintf(stderr, "DBG: Dark theme selected\n");
     int comboIdx = themeComboBox->currentIndex();
+    fprintf(stderr, "DBG: comboIdx=%d\n", comboIdx);
     if (comboIdx >= 0) {
       QVariant data = themeComboBox->itemData(comboIdx);
+      fprintf(stderr, "DBG: data.isValid=%d data=%s\n", data.isValid(), data.toString().toStdString().c_str());
       if (data.isValid() && !data.toString().isEmpty()) {
         config->setThemePath(data.toString());
       }
     }
-    // Fallback if themePath is empty
     if (config->themePath().isEmpty()) {
       config->setThemePath(":/themes/vscode-dark-plus.json");
     }
+    fprintf(stderr, "DBG: themePath=%s\n", config->themePath().toStdString().c_str());
     config->setActiveThemeIndex(0);
     config->setWasdStyle(true);
-    // Load the theme
+    fprintf(stderr, "DBG: Loading theme...\n");
     ThemeManager::instance().loadTheme(config->themePath());
+    fprintf(stderr, "DBG: Theme loaded\n");
   }
+  fprintf(stderr, "DBG: emit optionsChanged\n");
 
   // Language
   QString newLang = languageComboBox->currentData().toString();

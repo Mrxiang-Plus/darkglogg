@@ -34,7 +34,6 @@ QStyle *DarkStyle::baseStyle() const { return styleBase(); }
 void DarkStyle::polish(QPalette &palette) {
   ThemeManager& tm = ThemeManager::instance();
 
-  // If no theme loaded, use hardcoded VSCode Dark+ fallback
   if (tm.currentThemePath().isEmpty()) {
     palette.setColor(QPalette::Window, QColor(30, 30, 30, alpha_));
     palette.setColor(QPalette::WindowText, QColor(212, 212, 212));
