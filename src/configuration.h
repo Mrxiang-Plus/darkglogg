@@ -106,6 +106,10 @@ class Configuration : public Persistable {
     searchIgnoreCase_ = ignore_case;
   }
 
+  // Language
+  QString language() const { return language_; }
+  void setLanguage(const QString& lang) { language_ = lang; }
+
   // Reads/writes the current config in the QSettings object passed
   virtual void saveToStorage(QSettings& settings) const;
   virtual void retrieveFromStorage(QSettings& settings);
@@ -137,6 +141,9 @@ class Configuration : public Persistable {
   // Default settings for new views
   bool searchAutoRefresh_;
   bool searchIgnoreCase_;
+
+  // Language
+  QString language_;
 };
 
 #endif

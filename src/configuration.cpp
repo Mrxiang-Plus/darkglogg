@@ -59,6 +59,9 @@ Configuration::Configuration() {
 
   searchAutoRefresh_ = true;
   searchIgnoreCase_ = true;
+
+  // Language: empty means system locale
+  language_ = "";
 }
 
 // Accessor functions
@@ -175,6 +178,10 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
         settings.value("defaultView.searchAutoRefresh").toBool();
   if (settings.contains("defaultView.searchIgnoreCase"))
     searchIgnoreCase_ = settings.value("defaultView.searchIgnoreCase").toBool();
+
+  // Language
+  if (settings.contains("language"))
+    language_ = settings.value("language").toString();
 }
 
 void Configuration::saveToStorage(QSettings& settings) const {
@@ -207,4 +214,5 @@ void Configuration::saveToStorage(QSettings& settings) const {
                     lineNumbersVisibleInFiltered_);
   settings.setValue("defaultView.searchAutoRefresh", searchAutoRefresh_);
   settings.setValue("defaultView.searchIgnoreCase", searchIgnoreCase_);
+  settings.setValue("language", language_);
 }

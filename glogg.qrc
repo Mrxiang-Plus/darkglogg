@@ -30,8 +30,8 @@
         <file>images/scroll_to_end16.png</file>
         <file>images/update14.png</file>
         <file>images/update_hint.png</file>
-        <file>../../Downloads/updateDevice16.png</file>
         <file>images/updateDevice16.png</file>
         <file>images/addProcess16.png</file>
+        <file>translations/glogg_zh_CN.qm</file>
     </qresource>
 </RCC>

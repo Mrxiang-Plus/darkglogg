@@ -33,7 +33,7 @@ QStyle *DarkStyle::baseStyle() const { return styleBase(); }
 void DarkStyle::polish(QPalette &palette) {
   // modify palette to dark
 
-  static std::shared_ptr<Configuration> config =
+  std::shared_ptr<Configuration> config =
       Persistent<Configuration>("settings");
   if (config->wasdStyle()) {
     palette.setColor(QPalette::Window, QColor(33, 33, 33, alpha_));
@@ -81,7 +81,7 @@ void DarkStyle::polish(QApplication *app) {
   defaultFont.setPointSize(defaultFont.pointSize());
   app->setFont(defaultFont);
 
-  static std::shared_ptr<Configuration> config =
+  std::shared_ptr<Configuration> config =
       Persistent<Configuration>("settings");
   if (config->wasdStyle()) {
     // loadstylesheet

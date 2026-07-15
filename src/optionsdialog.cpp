@@ -19,6 +19,7 @@
 
 #include <QFileDialog>
 #include <QtGui>
+#include <QLocale>
 
 #include "optionsdialog.h"
 
@@ -34,6 +35,7 @@ OptionsDialog::OptionsDialog(QWidget* parent) : QDialog(parent) {
   setupUi(this);
 
   setupTabs();
+  setupLanguage();
   setupFontList();
   setupRegexp();
 
@@ -106,6 +108,11 @@ void OptionsDialog::setupPolling() {
   pollIntervalLineEdit->setEnabled(pollingCheckBox->isChecked());
 }
 
+void OptionsDialog::setupLanguage() {
+  languageComboBox->addItem("English", "en");
+  languageComboBox->addItem(QString::fromUtf8("\xe7\xae\x80\xe4\xbd\x93\xe4\xb8\xad\xe6\x96\x87"), "zh_CN");
+}
+
 // Convert a regexp type to its index in the list
 int OptionsDialog::getRegexpIndex(SearchRegexpType syntax) const {
   int index;
@@ -176,6 +183,15 @@ void OptionsDialog::updateDialogFromConfig() {
   customRatioBtn->setChecked(config->wasCustomStyle());
   custom_lineEdit->setText(config->getCustomStyle());
   radioButton_2->setChecked(!config->wasdStyle() && !config->wasCustomStyle());
+
+  // Language
+  QString lang = config->language();
+  if (lang.isEmpty())
+    lang = QLocale::system().name();
+  int langIndex = languageComboBox->findData(lang);
+  if (langIndex == -1)
+    langIndex = 0; // Default to English
+  languageComboBox->setCurrentIndex(langIndex);
 }
 
 //
@@ -228,6 +244,13 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setWasdStyle(radioButton->isChecked());
   config->setCustomChecked(customRatioBtn->isChecked());
   config->setCustomColor(custom_lineEdit->text());
+
+  // Language
+  QString newLang = languageComboBox->currentData().toString();
+  if (newLang != config->language()) {
+    config->setLanguage(newLang);
+    emit languageChanged();
+  }
 
   emit optionsChanged();
 }

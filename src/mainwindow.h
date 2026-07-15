@@ -79,6 +79,7 @@ class MainWindow : public QMainWindow {
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
   void keyPressEvent(QKeyEvent *keyEvent);
+  void changeEvent(QEvent *event);
   void hideTab();
   void hideTitleMenu();
 
@@ -184,6 +185,10 @@ class MainWindow : public QMainWindow {
   void shotToView();
 
   void startCalculate();
+
+  // Language changed
+  void languageChanged();
+
  signals:
   // Is emitted when new settings must be used
   void optionsChanged();
@@ -212,6 +217,7 @@ class MainWindow : public QMainWindow {
   void createToolBars();
   void createStatusBar();
   void createRecentFileToolTipTimer();
+  void retranslateUi();
   void readSettings();
   void writeSettings();
   bool loadFile(const QString &fileName);

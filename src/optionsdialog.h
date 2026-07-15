@@ -36,6 +36,8 @@ class OptionsDialog : public QDialog, public Ui::OptionsDialog {
  signals:
   // Is emitted when new settings must be used
   void optionsChanged();
+  // Is emitted when language is changed
+  void languageChanged();
 
  private slots:
   // Clears and updates the font size box with the sizes allowed
@@ -58,6 +60,7 @@ class OptionsDialog : public QDialog, public Ui::OptionsDialog {
   void setupRegexp();
   void setupIncremental();
   void setupPolling();
+  void setupLanguage();
 
   int getRegexpIndex(SearchRegexpType syntax) const;
   SearchRegexpType getRegexpTypeFromIndex(int index) const;

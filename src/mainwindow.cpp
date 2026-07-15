@@ -42,6 +42,8 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QToolBar>
+#include <QTranslator>
+#include <QApplication>
 #include <QUrl>
 #include <QDebug>
 #include <QDateTime>
@@ -818,7 +820,7 @@ void MainWindow::updateProcessCompleter() {
 //                          QStringList() << path + "get_device_and_pid.sh"
 //                                        << MODE_PID
 //                                        << getSelectedDevice());
-    QString tmpPath = path + "packageList.txt";
+    QString tmpPath = path + "process.txt";
     QFile tmpfile(tmpPath);
     if (tmpfile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -835,10 +837,6 @@ void MainWindow::updateProcessCompleter() {
 
 void MainWindow::setProcessCompleter() {
     if (processList.size() == 0) {
-        QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning,
-                                              "Empty process list",
-                                              tr("Please check the ~/.glogg/process.txt"));
-        msgBox->show();
         return;
     }
     QCompleter *allProcess = new QCompleter(processList, this);
@@ -1417,14 +1415,13 @@ void MainWindow::openSharedFilter() {
 // Opens the 'Options' modal dialog box
 void MainWindow::options() {
   OptionsDialog dialog(this);
-//  signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
-//                     SLOT(applyConfiguration()));
-//  connect(&dialog, SIGNAL(optionsChanged()), SLOT(applyConfiguration()));
+  signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
+                     SLOT(applyConfiguration()));
+  connect(&dialog, SIGNAL(optionsChanged()), this, SLOT(applyConfiguration()));
+  connect(&dialog, SIGNAL(languageChanged()), this, SLOT(languageChanged()));
   dialog.exec();
-//  signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
-//                        SLOT(applyConfiguration()));
-//  disconnect(&dialog, SIGNAL(optionsChanged()), this,
-//             SLOT(applyConfiguration()));
+  signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
+                        SLOT(applyConfiguration()));
 }
 
 void MainWindow::showShortcuts() {
@@ -1468,6 +1465,156 @@ void MainWindow::about() {
 // Opens the 'About Qt' dialog box.
 void MainWindow::aboutQt() {}
 
+void MainWindow::languageChanged() {
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString lang = config->language();
+
+  // Remove old translator
+  foreach (QObject* obj, QApplication::instance()->children()) {
+    QTranslator* translator = qobject_cast<QTranslator*>(obj);
+    if (translator) {
+      QApplication::removeTranslator(translator);
+      delete translator;
+    }
+  }
+
+  // Install new translator
+  if (lang != "en") {
+    QTranslator* translator = new QTranslator(this);
+    if (translator->load(":/translations/glogg_" + lang + ".qm")) {
+      QApplication::installTranslator(translator);
+    }
+  }
+
+  // Notify all top-level widgets to retranslate
+  QWidgetList topLevels = QApplication::topLevelWidgets();
+  for (QWidget* w : topLevels) {
+    QEvent langEvent(QEvent::LanguageChange);
+    QApplication::sendEvent(w, &langEvent);
+  }
+}
+
+void MainWindow::retranslateUi() {
+  // Actions
+  openAction->setText(tr("&Open..."));
+  openAction->setStatusTip(tr("Open a file"));
+  copyPathAction->setText(tr("Copy path"));
+  saveAsAction->setText(tr("&Save As"));
+  saveAsAction->setStatusTip(tr("save as and open file"));
+  saveSelectedAsAction->setText(tr("Save Selection As"));
+  saveSelectedAsAction->setStatusTip(
+      tr("save selected content as new file and open the file"));
+  calculateTimeDiffAction->setText(tr("Calculation time consumption"));
+  performanceAction->setText(tr("Performance calculation"));
+  updateDeviceAction->setText(tr("Refresh device list"));
+  updateDeviceAction->setStatusTip(tr("Refresh device list"));
+  addProcessAction->setText(tr("Add package"));
+  addProcessAction->setStatusTip(tr("Add specified package"));
+  saveFilteredAsAction->setText(tr("Open Filtered In New Tab"));
+  saveFilteredAsAction->setStatusTip(tr("save Filtered as and open file"));
+  retraceLogAction->setText(tr("Retrace Selection"));
+  retraceLogAction->setStatusTip(tr("retrace log"));
+  reformatLogAction->setText(tr("Reformat"));
+  reformatLogAction->setStatusTip(tr("reformat log"));
+  viewPicturesAction->setText(tr("Open Pictures"));
+  viewPicturesAction->setStatusTip(tr("reformat log"));
+  cutLogAction->setText(tr("Cut Upper Lines"));
+  cutLogAction->setStatusTip(tr("cut upper lines"));
+  closeAction->setText(tr("&Close"));
+  closeAction->setStatusTip(tr("Close document"));
+  closeLeftAction->setText(tr("Close tabs to the left"));
+  closeLeftAction->setStatusTip(tr("closeLeft document"));
+  closeRightAction->setText(tr("Close tabs to the right"));
+  closeRightAction->setStatusTip(tr("closeRight document"));
+  closeAllAction->setText(tr("Close &All"));
+  closeAllAction->setStatusTip(tr("Close all documents"));
+  exitAction->setText(tr("E&xit"));
+  exitAction->setStatusTip(tr("Exit the application"));
+  copyAction->setText(tr("&Copy"));
+  copyAction->setStatusTip(tr("Copy the selection"));
+  copyWithColorAction->setText(tr("Copy To Jira"));
+  copyWithColorAction->setStatusTip(tr("Copy the selection with foreground color"));
+  selectAllAction->setText(tr("Select &All"));
+  selectAllAction->setStatusTip(tr("Select all the text"));
+  startLogcatAction->setText(tr("Start Logcat"));
+  startLogcatAction->setStatusTip(tr("startLogcat the selection"));
+  stopLogcatAction->setText(tr("Stop Logcat"));
+  stopLogcatAction->setStatusTip(tr("stopLogcat the selection"));
+  findAction->setText(tr("&Find..."));
+  findAction->setStatusTip(tr("Find the text"));
+  markAction->setText(tr("&Mark..."));
+  markAction->setStatusTip(tr("Mark the text"));
+  searchShareAction->setText(tr("Search and share..."));
+  searchShareAction->setStatusTip(tr("search and share in the git repo"));
+  overviewVisibleAction->setText(tr("Matches &overview"));
+  lineNumbersVisibleInMainAction->setText(tr("Line &numbers in main view"));
+  lineNumbersVisibleInFilteredAction->setText(tr("Line &numbers in filtered view"));
+  followAction->setText(tr("&Follow File"));
+  followAction->setStatusTip(tr("scroll to the end"));
+  reloadAction->setText(tr("&Reload"));
+  fullScreenAction->setText(tr("Full Screen"));
+  stopAction->setText(tr("&Stop"));
+  filtersAction->setText(tr("&Local filter"));
+  filtersAction->setStatusTip(tr("Show the local filters"));
+  sharedFilterAction->setText(tr("&Shared filter"));
+  sharedFilterAction->setStatusTip(tr("Show the shared filters"));
+  optionsAction->setText(tr("&Options..."));
+  optionsAction->setStatusTip(tr("Show the Options box"));
+  shotToGalleryAction->setText(tr("Shot to gallery"));
+  shotToGalleryAction->setData(tr("shot to gallery"));
+  shotToShotAction->setText(tr("Shot to shot"));
+  shotToViewAction->setText(tr("Shot to view"));
+  calculateAction->setText(tr("Start Calculate"));
+  shortcutAction->setText(tr("&Shortcuts"));
+  aboutAction->setText(tr("&About"));
+  aboutAction->setStatusTip(tr("Show the About box"));
+  aboutQtAction->setText(tr("About &Qt"));
+  aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
+  updateVersionAction->setText(tr("Update"));
+  updateVersionAction->setStatusTip(tr("Check for updates"));
+  aboutCustomizedAction->setText(tr("More info"));
+  aboutCustomizedAction->setStatusTip(tr("Show more info about customized glogg"));
+  dumpCameraAction->setText(tr("Dumpsys media.camera"));
+  dumpCameraAction->setStatusTip(tr("dumpsys media.camera"));
+  installCameraAction->setText(tr("&Install camera"));
+  dumpStreamAction->setText(tr("Stream"));
+  dumpDeviceInfoAction->setText(tr("Device info"));
+  dumpCpuAction->setText(tr("Cpu and thermal"));
+
+  // Encoding actions
+  for (int i = 0; i < static_cast<int>(Encoding::ENCODING_MAX); ++i) {
+    encodingAction[i]->setText(tr(encoding_list[i].name));
+  }
+  encodingAction[0]->setStatusTip(tr("Automatically detect the file's encoding"));
+
+  // Menus
+  fileMenu->setTitle(tr("&File"));
+  editMenu->setTitle(tr("&Edit"));
+  viewMenu->setTitle(tr("&View"));
+  toolsMenu->setTitle(tr("&Tools"));
+  encodingMenu->setTitle(tr("En&coding"));
+  deviceMenu->setTitle(tr("&Device"));
+  cameraMenu->setTitle(tr("Camera"));
+  helpMenu->setTitle(tr("&Help"));
+
+  // Toolbars
+  menuToolBar->setWindowTitle(tr("Menu ToolBar"));
+  deviceBox->setItemText(0, tr("no device"));
+
+  // Title bar
+  CrawlerWidget* current = currentCrawlerWidget();
+  if (current)
+    updateTitleBar(QString(session_->getFilename(current).c_str()));
+  else
+    updateTitleBar(QString());
+}
+
+void MainWindow::changeEvent(QEvent* event) {
+  if (event->type() == QEvent::LanguageChange) {
+    retranslateUi();
+  }
+  QMainWindow::changeEvent(event);
+}
 
 void MainWindow::updateVersion_click()
 {
@@ -1509,7 +1656,16 @@ void MainWindow::applyConfiguration() {
   LOG(logERROR) << "applyConfiguration";
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   transparent_ = config->transparent();
-  app_->setStyle(new DarkStyle(transparent_));
+
+  // Apply theme style
+  if (config->wasdStyle() || config->wasCustomStyle()) {
+    qApp->setStyle(new DarkStyle(transparent_));
+  } else {
+    qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
+    qApp->setStyleSheet("");
+  }
+  // Force palette refresh
+  qApp->setPalette(qApp->style()->standardPalette());
 }
 
 void MainWindow::toggleOverviewVisibility(bool isVisible) {

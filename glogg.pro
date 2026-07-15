@@ -143,9 +143,6 @@ HEADERS += \
 macx {
     BOOST_PATH = ../boost_1_73_0
 }
-else {
-    BOOST_PATH = ../boost_1_71_0
-}
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)
@@ -159,20 +156,27 @@ isEmpty(BOOST_PATH) {
     }
 }
 else {
-    message(Building using static Boost libraries at $$BOOST_PATH)
-
-    SOURCES += $$BOOST_PATH/libs/program_options/src/*.cpp
-
-    exists( $$BOOST_PATH/libs/smart_ptr/src/sp_collector.cpp ) {
-        message( "'old' version of Boost" )
-        SOURCES += $$BOOST_PATH/libs/smart_ptr/src/*.cpp
+    !exists($$BOOST_PATH/libs/program_options/src) {
+        message("BOOST_PATH $$BOOST_PATH not found, falling back to system Boost")
+        BOOST_PATH =
+        LIBS += -lboost_program_options
     }
-    else {
-        message( "'new' version of Boost" )
-        SOURCES += $$BOOST_PATH/libs/smart_ptr/extras/src/*.cpp
-    }
+    !isEmpty(BOOST_PATH) {
+        message(Building using static Boost libraries at $$BOOST_PATH)
 
-    INCLUDEPATH += $$BOOST_PATH
+        SOURCES += $$BOOST_PATH/libs/program_options/src/*.cpp
+
+        exists( $$BOOST_PATH/libs/smart_ptr/src/sp_collector.cpp ) {
+            message( "'old' version of Boost" )
+            SOURCES += $$BOOST_PATH/libs/smart_ptr/src/*.cpp
+        }
+        else {
+            message( "'new' version of Boost" )
+            SOURCES += $$BOOST_PATH/libs/smart_ptr/extras/src/*.cpp
+        }
+
+        INCLUDEPATH += $$BOOST_PATH
+    }
 }
 
 FORMS += src/optionsdialog.ui \
@@ -194,6 +198,9 @@ else {
 RESOURCES = glogg.qrc \
             darkstyle.qrc \
             framelesswindow.qrc
+
+# Translations
+TRANSLATIONS = translations/glogg_zh_CN.ts
 
 # Build HTML documentation (if 'markdown' is available)
 system(type markdown >/dev/null) {

@@ -19,6 +19,8 @@
  */
 
 #include <QFileInfo>
+#include <QTranslator>
+#include <QLocale>
 
 #include <memory>
 
@@ -254,11 +256,26 @@ int main(int argc, char* argv[]) {
   // FIXME: should be replaced by a two staged init of MainWindow
   GetPersistentInfo().retrieve(QString("settings"));
 
+  // Load translation
+  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
+  QString lang = config->language();
+  if (lang.isEmpty()) {
+    // First run: use system locale
+    lang = QLocale::system().name();
+  }
+  if (lang != "en") {
+    QTranslator* translator = new QTranslator(&app);
+    if (translator->load(":/translations/glogg_" + lang + ".qm")) {
+      app.installTranslator(translator);
+    }
+  }
+
   std::unique_ptr<Session> session(new Session());
   app.setStyle(new DarkStyle(255));
   FramelessWindow framelessWindow;
   MainWindow mw(std::move(session), externalCommunicator,
                 framelessWindow.getTitleBar());
+  mw.setApplication(&app);
 
   //   .   ui->windowTitlebar->setStyleSheet(QStringLiteral(
 
@@ -266,7 +283,6 @@ int main(int argc, char* argv[]) {
   mw.reloadGeometry();
 
   // Load the existing session if needed
-  std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   if (load_session ||
       (filenames.empty() && !new_session && config->loadLastSession()))
     mw.reloadSession();
