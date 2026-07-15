@@ -1,0 +1,53 @@
+{
+  "name": "VSCode Dark+",
+  "author": "Microsoft",
+  "colors": {
+    "editor.background": "#1e1e1e",
+    "editor.foreground": "#d4d4d4",
+    "editor.selectionBackground": "#264f78",
+    "editor.lineHighlightBackground": "#2a2d2e",
+
+    "sidebar.background": "#252526",
+    "sidebar.foreground": "#cccccc",
+
+    "titleBar.background": "#323233",
+    "titleBar.foreground": "#cccccc",
+
+    "statusBar.background": "#007acc",
+    "statusBar.foreground": "#ffffff",
+
+    "tab.activeBackground": "#1e1e1e",
+    "tab.activeForeground": "#ffffff",
+    "tab.activeBorder": "#007acc",
+    "tab.inactiveBackground": "#2d2d2d",
+    "tab.inactiveForeground": "#969696",
+
+    "menu.background": "#252526",
+    "menu.foreground": "#cccccc",
+    "menu.selectionBackground": "#094771",
+
+    "button.background": "#0e639c",
+    "button.foreground": "#ffffff",
+    "button.hoverBackground": "#1177bb",
+
+    "input.background": "#3c3c3c",
+    "input.foreground": "#cccccc",
+    "input.border": "#3c3c3c",
+    "input.focusBorder": "#007acc",
+
+    "scrollbarSlider.background": "#5a5a5a",
+    "scrollbarSlider.hoverBackground": "#7a7a7a",
+
+    "tooltip.background": "#252526",
+    "tooltip.foreground": "#cccccc",
+    "tooltip.border": "#3c3c3c",
+
+    "list.selectionBackground": "#094771",
+    "list.hoverBackground": "#2a2d2e",
+
+    "border": "#3c3c3c",
+    "accent": "#007acc",
+    "link": "#4fc1ff",
+    "error": "#ff5555"
+  }
+}

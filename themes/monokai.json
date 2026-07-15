@@ -1,0 +1,53 @@
+{
+  "name": "Monokai",
+  "author": "Wimer Hazenberg",
+  "colors": {
+    "editor.background": "#272822",
+    "editor.foreground": "#f8f8f2",
+    "editor.selectionBackground": "#49483e",
+    "editor.lineHighlightBackground": "#3e3d32",
+
+    "sidebar.background": "#1e1f1c",
+    "sidebar.foreground": "#f8f8f2",
+
+    "titleBar.background": "#1e1f1c",
+    "titleBar.foreground": "#f8f8f2",
+
+    "statusBar.background": "#a6e22e",
+    "statusBar.foreground": "#272822",
+
+    "tab.activeBackground": "#272822",
+    "tab.activeForeground": "#f8f8f2",
+    "tab.activeBorder": "#a6e22e",
+    "tab.inactiveBackground": "#1e1f1c",
+    "tab.inactiveForeground": "#75715e",
+
+    "menu.background": "#1e1f1c",
+    "menu.foreground": "#f8f8f2",
+    "menu.selectionBackground": "#49483e",
+
+    "button.background": "#a6e22e",
+    "button.foreground": "#272822",
+    "button.hoverBackground": "#b8e855",
+
+    "input.background": "#3e3d32",
+    "input.foreground": "#f8f8f2",
+    "input.border": "#49483e",
+    "input.focusBorder": "#a6e22e",
+
+    "scrollbarSlider.background": "#49483e",
+    "scrollbarSlider.hoverBackground": "#75715e",
+
+    "tooltip.background": "#3e3d32",
+    "tooltip.foreground": "#f8f8f2",
+    "tooltip.border": "#49483e",
+
+    "list.selectionBackground": "#49483e",
+    "list.hoverBackground": "#3e3d32",
+
+    "border": "#49483e",
+    "accent": "#a6e22e",
+    "link": "#66d9ef",
+    "error": "#f92672"
+  }
+}

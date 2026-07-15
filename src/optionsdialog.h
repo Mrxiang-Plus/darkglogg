@@ -61,6 +61,7 @@ class OptionsDialog : public QDialog, public Ui::OptionsDialog {
   void setupIncremental();
   void setupPolling();
   void setupLanguage();
+  void setupThemes();
 
   int getRegexpIndex(SearchRegexpType syntax) const;
   SearchRegexpType getRegexpTypeFromIndex(int index) const;

@@ -70,7 +70,8 @@ SOURCES += \
     src/sharedfilterdialog.cpp \
     src/filterlineedit.cpp \
     src/syncfilterdialog.cpp \
-    src/version/versionmanager.cpp
+    src/version/versionmanager.cpp \
+    src/thememanager.cpp
 
 INCLUDEPATH += src/ \
                framelesswindow/
@@ -136,7 +137,8 @@ HEADERS += \
     src/filterlineedit.h \
     src/syncfilterdialog.h \
     src/version/versionmanager.h \
-    src/version/versionmanager.h
+    src/version/versionmanager.h \
+    src/thememanager.h
 
 //https://github.com/nickbnf/glogg/blob/master/release-osx.sh
 

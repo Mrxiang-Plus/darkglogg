@@ -26,6 +26,7 @@
 #include "configuration.h"
 #include "log.h"
 #include "persistentinfo.h"
+#include "thememanager.h"
 
 static const uint32_t POLL_INTERVAL_MIN = 10;
 static const uint32_t POLL_INTERVAL_MAX = 3600000;
@@ -38,6 +39,7 @@ OptionsDialog::OptionsDialog(QWidget* parent) : QDialog(parent) {
   setupLanguage();
   setupFontList();
   setupRegexp();
+  setupThemes();
 
   // Validators
   QValidator* polling_interval_validator_ =
@@ -112,6 +114,15 @@ void OptionsDialog::setupLanguage() {
   languageComboBox->addItem(QString::fromUtf8("\xe7\xae\x80\xe4\xbd\x93\xe4\xb8\xad\xe6\x96\x87"), "zh_CN");
 }
 
+void OptionsDialog::setupThemes() {
+  ThemeManager& tm = ThemeManager::instance();
+  QStringList themes = tm.builtinThemes();
+  for (const QString& path : themes) {
+    QString name = tm.themeName(path);
+    themeComboBox->addItem(name, path);
+  }
+}
+
 // Convert a regexp type to its index in the list
 int OptionsDialog::getRegexpIndex(SearchRegexpType syntax) const {
   int index;
@@ -180,16 +191,12 @@ void OptionsDialog::updateDialogFromConfig() {
 
   // Theme selection
   int activeIdx = config->activeThemeIndex();
-  radioButton->setChecked(activeIdx == 0);
   radioButton_2->setChecked(activeIdx == 1);
-  QRadioButton* customRadios[] = {customThemeRadio0, customThemeRadio1, customThemeRadio2, customThemeRadio3, customThemeRadio4};
-  QLineEdit* nameEdits[] = {themeNameEdit0, themeNameEdit1, themeNameEdit2, themeNameEdit3, themeNameEdit4};
-  QLineEdit* colorEdits[] = {themeColorEdit0, themeColorEdit1, themeColorEdit2, themeColorEdit3, themeColorEdit4};
-  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
-    CustomTheme t = config->customTheme(i);
-    customRadios[i]->setChecked(activeIdx == i + 2);
-    nameEdits[i]->setText(t.name);
-    colorEdits[i]->setText(t.color);
+  if (activeIdx == 0) {
+    // Built-in dark theme: select in combo box
+    int idx = themeComboBox->findData(config->themePath());
+    if (idx >= 0) themeComboBox->setCurrentIndex(idx);
+    else themeComboBox->setCurrentIndex(0);
   }
 
   // Language
@@ -250,36 +257,21 @@ void OptionsDialog::updateConfigFromDialog() {
   config->setLoadLastSession(loadLastSessionCheckBox->isChecked());
   config->setCheckUpdate(updateCheckBox->isChecked());
 
-  // Save custom themes and determine active index
-  QRadioButton* customRadios[] = {customThemeRadio0, customThemeRadio1, customThemeRadio2, customThemeRadio3, customThemeRadio4};
-  QLineEdit* nameEdits[] = {themeNameEdit0, themeNameEdit1, themeNameEdit2, themeNameEdit3, themeNameEdit4};
-  QLineEdit* colorEdits[] = {themeColorEdit0, themeColorEdit1, themeColorEdit2, themeColorEdit3, themeColorEdit4};
-  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
-    CustomTheme t;
-    t.name = nameEdits[i]->text();
-    t.color = colorEdits[i]->text();
-    config->setCustomTheme(i, t);
-  }
-
-  // Determine active theme index
-  if (radioButton->isChecked()) {
-    config->setActiveThemeIndex(0);
-    config->setWasdStyle(true);
-    config->setCustomChecked(false);
-  } else if (radioButton_2->isChecked()) {
+  // Theme selection
+  if (radioButton_2->isChecked()) {
+    // White theme
     config->setActiveThemeIndex(1);
     config->setWasdStyle(false);
     config->setCustomChecked(false);
   } else {
-    for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
-      if (customRadios[i]->isChecked()) {
-        config->setActiveThemeIndex(i + 2);
-        config->setWasdStyle(false);
-        config->setCustomChecked(true);
-        config->setCustomColor(colorEdits[i]->text());
-        break;
-      }
-    }
+    // Built-in dark theme from combo box
+    QString themePath = themeComboBox->currentData().toString();
+    config->setThemePath(themePath);
+    config->setActiveThemeIndex(0);
+    config->setWasdStyle(true);
+    config->setCustomChecked(false);
+    // Load the theme immediately
+    ThemeManager::instance().loadTheme(themePath);
   }
 
   // Language

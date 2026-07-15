@@ -33,5 +33,8 @@
         <file>images/updateDevice16.png</file>
         <file>images/addProcess16.png</file>
         <file>translations/glogg_zh_CN.qm</file>
+        <file>themes/vscode-dark-plus.json</file>
+        <file>themes/dracula.json</file>
+        <file>themes/monokai.json</file>
     </qresource>
 </RCC>

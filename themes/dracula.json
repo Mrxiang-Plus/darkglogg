@@ -1,0 +1,53 @@
+{
+  "name": "Dracula",
+  "author": "Zeno Rocha",
+  "colors": {
+    "editor.background": "#282a36",
+    "editor.foreground": "#f8f8f2",
+    "editor.selectionBackground": "#44475a",
+    "editor.lineHighlightBackground": "#343746",
+
+    "sidebar.background": "#21222c",
+    "sidebar.foreground": "#f8f8f2",
+
+    "titleBar.background": "#21222c",
+    "titleBar.foreground": "#f8f8f2",
+
+    "statusBar.background": "#bd93f9",
+    "statusBar.foreground": "#282a36",
+
+    "tab.activeBackground": "#282a36",
+    "tab.activeForeground": "#f8f8f2",
+    "tab.activeBorder": "#bd93f9",
+    "tab.inactiveBackground": "#21222c",
+    "tab.inactiveForeground": "#6272a4",
+
+    "menu.background": "#21222c",
+    "menu.foreground": "#f8f8f2",
+    "menu.selectionBackground": "#44475a",
+
+    "button.background": "#bd93f9",
+    "button.foreground": "#282a36",
+    "button.hoverBackground": "#caa8fa",
+
+    "input.background": "#343746",
+    "input.foreground": "#f8f8f2",
+    "input.border": "#44475a",
+    "input.focusBorder": "#bd93f9",
+
+    "scrollbarSlider.background": "#44475a",
+    "scrollbarSlider.hoverBackground": "#6272a4",
+
+    "tooltip.background": "#343746",
+    "tooltip.foreground": "#f8f8f2",
+    "tooltip.border": "#44475a",
+
+    "list.selectionBackground": "#44475a",
+    "list.hoverBackground": "#343746",
+
+    "border": "#44475a",
+    "accent": "#bd93f9",
+    "link": "#8be9fd",
+    "error": "#ff5555"
+  }
+}

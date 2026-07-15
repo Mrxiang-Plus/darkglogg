@@ -66,6 +66,7 @@
 #include "windowdragger.h"
 #include "sharedfilterdialog.h"
 #include "persistentpattern.h"
+#include "thememanager.h"
 #include "syncfilterdialog.h"
 #include "version/versionmanager.h"
 
@@ -1656,6 +1657,9 @@ void MainWindow::applyConfiguration() {
   LOG(logERROR) << "applyConfiguration";
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   transparent_ = config->transparent();
+
+  // Load theme from JSON
+  ThemeManager::instance().loadTheme(config->themePath());
 
   // Apply theme style based on activeThemeIndex
   int activeIdx = config->activeThemeIndex();

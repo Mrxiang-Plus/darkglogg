@@ -65,6 +65,7 @@ Configuration::Configuration() {
 
   // Custom theme defaults
   activeThemeIndex_ = 0;  // Dark
+  themePath_ = ":/themes/vscode-dark-plus.json";
   customThemes_[0] = {"Warm Gray", "#3b3b3b"};
   customThemes_[1] = {"Ocean", "#1a2a3a"};
   customThemes_[2] = {"Forest", "#1a2b1a"};
@@ -205,6 +206,8 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   // Custom themes
   if (settings.contains("theme.activeIndex"))
     activeThemeIndex_ = settings.value("theme.activeIndex").toInt();
+  if (settings.contains("theme.path"))
+    themePath_ = settings.value("theme.path").toString();
   for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
     QString nameKey = QString("theme.custom%1.name").arg(i);
     QString colorKey = QString("theme.custom%1.color").arg(i);
@@ -249,6 +252,7 @@ void Configuration::saveToStorage(QSettings& settings) const {
 
   // Custom themes
   settings.setValue("theme.activeIndex", activeThemeIndex_);
+  settings.setValue("theme.path", themePath_);
   for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
     settings.setValue(QString("theme.custom%1.name").arg(i), customThemes_[i].name);
     settings.setValue(QString("theme.custom%1.color").arg(i), customThemes_[i].color);

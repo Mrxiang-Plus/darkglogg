@@ -93,6 +93,10 @@ class Configuration : public Persistable {
   int activeThemeIndex() const { return activeThemeIndex_; }
   void setActiveThemeIndex(int index) { activeThemeIndex_ = index; }
 
+  // JSON theme path (built-in resource path or filesystem path)
+  QString themePath() const { return themePath_; }
+  void setThemePath(const QString& path) { themePath_ = path; }
+
   bool loadCheckUpdate() const { return checkUpate_; }
   void setCheckUpdate(bool enabled) { checkUpate_ = enabled; }
 
@@ -162,6 +166,9 @@ class Configuration : public Persistable {
   // Custom themes (5 slots)
   CustomTheme customThemes_[CUSTOM_THEME_COUNT];
   int activeThemeIndex_;  // 0=Dark, 1=White, 2-6=Custom1-5
+
+  // JSON theme path
+  QString themePath_;
 };
 
 #endif

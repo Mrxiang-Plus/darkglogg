@@ -58,6 +58,7 @@ using namespace std;
 #endif
 #include "DarkStyle.h"
 #include "framelesswindow/framelesswindow.h"
+#include "thememanager.h"
 
 #include "log.h"
 #include "sharedfilterset.h"
@@ -269,6 +270,9 @@ int main(int argc, char* argv[]) {
       app.installTranslator(translator);
     }
   }
+
+  // Load theme
+  ThemeManager::instance().loadTheme(config->themePath());
 
   std::unique_ptr<Session> session(new Session());
   app.setStyle(new DarkStyle(255));
