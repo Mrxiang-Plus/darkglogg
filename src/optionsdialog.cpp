@@ -58,10 +58,10 @@ OptionsDialog::OptionsDialog(QWidget* parent) : QDialog(parent) {
           SLOT(onPollingChanged()));
 
   // Theme combo box and radio button mutual exclusion
-  connect(themeComboBox, QOverload<int>::of(&QComboBox::activated), [this](int) {
-    radioButton_2->setChecked(false);
+  connect(themeComboBox, QOverload<int>::of(&QComboBox::activated), [this](int index) {
+    if (index >= 0) radioButton_2->setChecked(false);
   });
-  connect(radioButton_2, &QRadioButton::toggled, [this](bool checked) {
+  connect(radioButton_2, &QRadioButton::clicked, [this](bool checked) {
     if (checked) themeComboBox->setCurrentIndex(-1);
   });
 
