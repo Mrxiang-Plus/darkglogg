@@ -163,13 +163,13 @@ QMainWindow::separator{
   padding:2px;
 }
 QSplitter::handle:horizontal{
-  width:4px;
+  width:5px;
 }
 QSplitter::handle:vertical{
-  height:4px;
+  height:5px;
 }
 QSplitter::handle {
-  background-color:#3c3c3c;
+  background-color:#505050;
 }
 QMainWindow::separator:hover,QSplitter::handle:hover{
   background-color:#007acc;
