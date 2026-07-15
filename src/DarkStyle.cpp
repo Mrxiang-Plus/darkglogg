@@ -36,31 +36,32 @@ void DarkStyle::polish(QPalette &palette) {
   std::shared_ptr<Configuration> config =
       Persistent<Configuration>("settings");
   if (config->wasdStyle()) {
-    palette.setColor(QPalette::Window, QColor(33, 33, 33, alpha_));
-    palette.setColor(QPalette::WindowText, Qt::white);
+    // VSCode Dark+ inspired palette
+    palette.setColor(QPalette::Window, QColor(30, 30, 30, alpha_));           // #1e1e1e
+    palette.setColor(QPalette::WindowText, QColor(212, 212, 212));            // #d4d4d4
     palette.setColor(QPalette::Disabled, QPalette::WindowText,
-                     QColor(127, 127, 127));
-    palette.setColor(QPalette::Base, QColor(33, 33, 33, alpha_));
-    palette.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
-    palette.setColor(QPalette::ToolTipBase, Qt::gray);
-    palette.setColor(QPalette::ToolTipText, QColor(33, 33, 33, alpha_));
-    palette.setColor(QPalette::Text, Qt::gray);
-    palette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
-    palette.setColor(QPalette::Dark, QColor(35, 35, 35));
-    palette.setColor(QPalette::Shadow, QColor(33, 33, 33, alpha_));
-    palette.setColor(QPalette::Button, QColor(33, 33, 33, alpha_));
-    palette.setColor(QPalette::ButtonText, Qt::gray);
+                     QColor(100, 100, 100));
+    palette.setColor(QPalette::Base, QColor(30, 30, 30, alpha_));             // #1e1e1e editor bg
+    palette.setColor(QPalette::AlternateBase, QColor(38, 38, 38));            // #262626
+    palette.setColor(QPalette::ToolTipBase, QColor(37, 37, 38));              // #252526
+    palette.setColor(QPalette::ToolTipText, QColor(204, 204, 204));           // #cccccc
+    palette.setColor(QPalette::Text, QColor(204, 204, 204));                  // #cccccc
+    palette.setColor(QPalette::Disabled, QPalette::Text, QColor(100, 100, 100));
+    palette.setColor(QPalette::Dark, QColor(45, 45, 45));                     // #2d2d2d
+    palette.setColor(QPalette::Shadow, QColor(20, 20, 20));                   // #141414
+    palette.setColor(QPalette::Button, QColor(45, 45, 45, alpha_));           // #2d2d2d
+    palette.setColor(QPalette::ButtonText, QColor(212, 212, 212));            // #d4d4d4
     palette.setColor(QPalette::Disabled, QPalette::ButtonText,
-                     QColor(127, 127, 127));
-    palette.setColor(QPalette::BrightText, Qt::red);
-    palette.setColor(QPalette::Link, QColor(42, 130, 218));
-    palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+                     QColor(100, 100, 100));
+    palette.setColor(QPalette::BrightText, QColor(255, 85, 85));              // #ff5555
+    palette.setColor(QPalette::Link, QColor(79, 193, 255));                   // #4fc1ff
+    palette.setColor(QPalette::Highlight, QColor(0, 122, 204));               // #007acc VSCode blue
     palette.setColor(QPalette::Disabled, QPalette::Highlight,
-                     QColor(80, 80, 80));
-    palette.setColor(QPalette::HighlightedText, Qt::white);
+                     QColor(60, 60, 60));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
     palette.setColor(QPalette::Disabled, QPalette::HighlightedText,
-                     QColor(127, 127, 127));
-    palette.setColor(QPalette::NoRole, QColor(70, 70, 70));
+                     QColor(100, 100, 100));
+    palette.setColor(QPalette::NoRole, QColor(60, 60, 60));                   // #3c3c3c
   } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL){
       palette.setColor(QPalette::Window, QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
       palette.setColor(QPalette::Window, QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
