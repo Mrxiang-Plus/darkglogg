@@ -47,7 +47,7 @@ Configuration::Configuration() {
   transparent_ = 255;
 
   loadLastSession_ = true;
-  checkUpate_ = true;
+  checkUpate_ = false;
   wasdStyle_ = true;
 
   overviewVisible_ = true;
