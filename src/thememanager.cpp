@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
 #include <QStandardPaths>
 
 #include "log.h"
@@ -78,22 +79,33 @@ QColor ThemeManager::color(const QString& key, const QColor& fallback) const {
 
 QStringList ThemeManager::builtinThemes() const {
     QStringList themes;
+    QSet<QString> seenNames;
 
-    // Built-in themes from resources
+    // Built-in themes from resources (priority)
     QDirIterator it(":/themes", QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QString path = it.next();
-        if (path.endsWith(".json"))
-            themes << path;
+        if (path.endsWith(".json")) {
+            QString name = themeName(path);
+            if (!seenNames.contains(name)) {
+                themes << path;
+                seenNames.insert(name);
+            }
+        }
     }
 
-    // User themes from ~/.glogg/themes/
+    // User themes from ~/.glogg/themes/ (skip duplicates by name)
     QString userThemeDir = QDir::homePath() + "/.glogg/themes";
     QDir dir(userThemeDir);
     if (dir.exists()) {
         QDirIterator uit(userThemeDir, QStringList() << "*.json", QDir::Files);
         while (uit.hasNext()) {
-            themes << uit.next();
+            QString path = uit.next();
+            QString name = themeName(path);
+            if (!seenNames.contains(name)) {
+                themes << path;
+                seenNames.insert(name);
+            }
         }
     }
 
