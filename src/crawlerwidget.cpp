@@ -1207,6 +1207,7 @@ void CrawlerWidget::setup() {
 
   // The views
   bottomWindow = new QWidget;
+  bottomWindow->setObjectName("bottomSearchPane");
   overviewWidget_ = new OverviewWidget();
   logMainView =
       new LogMainView(logData_, quickFindPattern_.get(),

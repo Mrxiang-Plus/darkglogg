@@ -1671,44 +1671,131 @@ void MainWindow::applyConfiguration() {
       // Inject theme colors
       ThemeManager& tm = ThemeManager::instance();
       QColor accent = tm.color("accent", QColor("#007acc"));
-      QColor inputBorder = tm.color("input.border", QColor("#3c3c3c"));
       QColor focusBorder = tm.color("input.focusBorder", accent);
       QColor menuSel = tm.color("menu.selectionBackground", QColor("#094771"));
+      QColor scrollBg = tm.color("scrollbarSlider.background", QColor("#5a5a5a"));
       QColor scrollHover = tm.color("scrollbarSlider.hoverBackground", QColor("#888888"));
       QColor tabBorder = tm.color("tab.activeBorder", accent);
       QColor listSel = tm.color("list.selectionBackground", menuSel);
       QColor listHover = tm.color("list.hoverBackground", QColor("#2a2a2a"));
       QColor btnBg = tm.color("button.background", QColor("#0e639c"));
+      QColor btnFg = tm.color("button.foreground", QColor("#ffffff"));
       QColor btnHover = tm.color("button.hoverBackground", QColor("#1177bb"));
       QColor statusBg = tm.color("statusBar.background", QColor("#007acc"));
       QColor statusFg = tm.color("statusBar.foreground", QColor("#ffffff"));
+      QColor menuBg = tm.color("menu.background", QColor("#252526"));
+      QColor menuFg = tm.color("menu.foreground", QColor("#cccccc"));
+      QColor inputBg = tm.color("input.background", QColor("#3c3c3c"));
+      QColor inputFg = tm.color("input.foreground", QColor("#cccccc"));
+      QColor tooltipBg = tm.color("tooltip.background", QColor("#252526"));
+      QColor tooltipFg = tm.color("tooltip.foreground", QColor("#cccccc"));
+      QColor tooltipBrd = tm.color("tooltip.border", QColor("#3c3c3c"));
 
-      qsStylesheet += QString("\n"
-        "QLineEdit:focus { border: 1px solid %1; }\n"
-        "QComboBox:focus { border: 1px solid %1; }\n"
-        "QTabBar::tab:selected { border-bottom: 3px solid %2; }\n"
-        "QSplitter::handle:hover { background-color: %1; }\n"
-        "QScrollBar::handle:vertical:hover { background-color: %3; }\n"
-        "QScrollBar::handle:horizontal:hover { background-color: %3; }\n"
-        "QMenu::item:selected { background: %4; border-color: %4; }\n"
-        "QTreeView::item:selected, QTableView::item:selected { background: %5; }\n"
-        "QTreeView::item:hover, QTableView::item:hover { background: %6; }\n"
-        "QPushButton { background-color: %7; border: 1px solid %7; }\n"
-        "QPushButton:hover { background-color: %8; border: 1px solid %8; }\n"
-        "QSlider::handle:horizontal { border: 2px solid %1; }\n"
-        "QSlider::sub-page:horizontal { background: %1; }\n"
-        "QStatusBar { background-color: %9; color: %10; }\n"
-        "QHeaderView::section { border-bottom: 3px solid %2; }\n"
-      ).arg(focusBorder.name())
-       .arg(tabBorder.name())
-       .arg(scrollHover.name())
-       .arg(menuSel.name())
-       .arg(listSel.name())
-       .arg(listHover.name())
-       .arg(btnBg.name())
-       .arg(btnHover.name())
-       .arg(statusBg.name())
-       .arg(statusFg.name());
+      // Layer system for visual depth
+      QColor layerDeepest = tm.color("layer.deepest", QColor("#111111"));
+      QColor layerDeep = tm.color("layer.deep", QColor("#181818"));
+      QColor layerMid = tm.color("layer.mid", QColor("#222222"));
+      QColor layerSurface = tm.color("layer.surface", QColor("#2d2d2d"));
+      QColor layerTop = tm.color("layer.top", QColor("#383838"));
+      QColor layerBorder = tm.color("layer.border", QColor("#4a4a4a"));
+
+      // Override all layer colors from theme
+      qsStylesheet += QString(
+        "\n/* === Theme layer overrides === */\n"
+        "QMenuBar { background-color: %1; color: #ffffff; border-bottom: 2px solid %6; }\n"
+        "QMenuBar::item { color: #ffffff; }\n"
+        "QToolBar { background-color: %4; }\n"
+        "QToolBar::top { background-color: %4; border-bottom: 2px solid %6; }\n"
+        "QToolBar::bottom { background-color: %4; border-top: 2px solid %6; }\n"
+        "QToolBar::left { background-color: %4; border-right: 2px solid %6; }\n"
+        "QToolBar::right { background-color: %4; border-left: 2px solid %6; }\n"
+        "QMenu { background-color: %3; border: 1px solid %6; }\n"
+        "QMenu::item:disabled { background-color: %2; }\n"
+        "QTabWidget::pane { background-color: %7; border: 2px solid %6; border-top: 0px; }\n"
+        "QTabBar { background-color: %3; border-bottom: 2px solid %6; }\n"
+        "QTabBar::tab { background-color: %3; border-right: 1px solid %7; }\n"
+        "QTabBar::tab:selected, QTabBar::tab:hover { background-color: %7; }\n"
+        "QTreeView, QTableView { background: %7; alternate-background-color: %7; border: 2px solid %6; }\n"
+        "QTreeView::branch { background-color: %7; }\n"
+        "QListView { background-color: %7; }\n"
+        "QGroupBox { background-color: %3; border: 2px solid %6; }\n"
+        "QGroupBox::title { background-color: %5; border: 1px solid %6; }\n"
+        "QDockWidget::title { background-color: %4; border: 1px solid %6; }\n"
+        "QScrollBar:vertical { background: %7; }\n"
+        "QScrollBar:horizontal { background: %7; }\n"
+        "QScrollBar::handle:vertical { background-color: %8; }\n"
+        "QScrollBar::handle:horizontal { background-color: %8; }\n"
+        "QWidget#bottomSearchPane { background-color: %2; border-top: 2px solid %6; }\n"
+      ).arg(layerTop.name())      // %1 - menubar
+       .arg(layerDeep.name())     // %2 - disabled menu items
+       .arg(layerMid.name())      // %3 - tab bar inactive, groupbox, menu
+       .arg(layerSurface.name())  // %4 - toolbar, dock title
+       .arg(layerTop.name())      // %5 - groupbox title
+       .arg(layerBorder.name())   // %6 - borders
+       .arg(layerDeepest.name())  // %7 - editor content, tree, list, scrollbar bg
+       .arg(scrollBg.name());     // %8 - scrollbar handle
+
+      // Accent and interactive elements
+      qsStylesheet += QString(
+        "\n/* === Theme accent overrides === */\n"
+        "QLineEdit { background-color: %1; border: 1px solid %2; color: %3; }\n"
+        "QLineEdit:focus { border: 1px solid %4; }\n"
+        "QComboBox { background-color: %1; border: 1px solid %2; color: %3; }\n"
+        "QComboBox:focus { border: 1px solid %4; }\n"
+        "QComboBox QAbstractItemView { background-color: %5; border: 1px solid %2; }\n"
+        "QSpinBox { background-color: %1; border: 1px solid %2; color: %3; }\n"
+        "QSpinBox:focus { border: 1px solid %4; }\n"
+        "QToolTip { background-color: %6; color: %7; border: 1px solid %8; }\n"
+        "QToolButton { background-color: %9; border: 1px solid %2; }\n"
+        "QToolButton:hover { border: 1px solid %10; }\n"
+        "QToolButton:pressed { background-color: %4; border: 1px solid %4; }\n"
+      ).arg(inputBg.name())       // %1
+       .arg(layerBorder.name())   // %2
+       .arg(inputFg.name())       // %3
+       .arg(focusBorder.name())   // %4
+       .arg(menuBg.name())        // %5
+       .arg(tooltipBg.name())     // %6
+       .arg(tooltipFg.name())     // %7
+       .arg(tooltipBrd.name())    // %8
+       .arg(layerSurface.name())  // %9
+       .arg(scrollHover.name());  // %10
+
+      qsStylesheet += QString(
+        "\n/* === Theme button/status/selection overrides === */\n"
+        "QTabBar::tab:selected { border-bottom: 3px solid %1; }\n"
+        "QHeaderView::section { background-color: %2; border-bottom: 3px solid %1; }\n"
+        "QSplitter::handle { background-color: %3; min-height: 4px; min-width: 4px; }\n"
+        "QSplitter::handle:hover { background-color: %4; }\n"
+        "QMainWindow::separator { background-color: %3; }\n"
+        "QMainWindow::separator:hover { background-color: %4; }\n"
+        "QScrollBar::handle:vertical:hover { background-color: %5; }\n"
+        "QScrollBar::handle:horizontal:hover { background-color: %5; }\n"
+        "QMenu::item:selected { background: %6; border-color: %6; }\n"
+        "QTreeView::item:selected, QTableView::item:selected { background: %7; }\n"
+        "QTreeView::item:hover, QTableView::item:hover { background: %8; }\n"
+        "QPushButton { background-color: %9; color: %10; border: 1px solid %9; }\n"
+        "QPushButton:hover { background-color: %11; border: 1px solid %11; }\n"
+        "QSlider::handle:horizontal { border: 2px solid %4; }\n"
+        "QSlider::sub-page:horizontal { background: %4; }\n"
+        "QSlider::add-page:horizontal { background: %2; }\n"
+        "QStatusBar { background-color: %12; color: %13; }\n"
+        "QMenu::item { color: %14; }\n"
+        "QMenuBar::item:selected { background-color: %6; }\n"
+        "QMenuBar::item:pressed { background-color: %4; }\n"
+      ).arg(tabBorder.name())     // %1
+       .arg(layerSurface.name())  // %2
+       .arg(layerBorder.name())   // %3
+       .arg(accent.name())        // %4
+       .arg(scrollHover.name())   // %5
+       .arg(menuSel.name())       // %6
+       .arg(listSel.name())       // %7
+       .arg(listHover.name())     // %8
+       .arg(btnBg.name())         // %9
+       .arg(btnFg.name())         // %10
+       .arg(btnHover.name())      // %11
+       .arg(statusBg.name())      // %12
+       .arg(statusFg.name())      // %13
+       .arg(menuFg.name());       // %14
 
       qApp->setStyleSheet(qsStylesheet);
       qfDarkstyle.close();
@@ -1717,17 +1804,21 @@ void MainWindow::applyConfiguration() {
     // Set palette from theme
     ThemeManager& tmPal = ThemeManager::instance();
     QPalette pal;
-    QColor editorBg = tmPal.color("editor.background", QColor("#1e1e1e"));
+    QColor editorBg = tmPal.color("layer.deepest", tmPal.color("editor.background", QColor("#1e1e1e")));
     QColor editorFg = tmPal.color("editor.foreground", QColor("#d4d4d4"));
     pal.setColor(QPalette::Window, editorBg);
     pal.setColor(QPalette::WindowText, editorFg);
     pal.setColor(QPalette::Base, editorBg);
+    pal.setColor(QPalette::AlternateBase, tmPal.color("layer.deep", QColor("#181818")));
     pal.setColor(QPalette::Text, tmPal.color("input.foreground", QColor("#cccccc")));
-    pal.setColor(QPalette::Button, tmPal.color("button.background", QColor("#2d2d2d")));
+    pal.setColor(QPalette::Button, tmPal.color("layer.surface", QColor("#2d2d2d")));
     pal.setColor(QPalette::ButtonText, tmPal.color("button.foreground", QColor("#d4d4d4")));
     pal.setColor(QPalette::Highlight, tmPal.color("accent", QColor("#007acc")));
     pal.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
     pal.setColor(QPalette::Link, tmPal.color("link", QColor("#4fc1ff")));
+    pal.setColor(QPalette::Mid, tmPal.color("layer.border", QColor("#4a4a4a")));
+    pal.setColor(QPalette::Dark, tmPal.color("layer.deep", QColor("#181818")));
+    pal.setColor(QPalette::Shadow, QColor(0, 0, 0));
     qApp->setPalette(pal);
   } else {
     // White theme

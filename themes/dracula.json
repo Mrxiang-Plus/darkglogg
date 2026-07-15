@@ -48,6 +48,13 @@
     "border": "#44475a",
     "accent": "#bd93f9",
     "link": "#8be9fd",
-    "error": "#ff5555"
+    "error": "#ff5555",
+
+    "layer.deepest": "#191a21",
+    "layer.deep": "#21222c",
+    "layer.mid": "#282a36",
+    "layer.surface": "#343746",
+    "layer.top": "#3d3f4e",
+    "layer.border": "#44475a"
   }
 }
