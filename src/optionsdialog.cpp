@@ -273,13 +273,18 @@ void OptionsDialog::updateConfigFromDialog() {
     config->setCustomChecked(false);
   } else {
     // Built-in dark theme from combo box
-    QString themePath = themeComboBox->currentData().toString();
-    config->setThemePath(themePath);
+    int comboIdx = themeComboBox->currentIndex();
+    if (comboIdx >= 0) {
+      QString themePath = themeComboBox->itemData(comboIdx).toString();
+      if (!themePath.isEmpty()) {
+        config->setThemePath(themePath);
+      }
+    }
     config->setActiveThemeIndex(0);
     config->setWasdStyle(true);
     config->setCustomChecked(false);
-    // Load the theme immediately
-    ThemeManager::instance().loadTheme(themePath);
+    // Load the theme
+    ThemeManager::instance().loadTheme(config->themePath());
   }
 
   // Language
