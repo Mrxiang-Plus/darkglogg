@@ -280,14 +280,13 @@ MainWindow::MainWindow(
   setCentralWidget(central_widget);
 
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
-  if (config->loadCheckUpdate())
-  {
-      VersionManager *manager = new VersionManager(this);
-      connect(manager, SIGNAL(existLatestVersion(bool)), this, SLOT(updateVersionIcon(bool)));
-      //check the latest version when start the program
-      manager->startCheck(true);
-
-  }
+  // Version check disabled - causes crash when network is unavailable
+  // if (config->loadCheckUpdate())
+  // {
+  //     VersionManager *manager = new VersionManager(this);
+  //     connect(manager, SIGNAL(existLatestVersion(bool)), this, SLOT(updateVersionIcon(bool)));
+  //     manager->startCheck(true);
+  // }
 }
 
 void MainWindow::reloadGeometry() {
@@ -1418,12 +1417,11 @@ void MainWindow::options() {
   OptionsDialog dialog(this);
   signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
                      SLOT(applyConfiguration()));
+  connect(&dialog, SIGNAL(optionsChanged()), this, SLOT(applyConfiguration()));
   connect(&dialog, SIGNAL(languageChanged()), this, SLOT(languageChanged()));
   dialog.exec();
   signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
                         SLOT(applyConfiguration()));
-  // Apply theme after dialog is closed to avoid crash
-  applyConfiguration();
 }
 
 void MainWindow::showShortcuts() {
@@ -1655,25 +1653,37 @@ void MainWindow::encodingChanged(QAction* action) {
   // updateInfoLine();
 }
 void MainWindow::applyConfiguration() {
-  LOG(logERROR) << "applyConfiguration";
+  LOG(logERROR) << "applyConfiguration START";
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   transparent_ = config->transparent();
+  int activeIdx = config->activeThemeIndex();
+  QString themePath = config->themePath();
+  LOG(logERROR) << "activeIdx=" << activeIdx << " themePath=" << themePath.toStdString();
 
   // Load theme from JSON
-  ThemeManager::instance().loadTheme(config->themePath());
+  LOG(logERROR) << "Loading theme...";
+  bool loaded = ThemeManager::instance().loadTheme(themePath);
+  LOG(logERROR) << "Theme loaded=" << loaded << " name=" << ThemeManager::instance().currentThemeName().toStdString();
 
   // Apply theme style based on activeThemeIndex
-  int activeIdx = config->activeThemeIndex();
   if (activeIdx == 0 || activeIdx >= 2) {
-    // Dark (0) or Custom (2-6): use DarkStyle
-    qApp->setStyle(new DarkStyle(transparent_));
+    LOG(logERROR) << "Creating DarkStyle...";
+    DarkStyle* style = new DarkStyle(transparent_);
+    LOG(logERROR) << "Setting style...";
+    qApp->setStyle(style);
+    LOG(logERROR) << "Style set OK";
   } else {
-    // White (1): use default Fusion style
+    LOG(logERROR) << "Setting Fusion style...";
     qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
     qApp->setStyleSheet("");
+    LOG(logERROR) << "Fusion style set OK";
   }
   // Force palette refresh
-  qApp->setPalette(qApp->style()->standardPalette());
+  LOG(logERROR) << "Getting standard palette...";
+  QPalette pal = qApp->style()->standardPalette();
+  LOG(logERROR) << "Setting palette...";
+  qApp->setPalette(pal);
+  LOG(logERROR) << "applyConfiguration DONE";
 }
 
 void MainWindow::toggleOverviewVisibility(bool isVisible) {
