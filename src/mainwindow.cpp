@@ -1736,8 +1736,13 @@ void MainWindow::applyConfiguration() {
     qApp->setPalette(QApplication::style()->standardPalette());
   }
   // Force immediate UI refresh on all widgets
-  QStyle* currentStyle = qApp->style();
-  qApp->setStyle(currentStyle);
+  qApp->processEvents();
+  QWidgetList widgets = QApplication::allWidgets();
+  for (QWidget* w : widgets) {
+    w->style()->unpolish(w);
+    w->style()->polish(w);
+    w->update();
+  }
   qApp->processEvents();
 }
 
