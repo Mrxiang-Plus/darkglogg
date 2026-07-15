@@ -78,12 +78,25 @@ QColor ThemeManager::color(const QString& key, const QColor& fallback) const {
 
 QStringList ThemeManager::builtinThemes() const {
     QStringList themes;
+
+    // Built-in themes from resources
     QDirIterator it(":/themes", QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QString path = it.next();
         if (path.endsWith(".json"))
             themes << path;
     }
+
+    // User themes from ~/.glogg/themes/
+    QString userThemeDir = QDir::homePath() + "/.glogg/themes";
+    QDir dir(userThemeDir);
+    if (dir.exists()) {
+        QDirIterator uit(userThemeDir, QStringList() << "*.json", QDir::Files);
+        while (uit.hasNext()) {
+            themes << uit.next();
+        }
+    }
+
     themes.sort();
     return themes;
 }
