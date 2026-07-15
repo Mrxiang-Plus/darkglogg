@@ -1735,10 +1735,10 @@ void MainWindow::applyConfiguration() {
     qApp->setStyleSheet("");
     qApp->setPalette(QApplication::style()->standardPalette());
   }
-  // Force immediate UI refresh
+  // Force immediate UI refresh on all widgets
+  QStyle* currentStyle = qApp->style();
+  qApp->setStyle(currentStyle);
   qApp->processEvents();
-  update();
-  repaint();
 }
 
 void MainWindow::toggleOverviewVisibility(bool isVisible) {
