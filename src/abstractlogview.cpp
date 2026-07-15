@@ -327,6 +327,13 @@ void AbstractLogView::changeEvent(QEvent* changeEvent) {
   if (changeEvent->type() == QEvent::ActivationChange) {
     if (!isActiveWindow()) autoScrollTimer_.stop();
   }
+
+  // Invalidate cached pixmap when theme/palette changes
+  if (changeEvent->type() == QEvent::PaletteChange ||
+      changeEvent->type() == QEvent::StyleChange) {
+    textAreaCache_.invalid_ = true;
+  }
+
   viewport()->update();
 }
 
