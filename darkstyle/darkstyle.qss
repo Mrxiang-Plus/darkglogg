@@ -169,7 +169,7 @@ QSplitter::handle:vertical{
   height:5px;
 }
 QSplitter::handle {
-  background-color:#505050;
+  background-color:#ffffff;
 }
 QMainWindow::separator:hover,QSplitter::handle:hover{
   background-color:#007acc;
