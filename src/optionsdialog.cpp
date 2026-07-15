@@ -271,13 +271,17 @@ void OptionsDialog::updateConfigFromDialog() {
     config->setActiveThemeIndex(1);
     config->setWasdStyle(false);
   } else {
-    // Built-in dark theme from combo box
+    // Dark theme from combo box
     int comboIdx = themeComboBox->currentIndex();
     if (comboIdx >= 0) {
-      QString themePath = themeComboBox->itemData(comboIdx).toString();
-      if (!themePath.isEmpty()) {
-        config->setThemePath(themePath);
+      QVariant data = themeComboBox->itemData(comboIdx);
+      if (data.isValid() && !data.toString().isEmpty()) {
+        config->setThemePath(data.toString());
       }
+    }
+    // Fallback if themePath is empty
+    if (config->themePath().isEmpty()) {
+      config->setThemePath(":/themes/vscode-dark-plus.json");
     }
     config->setActiveThemeIndex(0);
     config->setWasdStyle(true);
