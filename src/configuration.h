@@ -33,14 +33,6 @@ enum SearchRegexpType {
   FixedString,
 };
 
-// Custom theme slot
-struct CustomTheme {
-  QString name;
-  QString color;  // Hex color like "#3b3b3b"
-};
-
-static const int CUSTOM_THEME_COUNT = 5;
-
 // Configuration class containing everything in the "Settings" dialog
 class Configuration : public Persistable {
  public:
@@ -82,14 +74,6 @@ class Configuration : public Persistable {
   bool wasdStyle() const { return wasdStyle_; }
   void setWasdStyle(bool enabled) { wasdStyle_ = enabled; }
 
-  bool wasCustomStyle() const { return wasCustomStyle_; }
-  QString getCustomStyle() { return customColor; }
-  void setCustomChecked(bool enabled) { wasCustomStyle_ = enabled; }
-  void setCustomColor(QString color) { customColor = color; }
-
-  // Custom theme slots (5 slots, index 0-4)
-  CustomTheme customTheme(int index) const;
-  void setCustomTheme(int index, const CustomTheme& theme);
   int activeThemeIndex() const { return activeThemeIndex_; }
   void setActiveThemeIndex(int index) { activeThemeIndex_ = index; }
 
@@ -138,8 +122,6 @@ class Configuration : public Persistable {
   QString repoUrl_;
   QString unzipPath_;
   bool wasdStyle_;
-  bool wasCustomStyle_;
-  QString customColor;
   QString processFilter_;
   QString highlightString_;
   SearchRegexpType mainRegexpType_;
@@ -163,11 +145,7 @@ class Configuration : public Persistable {
   // Language
   QString language_;
 
-  // Custom themes (5 slots)
-  CustomTheme customThemes_[CUSTOM_THEME_COUNT];
-  int activeThemeIndex_;  // 0=Dark, 1=White, 2-6=Custom1-5
-
-  // JSON theme path
+  int activeThemeIndex_;  // 0=Dark(JSON theme), 1=White
   QString themePath_;
 };
 

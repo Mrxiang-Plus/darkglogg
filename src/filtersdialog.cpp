@@ -23,6 +23,7 @@
 #include "filterset.h"
 #include "frqfilterset.h"
 #include "persistentinfo.h"
+#include "thememanager.h"
 
 #include "filtersdialog.h"
 
@@ -363,12 +364,9 @@ void FiltersDialog::populateColors() {
   QPixmap solidPixmap(20, 10);
 
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
-  if (config->wasdStyle()) {
-    solidPixmap.fill(QColor(33, 33, 33));
-  } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
-      solidPixmap.fill(QColor(config->getCustomStyle().right(6).toUInt(NULL, 16)));
-  }
-  else {
+  if (config->activeThemeIndex() != 1) {
+    solidPixmap.fill(ThemeManager::instance().color("editor.background", QColor("#1e1e1e")));
+  } else {
     solidPixmap.fill(QColor(239, 235, 231));
   }
 

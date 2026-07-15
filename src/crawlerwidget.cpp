@@ -1401,7 +1401,7 @@ void CrawlerWidget::setup() {
   searchLineLayout->addWidget(searchLineEdit);
   searchLineLayout->addWidget(patternLineEdit);
 
-  if (config->wasdStyle()) {
+  if (config->activeThemeIndex() != 1) {
     lineB = new QWidget;
     lineB->setFixedHeight(2);
     lineB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

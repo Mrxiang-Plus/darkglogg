@@ -270,7 +270,6 @@ void OptionsDialog::updateConfigFromDialog() {
     // White theme
     config->setActiveThemeIndex(1);
     config->setWasdStyle(false);
-    config->setCustomChecked(false);
   } else {
     // Built-in dark theme from combo box
     int comboIdx = themeComboBox->currentIndex();
@@ -282,7 +281,6 @@ void OptionsDialog::updateConfigFromDialog() {
     }
     config->setActiveThemeIndex(0);
     config->setWasdStyle(true);
-    config->setCustomChecked(false);
     // Load the theme
     ThemeManager::instance().loadTheme(config->themePath());
   }
