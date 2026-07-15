@@ -19,7 +19,7 @@ QComboBox {
     min-height: 20px;
 }
 QComboBox:hover {
-    border: 1px solid #555555;
+    border: 1px solid #707070;
 }
 QComboBox::drop-down {
     subcontrol-origin: padding;
@@ -66,7 +66,7 @@ QLineEdit{
     min-height: 20px;
 }
 QLineEdit:hover{
-    border:1px solid #555555;
+    border:1px solid #707070;
 }
 QLineEdit:focus{
     border:1px solid #007acc;
@@ -518,7 +518,7 @@ QSpinBox{
   padding:2px 4px;
 }
 QSpinBox:hover{
-  border:1px solid #555555;
+  border:1px solid #707070;
 }
 QSpinBox:focus{
   border:1px solid #007acc;

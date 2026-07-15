@@ -25,6 +25,7 @@
 #include "filterset.h"
 #include "log.h"
 #include "persistentinfo.h"
+#include "thememanager.h"
 
 const int FilterSet::FILTERSET_VERSION = 1;
 
@@ -77,12 +78,9 @@ const QColor Filter::foreColor() const {
   if (foreColorName_.toStdString() == "window") {
     std::shared_ptr<Configuration> config =
         Persistent<Configuration>("settings");
-    if (config->wasdStyle()) {
-      return QColor(33, 33, 33);
-    } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
-        return QColor(config->getCustomStyle().right(6).toUInt(NULL, 16));
-    }
-    else {
+    if (config->activeThemeIndex() != 1) {
+      return ThemeManager::instance().color("editor.foreground", QColor("#d4d4d4"));
+    } else {
       return QColor(239, 235, 231);
     }
   } else if (foreColorName_.toStdString() == "text") {
@@ -96,12 +94,9 @@ const QColor Filter::backColor() const {
   if (backColorName_.toStdString() == "window") {
     std::shared_ptr<Configuration> config =
         Persistent<Configuration>("settings");
-    if (config->wasdStyle()) {
-      return QColor(33, 33, 33);
-    } else if (config->wasCustomStyle() && config->getCustomStyle() != NULL) {
-        return QColor(config->getCustomStyle().right(6).toUInt(NULL, 16));
-    }
-    else {
+    if (config->activeThemeIndex() != 1) {
+      return ThemeManager::instance().color("editor.background", QColor("#1e1e1e"));
+    } else {
       return QColor(239, 235, 231);
     }
   } else if (backColorName_.toStdString() == "text") {
