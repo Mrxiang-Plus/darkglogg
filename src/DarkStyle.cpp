@@ -33,6 +33,20 @@ QStyle *DarkStyle::baseStyle() const { return styleBase(); }
 
 void DarkStyle::polish(QPalette &palette) {
   ThemeManager& tm = ThemeManager::instance();
+
+  // If no theme loaded, use hardcoded VSCode Dark+ fallback
+  if (tm.currentThemePath().isEmpty()) {
+    palette.setColor(QPalette::Window, QColor(30, 30, 30, alpha_));
+    palette.setColor(QPalette::WindowText, QColor(212, 212, 212));
+    palette.setColor(QPalette::Base, QColor(30, 30, 30, alpha_));
+    palette.setColor(QPalette::Highlight, QColor(0, 122, 204));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    palette.setColor(QPalette::Text, QColor(204, 204, 204));
+    palette.setColor(QPalette::Button, QColor(45, 45, 45, alpha_));
+    palette.setColor(QPalette::ButtonText, QColor(212, 212, 212));
+    return;
+  }
+
   QColor disabled = QColor(100, 100, 100);
 
   // Editor colors
