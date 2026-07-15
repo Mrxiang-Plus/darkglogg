@@ -62,6 +62,25 @@ Configuration::Configuration() {
 
   // Language: empty means system locale
   language_ = "";
+
+  // Custom theme defaults
+  activeThemeIndex_ = 0;  // Dark
+  customThemes_[0] = {"Warm Gray", "#3b3b3b"};
+  customThemes_[1] = {"Ocean", "#1a2a3a"};
+  customThemes_[2] = {"Forest", "#1a2b1a"};
+  customThemes_[3] = {"Burgundy", "#2b1a1a"};
+  customThemes_[4] = {"Solarized", "#002b36"};
+}
+
+CustomTheme Configuration::customTheme(int index) const {
+  if (index >= 0 && index < CUSTOM_THEME_COUNT)
+    return customThemes_[index];
+  return {"", ""};
+}
+
+void Configuration::setCustomTheme(int index, const CustomTheme& theme) {
+  if (index >= 0 && index < CUSTOM_THEME_COUNT)
+    customThemes_[index] = theme;
 }
 
 // Accessor functions
@@ -182,6 +201,18 @@ void Configuration::retrieveFromStorage(QSettings& settings) {
   // Language
   if (settings.contains("language"))
     language_ = settings.value("language").toString();
+
+  // Custom themes
+  if (settings.contains("theme.activeIndex"))
+    activeThemeIndex_ = settings.value("theme.activeIndex").toInt();
+  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
+    QString nameKey = QString("theme.custom%1.name").arg(i);
+    QString colorKey = QString("theme.custom%1.color").arg(i);
+    if (settings.contains(nameKey))
+      customThemes_[i].name = settings.value(nameKey).toString();
+    if (settings.contains(colorKey))
+      customThemes_[i].color = settings.value(colorKey).toString();
+  }
 }
 
 void Configuration::saveToStorage(QSettings& settings) const {
@@ -215,4 +246,11 @@ void Configuration::saveToStorage(QSettings& settings) const {
   settings.setValue("defaultView.searchAutoRefresh", searchAutoRefresh_);
   settings.setValue("defaultView.searchIgnoreCase", searchIgnoreCase_);
   settings.setValue("language", language_);
+
+  // Custom themes
+  settings.setValue("theme.activeIndex", activeThemeIndex_);
+  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
+    settings.setValue(QString("theme.custom%1.name").arg(i), customThemes_[i].name);
+    settings.setValue(QString("theme.custom%1.color").arg(i), customThemes_[i].color);
+  }
 }

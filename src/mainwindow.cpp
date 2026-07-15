@@ -1657,10 +1657,13 @@ void MainWindow::applyConfiguration() {
   std::shared_ptr<Configuration> config = Persistent<Configuration>("settings");
   transparent_ = config->transparent();
 
-  // Apply theme style
-  if (config->wasdStyle() || config->wasCustomStyle()) {
+  // Apply theme style based on activeThemeIndex
+  int activeIdx = config->activeThemeIndex();
+  if (activeIdx == 0 || activeIdx >= 2) {
+    // Dark (0) or Custom (2-6): use DarkStyle
     qApp->setStyle(new DarkStyle(transparent_));
   } else {
+    // White (1): use default Fusion style
     qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
     qApp->setStyleSheet("");
   }

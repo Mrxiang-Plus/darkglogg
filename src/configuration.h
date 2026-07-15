@@ -33,6 +33,14 @@ enum SearchRegexpType {
   FixedString,
 };
 
+// Custom theme slot
+struct CustomTheme {
+  QString name;
+  QString color;  // Hex color like "#3b3b3b"
+};
+
+static const int CUSTOM_THEME_COUNT = 5;
+
 // Configuration class containing everything in the "Settings" dialog
 class Configuration : public Persistable {
  public:
@@ -78,6 +86,12 @@ class Configuration : public Persistable {
   QString getCustomStyle() { return customColor; }
   void setCustomChecked(bool enabled) { wasCustomStyle_ = enabled; }
   void setCustomColor(QString color) { customColor = color; }
+
+  // Custom theme slots (5 slots, index 0-4)
+  CustomTheme customTheme(int index) const;
+  void setCustomTheme(int index, const CustomTheme& theme);
+  int activeThemeIndex() const { return activeThemeIndex_; }
+  void setActiveThemeIndex(int index) { activeThemeIndex_ = index; }
 
   bool loadCheckUpdate() const { return checkUpate_; }
   void setCheckUpdate(bool enabled) { checkUpate_ = enabled; }
@@ -144,6 +158,10 @@ class Configuration : public Persistable {
 
   // Language
   QString language_;
+
+  // Custom themes (5 slots)
+  CustomTheme customThemes_[CUSTOM_THEME_COUNT];
+  int activeThemeIndex_;  // 0=Dark, 1=White, 2-6=Custom1-5
 };
 
 #endif

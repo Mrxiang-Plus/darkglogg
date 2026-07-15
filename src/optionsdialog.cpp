@@ -54,7 +54,6 @@ OptionsDialog::OptionsDialog(QWidget* parent) : QDialog(parent) {
           SLOT(onIncrementalChanged()));
   connect(pollingCheckBox, SIGNAL(toggled(bool)), this,
           SLOT(onPollingChanged()));
-  custom_lineEdit->setPlaceholderText(QString::fromLocal8Bit("#EFEBE7"));
 
   updateDialogFromConfig();
 
@@ -179,10 +178,19 @@ void OptionsDialog::updateDialogFromConfig() {
   loadLastSessionCheckBox->setChecked(config->loadLastSession());
   updateCheckBox->setChecked(config->loadCheckUpdate());
 
-  radioButton->setChecked(config->wasdStyle());
-  customRatioBtn->setChecked(config->wasCustomStyle());
-  custom_lineEdit->setText(config->getCustomStyle());
-  radioButton_2->setChecked(!config->wasdStyle() && !config->wasCustomStyle());
+  // Theme selection
+  int activeIdx = config->activeThemeIndex();
+  radioButton->setChecked(activeIdx == 0);
+  radioButton_2->setChecked(activeIdx == 1);
+  QRadioButton* customRadios[] = {customThemeRadio0, customThemeRadio1, customThemeRadio2, customThemeRadio3, customThemeRadio4};
+  QLineEdit* nameEdits[] = {themeNameEdit0, themeNameEdit1, themeNameEdit2, themeNameEdit3, themeNameEdit4};
+  QLineEdit* colorEdits[] = {themeColorEdit0, themeColorEdit1, themeColorEdit2, themeColorEdit3, themeColorEdit4};
+  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
+    CustomTheme t = config->customTheme(i);
+    customRadios[i]->setChecked(activeIdx == i + 2);
+    nameEdits[i]->setText(t.name);
+    colorEdits[i]->setText(t.color);
+  }
 
   // Language
   QString lang = config->language();
@@ -241,9 +249,38 @@ void OptionsDialog::updateConfigFromDialog() {
 
   config->setLoadLastSession(loadLastSessionCheckBox->isChecked());
   config->setCheckUpdate(updateCheckBox->isChecked());
-  config->setWasdStyle(radioButton->isChecked());
-  config->setCustomChecked(customRatioBtn->isChecked());
-  config->setCustomColor(custom_lineEdit->text());
+
+  // Save custom themes and determine active index
+  QRadioButton* customRadios[] = {customThemeRadio0, customThemeRadio1, customThemeRadio2, customThemeRadio3, customThemeRadio4};
+  QLineEdit* nameEdits[] = {themeNameEdit0, themeNameEdit1, themeNameEdit2, themeNameEdit3, themeNameEdit4};
+  QLineEdit* colorEdits[] = {themeColorEdit0, themeColorEdit1, themeColorEdit2, themeColorEdit3, themeColorEdit4};
+  for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
+    CustomTheme t;
+    t.name = nameEdits[i]->text();
+    t.color = colorEdits[i]->text();
+    config->setCustomTheme(i, t);
+  }
+
+  // Determine active theme index
+  if (radioButton->isChecked()) {
+    config->setActiveThemeIndex(0);
+    config->setWasdStyle(true);
+    config->setCustomChecked(false);
+  } else if (radioButton_2->isChecked()) {
+    config->setActiveThemeIndex(1);
+    config->setWasdStyle(false);
+    config->setCustomChecked(false);
+  } else {
+    for (int i = 0; i < CUSTOM_THEME_COUNT; i++) {
+      if (customRadios[i]->isChecked()) {
+        config->setActiveThemeIndex(i + 2);
+        config->setWasdStyle(false);
+        config->setCustomChecked(true);
+        config->setCustomColor(colorEdits[i]->text());
+        break;
+      }
+    }
+  }
 
   // Language
   QString newLang = languageComboBox->currentData().toString();

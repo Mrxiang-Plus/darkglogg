@@ -292,17 +292,11 @@
          <property name="title">
           <string>Theme</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <layout class="QVBoxLayout" name="themeVLayout">
           <item>
            <widget class="QRadioButton" name="radioButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
             <property name="text">
-             <string>Dark</string>
+             <string>Dark (VSCode)</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -314,12 +308,6 @@
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
             <property name="text">
              <string>White</string>
             </property>
@@ -329,33 +317,174 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="customRatioBtn">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>2</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Custom background color</string>
-            </property>
-            <property name="autoExclusive">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
-           </widget>
+           <layout class="QHBoxLayout" name="customThemeRow0">
+            <item>
+             <widget class="QRadioButton" name="customThemeRadio0">
+              <property name="text">
+               <string>Custom 1</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeNameEdit0">
+              <property name="placeholderText">
+               <string>Name</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>120</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeColorEdit0">
+              <property name="placeholderText">
+               <string>#RRGGBB</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>80</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QLineEdit" name="custom_lineEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>2</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="customThemeRow1">
+            <item>
+             <widget class="QRadioButton" name="customThemeRadio1">
+              <property name="text">
+               <string>Custom 2</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeNameEdit1">
+              <property name="placeholderText">
+               <string>Name</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>120</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeColorEdit1">
+              <property name="placeholderText">
+               <string>#RRGGBB</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>80</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="customThemeRow2">
+            <item>
+             <widget class="QRadioButton" name="customThemeRadio2">
+              <property name="text">
+               <string>Custom 3</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeNameEdit2">
+              <property name="placeholderText">
+               <string>Name</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>120</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeColorEdit2">
+              <property name="placeholderText">
+               <string>#RRGGBB</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>80</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="customThemeRow3">
+            <item>
+             <widget class="QRadioButton" name="customThemeRadio3">
+              <property name="text">
+               <string>Custom 4</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeNameEdit3">
+              <property name="placeholderText">
+               <string>Name</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>120</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeColorEdit3">
+              <property name="placeholderText">
+               <string>#RRGGBB</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>80</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="customThemeRow4">
+            <item>
+             <widget class="QRadioButton" name="customThemeRadio4">
+              <property name="text">
+               <string>Custom 5</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeNameEdit4">
+              <property name="placeholderText">
+               <string>Name</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>120</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="themeColorEdit4">
+              <property name="placeholderText">
+               <string>#RRGGBB</string>
+              </property>
+              <property name="maximumSize">
+               <size><width>80</width><height>16777215</height></size>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
