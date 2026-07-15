@@ -1735,6 +1735,10 @@ void MainWindow::applyConfiguration() {
     qApp->setStyleSheet("");
     qApp->setPalette(QApplication::style()->standardPalette());
   }
+  // Force immediate UI refresh
+  qApp->processEvents();
+  update();
+  repaint();
 }
 
 void MainWindow::toggleOverviewVisibility(bool isVisible) {
