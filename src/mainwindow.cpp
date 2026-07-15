@@ -1418,11 +1418,12 @@ void MainWindow::options() {
   OptionsDialog dialog(this);
   signalMux_.connect(&dialog, SIGNAL(optionsChanged()),
                      SLOT(applyConfiguration()));
-  connect(&dialog, SIGNAL(optionsChanged()), this, SLOT(applyConfiguration()));
   connect(&dialog, SIGNAL(languageChanged()), this, SLOT(languageChanged()));
   dialog.exec();
   signalMux_.disconnect(&dialog, SIGNAL(optionsChanged()),
                         SLOT(applyConfiguration()));
+  // Apply theme after dialog is closed to avoid crash
+  applyConfiguration();
 }
 
 void MainWindow::showShortcuts() {
