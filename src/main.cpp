@@ -56,7 +56,6 @@ using namespace std;
 #elif GLOGG_SUPPORTS_SOCKETIPC
 #include "socketexternalcom.h"
 #endif
-#include "DarkStyle.h"
 #include "framelesswindow/framelesswindow.h"
 #include "thememanager.h"
 
@@ -275,7 +274,6 @@ int main(int argc, char* argv[]) {
   ThemeManager::instance().loadTheme(config->themePath());
 
   std::unique_ptr<Session> session(new Session());
-  app.setStyle(new DarkStyle(255));
   FramelessWindow framelessWindow;
   MainWindow mw(std::move(session), externalCommunicator,
                 framelessWindow.getTitleBar());

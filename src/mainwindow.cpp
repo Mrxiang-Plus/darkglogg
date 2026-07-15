@@ -287,6 +287,9 @@ MainWindow::MainWindow(
   //     connect(manager, SIGNAL(existLatestVersion(bool)), this, SLOT(updateVersionIcon(bool)));
   //     manager->startCheck(true);
   // }
+
+  // Apply saved theme on startup
+  applyConfiguration();
 }
 
 void MainWindow::reloadGeometry() {
