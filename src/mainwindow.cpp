@@ -1706,7 +1706,7 @@ void MainWindow::applyConfiguration() {
       qsStylesheet += QString(
         "\n/* === Theme layer overrides === */\n"
         "QMenuBar { background-color: %1; color: #ffffff; border-bottom: 2px solid %6; }\n"
-        "QMenuBar::item { color: #ffffff; }\n"
+        "QMenuBar::item { color: #ffffff; padding: 5px 10px; }\n"
         "QToolBar { background-color: %4; }\n"
         "QToolBar::top { background-color: %4; border-bottom: 2px solid %6; }\n"
         "QToolBar::bottom { background-color: %4; border-top: 2px solid %6; }\n"
@@ -1799,6 +1799,26 @@ void MainWindow::applyConfiguration() {
        .arg(statusBg.name())      // %12
        .arg(statusFg.name())      // %13
        .arg(menuFg.name());       // %14
+
+      // Reset all font sizes to match system default
+      qsStylesheet += QString(
+        "\n/* === Reset font sizes to system default === */\n"
+        "QMenuBar { font-size: %1; }\n"
+        "QMenuBar::item { font-size: %1; }\n"
+        "QMenu::item { font-size: %1; }\n"
+        "QLabel { font-size: %1; }\n"
+        "QCheckBox { font-size: %1; }\n"
+        "QRadioButton { font-size: %1; }\n"
+        "QToolButton { font-size: %1; }\n"
+        "QListView { font-size: %1; }\n"
+        "QTabBar::tab { font-size: %1; }\n"
+        "QStatusBar { font-size: %1; }\n"
+        "QPushButton { font-size: %1; }\n"
+        "QLineEdit { font-size: %1; }\n"
+        "QComboBox { font-size: %1; }\n"
+        "QSpinBox { font-size: %1; }\n"
+        "QGroupBox { font-size: %1; }\n"
+      ).arg(QString("%1pt").arg(qApp->font().pointSize()));
 
       qApp->setStyleSheet(qsStylesheet);
       qfDarkstyle.close();

@@ -36,5 +36,6 @@
         <file>themes/vscode-dark-plus.json</file>
         <file>themes/dracula.json</file>
         <file>themes/monokai.json</file>
+        <file>themes/dark.json</file>
     </qresource>
 </RCC>
