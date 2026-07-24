@@ -219,15 +219,7 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
 
   QPoint globalMousePos = event->globalPos();
   if (m_bMousePressed) {
-    // available geometry excludes taskbar
-    QRect availGeometry = QApplication::desktop()->availableGeometry();
-    int h = availGeometry.height();
-    int w = availGeometry.width();
-    if (QApplication::desktop()->isVirtualDesktop()) {
-      QSize sz = QApplication::desktop()->size();
-      h = sz.height();
-      w = sz.width();
-    }
+    const int MIN_SIZE = 50;
 
     // top right corner
     if (m_bDragTop && m_bDragRight) {
@@ -236,7 +228,7 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
       int neww = m_StartGeometry.width() + diff;
       diff = globalMousePos.y() - m_StartGeometry.y();
       int newy = m_StartGeometry.y() + diff;
-      if (neww > 0 && newy > 0 && newy < h - 50) {
+      if (neww > MIN_SIZE) {
         QRect newg = m_StartGeometry;
         newg.setWidth(neww);
         newg.setX(m_StartGeometry.x());
@@ -250,21 +242,19 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
       int newy = m_StartGeometry.y() + diff;
       diff = globalMousePos.x() - m_StartGeometry.x();
       int newx = m_StartGeometry.x() + diff;
-      if (newy > 0 && newx > 0) {
-        QRect newg = m_StartGeometry;
-        newg.setY(newy);
-        newg.setX(newx);
-        setGeometry(newg);
-      }
+      QRect newg = m_StartGeometry;
+      newg.setY(newy);
+      newg.setX(newx);
+      setGeometry(newg);
     }
-    // bottom right corner
+    // bottom left corner
     else if (m_bDragBottom && m_bDragLeft) {
       int diff =
           globalMousePos.y() - (m_StartGeometry.y() + m_StartGeometry.height());
       int newh = m_StartGeometry.height() + diff;
       diff = globalMousePos.x() - m_StartGeometry.x();
       int newx = m_StartGeometry.x() + diff;
-      if (newh > 0 && newx > 0) {
+      if (newh > MIN_SIZE) {
         QRect newg = m_StartGeometry;
         newg.setX(newx);
         newg.setHeight(newh);
@@ -273,24 +263,20 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
     } else if (m_bDragTop) {
       int diff = globalMousePos.y() - m_StartGeometry.y();
       int newy = m_StartGeometry.y() + diff;
-      if (newy > 0 && newy < h - 50) {
-        QRect newg = m_StartGeometry;
-        newg.setY(newy);
-        setGeometry(newg);
-      }
+      QRect newg = m_StartGeometry;
+      newg.setY(newy);
+      setGeometry(newg);
     } else if (m_bDragLeft) {
       int diff = globalMousePos.x() - m_StartGeometry.x();
       int newx = m_StartGeometry.x() + diff;
-      if (newx > 0 && newx < w - 50) {
-        QRect newg = m_StartGeometry;
-        newg.setX(newx);
-        setGeometry(newg);
-      }
+      QRect newg = m_StartGeometry;
+      newg.setX(newx);
+      setGeometry(newg);
     } else if (m_bDragRight) {
       int diff =
           globalMousePos.x() - (m_StartGeometry.x() + m_StartGeometry.width());
       int neww = m_StartGeometry.width() + diff;
-      if (neww > 0) {
+      if (neww > MIN_SIZE) {
         QRect newg = m_StartGeometry;
         newg.setWidth(neww);
         newg.setX(m_StartGeometry.x());
@@ -300,7 +286,7 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
       int diff =
           globalMousePos.y() - (m_StartGeometry.y() + m_StartGeometry.height());
       int newh = m_StartGeometry.height() + diff;
-      if (newh > 0) {
+      if (newh > MIN_SIZE) {
         QRect newg = m_StartGeometry;
         newg.setHeight(newh);
         newg.setY(m_StartGeometry.y());

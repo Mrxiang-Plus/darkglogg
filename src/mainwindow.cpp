@@ -719,6 +719,8 @@ void MainWindow::createMenus() {
 //  cameraMenu->addAction(camPerformanceManagerAction);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
+  helpMenu->addAction(shortcutAction);
+  helpMenu->addSeparator();
   helpMenu->addAction(aboutAction);
   helpMenu->addAction(updateVersionAction);
   helpMenu->addAction(aboutCustomizedAction);
@@ -1427,10 +1429,40 @@ void MainWindow::options() {
 }
 
 void MainWindow::showShortcuts() {
-    QProcess* process = new QProcess();
-    QString path =
-        QDir::homePath() + QDir::separator() + ".glogg" + QDir::separator();
-    process->startDetached("/bin/bash", QStringList() << path + "shortcut.sh");
+    QMessageBox::about(this, tr("Keyboard Shortcuts"),
+      tr("<h3>Keyboard Shortcuts</h3>"
+         "<table cellpadding='3' cellspacing='0'>"
+         "<tr><td><b>Ctrl+O</b></td><td>Open file</td></tr>"
+         "<tr><td><b>Ctrl+S</b></td><td>Save As</td></tr>"
+         "<tr><td><b>Ctrl+Shift+S</b></td><td>Save Selection As</td></tr>"
+         "<tr><td><b>Ctrl+W</b></td><td>Close tab</td></tr>"
+         "<tr><td><b>Ctrl+Q</b></td><td>Exit</td></tr>"
+         "<tr><td colspan='2'><hr></td></tr>"
+         "<tr><td><b>Ctrl+C</b></td><td>Copy</td></tr>"
+         "<tr><td><b>Ctrl+Shift+C</b></td><td>Copy with color (Jira)</td></tr>"
+         "<tr><td><b>Ctrl+A</b></td><td>Select All</td></tr>"
+         "<tr><td colspan='2'><hr></td></tr>"
+         "<tr><td><b>Ctrl+F</b></td><td>Find</td></tr>"
+         "<tr><td><b>Ctrl+M</b></td><td>Mark</td></tr>"
+         "<tr><td><b>/</b></td><td>Quick Find</td></tr>"
+         "<tr><td><b>Ctrl+R</b></td><td>Retrace Selection</td></tr>"
+         "<tr><td><b>Ctrl+Shift+R</b></td><td>Reformat</td></tr>"
+         "<tr><td><b>Ctrl+P</b></td><td>Open Pictures</td></tr>"
+         "<tr><td><b>Ctrl+Shift+P</b></td><td>Performance</td></tr>"
+         "<tr><td><b>Ctrl+Shift+T</b></td><td>Open Filtered in New Tab</td></tr>"
+         "<tr><td><b>Ctrl+Shift+X</b></td><td>Cut Upper Lines</td></tr>"
+         "<tr><td colspan='2'><hr></td></tr>"
+         "<tr><td><b>F1</b></td><td>Start Logcat</td></tr>"
+         "<tr><td><b>F2</b></td><td>Stop Logcat</td></tr>"
+         "<tr><td><b>F5</b></td><td>Reload</td></tr>"
+         "<tr><td><b>F8</b></td><td>Local filter</td></tr>"
+         "<tr><td><b>F9</b></td><td>Shared filter</td></tr>"
+         "<tr><td colspan='2'><hr></td></tr>"
+         "<tr><td><b>f</b></td><td>Follow mode</td></tr>"
+         "<tr><td><b>Shift+F</b></td><td>Maximize / Restore</td></tr>"
+         "<tr><td><b>Shift+F12</b></td><td>Full Screen (hide bars)</td></tr>"
+         "<tr><td><b>Escape</b></td><td>Focus main view</td></tr>"
+         "</table>"));
 }
 
 // Opens the 'About' dialog box.
@@ -2319,8 +2351,6 @@ void MainWindow::keyPressEvent(QKeyEvent* keyEvent) {
           parent->setWindowState(Qt::WindowMaximized);
         } else if (parent->windowState().testFlag(Qt::WindowMaximized)) {
           parent->setWindowState(Qt::WindowNoState);
-          parent->hide();
-          parent->show();
         }
       }
     } break;
