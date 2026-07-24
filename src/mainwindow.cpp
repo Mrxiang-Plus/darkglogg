@@ -47,6 +47,9 @@
 #include <QUrl>
 #include <QDebug>
 #include <QDateTime>
+#include <QDialog>
+#include <QTextBrowser>
+#include <QVBoxLayout>
 #include <QCompleter>
 
 #include "log.h"
@@ -1429,40 +1432,77 @@ void MainWindow::options() {
 }
 
 void MainWindow::showShortcuts() {
-    QMessageBox::about(this, tr("Keyboard Shortcuts"),
-      tr("<h3>Keyboard Shortcuts</h3>"
-         "<table cellpadding='3' cellspacing='0'>"
-         "<tr><td><b>Ctrl+O</b></td><td>Open file</td></tr>"
-         "<tr><td><b>Ctrl+S</b></td><td>Save As</td></tr>"
-         "<tr><td><b>Ctrl+Shift+S</b></td><td>Save Selection As</td></tr>"
-         "<tr><td><b>Ctrl+W</b></td><td>Close tab</td></tr>"
-         "<tr><td><b>Ctrl+Q</b></td><td>Exit</td></tr>"
-         "<tr><td colspan='2'><hr></td></tr>"
-         "<tr><td><b>Ctrl+C</b></td><td>Copy</td></tr>"
-         "<tr><td><b>Ctrl+Shift+C</b></td><td>Copy with color (Jira)</td></tr>"
-         "<tr><td><b>Ctrl+A</b></td><td>Select All</td></tr>"
-         "<tr><td colspan='2'><hr></td></tr>"
-         "<tr><td><b>Ctrl+F</b></td><td>Find</td></tr>"
-         "<tr><td><b>Ctrl+M</b></td><td>Mark</td></tr>"
-         "<tr><td><b>/</b></td><td>Quick Find</td></tr>"
-         "<tr><td><b>Ctrl+R</b></td><td>Retrace Selection</td></tr>"
-         "<tr><td><b>Ctrl+Shift+R</b></td><td>Reformat</td></tr>"
-         "<tr><td><b>Ctrl+P</b></td><td>Open Pictures</td></tr>"
-         "<tr><td><b>Ctrl+Shift+P</b></td><td>Performance</td></tr>"
-         "<tr><td><b>Ctrl+Shift+T</b></td><td>Open Filtered in New Tab</td></tr>"
-         "<tr><td><b>Ctrl+Shift+X</b></td><td>Cut Upper Lines</td></tr>"
-         "<tr><td colspan='2'><hr></td></tr>"
-         "<tr><td><b>F1</b></td><td>Start Logcat</td></tr>"
-         "<tr><td><b>F2</b></td><td>Stop Logcat</td></tr>"
-         "<tr><td><b>F5</b></td><td>Reload</td></tr>"
-         "<tr><td><b>F8</b></td><td>Local filter</td></tr>"
-         "<tr><td><b>F9</b></td><td>Shared filter</td></tr>"
-         "<tr><td colspan='2'><hr></td></tr>"
-         "<tr><td><b>f</b></td><td>Follow mode</td></tr>"
-         "<tr><td><b>Shift+F</b></td><td>Maximize / Restore</td></tr>"
-         "<tr><td><b>Shift+F12</b></td><td>Full Screen (hide bars)</td></tr>"
-         "<tr><td><b>Escape</b></td><td>Focus main view</td></tr>"
-         "</table>"));
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("快捷键"));
+    dialog.resize(750, 520);
+
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(8, 8, 8, 8);
+
+    QTextBrowser* browser = new QTextBrowser();
+    browser->setOpenExternalLinks(false);
+    browser->setHtml(
+      "<table width='100%' cellpadding='0' cellspacing='0'><tr>"
+      "<td valign='top' width='50%'>"
+        "<table cellpadding='2' cellspacing='0' width='100%'>"
+        "<tr><td colspan='2'><b>过滤器操作</b></td></tr>"
+        "<tr><td width='130'><b>y / t</b></td><td>添加到过滤器</td></tr>"
+        "<tr><td><b>i / x</b></td><td>标记 (mark)</td></tr>"
+        "<tr><td><b>b</b></td><td>mark 并添加到过滤器</td></tr>"
+        "<tr><td><b>Ctrl+Z</b></td><td>最大化过滤器窗口</td></tr>"
+        "<tr><td><b>Space</b></td><td>切换窗口</td></tr>"
+        "<tr><td><b>- / =</b></td><td>调整窗口大小</td></tr>"
+        "<tr><td><b>.</b></td><td>切换到过滤器输入框</td></tr>"
+        "<tr><td><b>m</b></td><td>标记当前行</td></tr>"
+        "<tr><td colspan='2'><br><b>文件与编辑</b></td></tr>"
+        "<tr><td><b>Ctrl+O</b></td><td>打开文件 (支持解压)</td></tr>"
+        "<tr><td><b>Ctrl+S</b></td><td>另存为并在新窗口打开</td></tr>"
+        "<tr><td><b>Ctrl+C</b></td><td>复制</td></tr>"
+        "<tr><td><b>Ctrl+Shift+C</b></td><td>带高亮色复制到 Jira</td></tr>"
+        "<tr><td colspan='2'><br><b>底部按钮</b></td></tr>"
+        "<tr><td><b>c</b></td><td>按钮1 并清空其他 (常用log)</td></tr>"
+        "<tr><td><b>e</b></td><td>按钮2 并清空其他 (error)</td></tr>"
+        "<tr><td><b>Alt+num</b></td><td>底部按钮 1,2,3...9</td></tr>"
+        "<tr><td><b>r</b></td><td>重置底部按钮按压状态</td></tr>"
+        "<tr><td colspan='2'><br><b>对比与分享</b></td></tr>"
+        "<tr><td><b>Shift+A</b></td><td>A&amp;B 对比 - 保存 A</td></tr>"
+        "<tr><td><b>Shift+B</b></td><td>A&amp;B 对比 - 保存 B 并打开</td></tr>"
+        "<tr><td><b>?</b></td><td>保存过滤器 comment>filter>mark</td></tr>"
+        "</table>"
+      "</td>"
+      "<td valign='top' width='50%'>"
+        "<table cellpadding='2' cellspacing='0' width='100%'>"
+        "<tr><td colspan='2'><b>视图与导航</b></td></tr>"
+        "<tr><td width='130'><b>v</b></td><td>marks/matches 视图切换</td></tr>"
+        "<tr><td><b>[ </b></td><td>跳转到上一个标记行</td></tr>"
+        "<tr><td><b>] </b></td><td>跳转到下一个标记行</td></tr>"
+        "<tr><td><b>Ctrl+J</b></td><td>下拉框下一个选项</td></tr>"
+        "<tr><td><b>Ctrl+K</b></td><td>下拉框上一个选项</td></tr>"
+        "<tr><td><b>Ctrl+P</b></td><td>复制 filter 到过滤框</td></tr>"
+        "<tr><td><b>Ctrl+.</b></td><td>直接下拉列表</td></tr>"
+        "<tr><td><b>Ctrl+num</b></td><td>切换指定窗口</td></tr>"
+        "<tr><td><b>j/k/h/l</b></td><td>移动 (vim 风格)</td></tr>"
+        "<tr><td><b>w/a/s/d</b></td><td>移动 (wasd 风格)</td></tr>"
+        "<tr><td><b>Ctrl+U/D PgUp/Dn</b></td><td>快速翻页</td></tr>"
+        "<tr><td><b>[num] g</b></td><td>跳转到指定行</td></tr>"
+        "<tr><td><b>p</b></td><td>添加注释</td></tr>"
+        "<tr><td colspan='2'><br><b>Logcat 与工具</b></td></tr>"
+        "<tr><td><b>F1</b></td><td>开始 Logcat</td></tr>"
+        "<tr><td><b>F2</b></td><td>停止 Logcat</td></tr>"
+        "<tr><td><b>Ctrl+R</b></td><td>反混淆 (Retrace)</td></tr>"
+        "<tr><td><b>Ctrl+Shift+R</b></td><td>重新格式化</td></tr>"
+        "<tr><td colspan='2'><br><b>窗口</b></td></tr>"
+        "<tr><td><b>Shift+F12</b></td><td>显示/隐藏菜单</td></tr>"
+        "<tr><td><b>Shift+F</b></td><td>最大化/还原窗口</td></tr>"
+        "<tr><td><b>Escape</b></td><td>取消焦点</td></tr>"
+        "<tr><td><b>Ctrl+F 或 /</b></td><td>查找</td></tr>"
+        "<tr><td><b>f</b></td><td>跟随模式</td></tr>"
+        "</table>"
+      "</td>"
+      "</tr></table>");
+
+    layout->addWidget(browser);
+    dialog.exec();
 }
 
 // Opens the 'About' dialog box.
