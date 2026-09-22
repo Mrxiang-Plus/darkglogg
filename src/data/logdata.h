@@ -28,7 +28,6 @@
 #include <QMutex>
 #include <QObject>
 #include <QString>
-#include <QTextCodec>
 #include <QVector>
 
 #include "utils.h"
@@ -37,6 +36,7 @@
 #include "filewatcher.h"
 #include "loadingstatus.h"
 #include "logdataworkerthread.h"
+#include "textdecoder.h"
 
 class LogFilteredData;
 
@@ -184,7 +184,7 @@ class LogData : public AbstractLogData {
   std::shared_ptr<const LogDataOperation> nextOperation_;
 
   // Codec to decode text
-  QTextCodec* codec_;
+  std::unique_ptr<TextDecoder> codec_;
 
   // Offset to apply to the newline character
   int before_cr_offset_ = 0;

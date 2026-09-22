@@ -26,9 +26,9 @@
 #include <iostream>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QClipboard>
 #include <QCloseEvent>
-#include <QDesktopWidget>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QFileDialog>
@@ -38,6 +38,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStyleFactory>
 #include <QTextStream>
 #include <QTimer>
@@ -110,7 +111,8 @@ MainWindow::MainWindow(
   setAcceptDrops(true);
 
   // Default geometry
-  const QRect geometry = QApplication::desktop()->availableGeometry(this);
+  const QRect geometry = screen() ? screen()->availableGeometry()
+                                 : QRect(0, 0, 1024, 768);
   setGeometry(geometry.x() + 20, geometry.y() + 40, geometry.width() - 140,
               geometry.height() - 140);
 
@@ -469,8 +471,7 @@ void MainWindow::createActions() {
   connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
 
   copyWithColorAction = new QAction(tr("Copy To Jira"), this);
-  copyWithColorAction->setShortcut(
-      QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
+  copyWithColorAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+C")));
   copyWithColorAction->setStatusTip(
       tr("Copy the selection with foreground color"));
   connect(copyWithColorAction, SIGNAL(triggered()), this,
@@ -808,7 +809,7 @@ QString MainWindow::getSelectedDevice() {
 QString MainWindow::getCurDevice() {
     QString curFileName = mainTabWidget_.tabText(mainTabWidget_.currentIndex());
     //delete the ".log"
-    curFileName.replace(QRegExp(".log$"), "");
+    curFileName.replace(QRegularExpression(".log$"), "");
     QString curFileDeviceID = curFileName.split("_").last();
     QStringList deviceList = updateDeviceBox();
     for (QString deviceStr : deviceList) {
@@ -1198,8 +1199,8 @@ void MainWindow::getAverageTime(QStringList timeList, int unitCount, QString pat
     rightTimeList.removeAt(0);
     for (int j = 0; j < unitCount - 1; j++)
     {
-        out << "===============================================" << endl;
-        out << "start calculate average Time Diff between " << j+1 << " and " << j+2 << endl;
+        out << "===============================================" << Qt::endl;
+        out << "start calculate average Time Diff between " << j+1 << " and " << j+2 << Qt::endl;
         int baseCnt = 0;
         int sumTime = 0;
         for (int i = j; i < rightTimeList.size(); )
@@ -1207,7 +1208,7 @@ void MainWindow::getAverageTime(QStringList timeList, int unitCount, QString pat
             QString right = rightTimeList.at(i);
             QString left = timeList.at(i);
             int time = QDateTime::fromString(left, "hh:mm:ss.zzz").msecsTo(QDateTime::fromString(right, "hh:mm:ss.zzz"));
-            out << right << " - " << left << " = " << time << endl;
+            out << right << " - " << left << " = " << time << Qt::endl;
             sumTime += time;
             i += unitCount;
             baseCnt++;
@@ -1215,7 +1216,7 @@ void MainWindow::getAverageTime(QStringList timeList, int unitCount, QString pat
         if (baseCnt != 0)
         {
             float aveTime = sumTime / baseCnt;
-            out << "Average Time Diff between " << j+1 << " and " << j+2 <<": " << aveTime << endl;
+            out << "Average Time Diff between " << j+1 << " and " << j+2 <<": " << aveTime << Qt::endl;
         }
     }
     file.close();
@@ -1376,8 +1377,9 @@ void MainWindow::saveAs(const QString& fileName) {
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
     QString string =
-        current->getSelectedText().remove(QRegExp("^[0-9: . -]+[^A-Z]"));
-    QString text = string.replace(QRegExp("\n[0-9: . -]+[^A-Z]"), "\n");
+        current->getSelectedText().remove(QRegularExpression("^[0-9: . -]+[^A-Z]"));
+    QString text =
+        string.replace(QRegularExpression("\n[0-9: . -]+[^A-Z]"), "\n");
     out << text;
     file.close();
   }
@@ -2161,7 +2163,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 #ifdef _WIN32
   process.setWorkingDirectory(path);
   QString command = path + "kill-logcat.bat";
-  process.start(command);
+  process.startCommand(command);
 #else
   process.start("/bin/bash", QStringList() << path + "kill-logcat.sh");
 #endif
@@ -2228,15 +2230,15 @@ void MainWindow::startLogcat() {
       command, QStringList() << QDir::currentPath() << config->processFilter());
 #else
   QString zipPath = config->unzipPath();
-  if (deviceId == NULL && pid == NULL) {
+  if (deviceId.isNull() && pid.isNull()) {
       process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
                                                 << config->unzipPath());
-  } else if (deviceId == NULL && pid != NULL) {
+  } else if (deviceId.isNull() && !pid.isNull()) {
       process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
                                                 << config->unzipPath()
                                                 << MODE_PID
                                                 << pid);
-  } else if (deviceId != NULL && pid == NULL) {
+  } else if (!deviceId.isNull() && pid.isNull()) {
       process->start("/bin/bash", QStringList() << path + "start-logcat-pid.sh"
                                                 << config->unzipPath()
                                                 << MODE_DEVICEID
@@ -2266,7 +2268,7 @@ void MainWindow::stopLogcat() {
 #ifdef _WIN32
   process->setWorkingDirectory(path);
   QString command = path + "kill-logcat.bat";
-  process->start(command);
+  process->startCommand(command);
 #else
   process->start("/bin/bash", QStringList() << path + "kill-logcat.sh" << deviceId);
 #endif
@@ -2464,13 +2466,15 @@ bool MainWindow::loadFile(const QString& fileName) {
 #ifdef _WIN32
     QDir dir = QDir(QCoreApplication::applicationDirPath());
     LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
-    process.setWorkingDirectory(path);
-    QString command = path + "open-bugreport.bat ";
+    QString command = path + "open-bugreport.bat";
     unzipPath = unzipPath + QDir::separator() + QFileInfo(fileName).baseName();
-    process.startDetached(command, QStringList()
-                                       << dir.toNativeSeparators(unzipPath)
-                                       << dir.toNativeSeparators(fileName)
-                                       << QDir::currentPath());
+    // QProcess::startDetached is static in Qt 6; pass the working directory
+    // explicitly (setWorkingDirectory on the instance no longer applies).
+    QProcess::startDetached(command,
+                            QStringList() << dir.toNativeSeparators(unzipPath)
+                                          << dir.toNativeSeparators(fileName)
+                                          << QDir::currentPath(),
+                            path);
 #else
     //    QObject::connect(process, &QProcess::readyRead, [process]() {
     //      QByteArray a = process->readAll();

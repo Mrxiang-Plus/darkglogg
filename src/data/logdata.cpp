@@ -75,7 +75,7 @@ LogData::LogData()
   currentOperation_ = nullptr;
   nextOperation_ = nullptr;
 
-  codec_ = QTextCodec::codecForName("ISO-8859-1");
+  codec_ = TextDecoder::codecForName("ISO-8859-1");
 
 #if defined(GLOGG_SUPPORTS_INOTIFY) || defined(GLOGG_SUPPORTS_KQUEUE) || \
     defined(WIN32)
@@ -361,7 +361,7 @@ void LogData::doSetDisplayEncoding(Encoding encoding) {
   }
 
   doSetMultibyteEncodingOffsets(before_cr, after_cr);
-  codec_ = QTextCodec::codecForName(qt_encoding);
+  codec_ = TextDecoder::codecForName(qt_encoding);
 }
 
 void LogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr) {
@@ -371,7 +371,7 @@ void LogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr) {
 
 QString LogData::doGetLineString(qint64 line) const {
   if (line >= indexing_data_.getNbLines()) {
-    return 0; /* exception? */
+    return QString(); /* exception? */
   }
 
   fileMutex_.lock();
@@ -394,7 +394,7 @@ QString LogData::doGetLineString(qint64 line) const {
 
 QString LogData::doGetExpandedLineString(qint64 line) const {
   if (line >= indexing_data_.getNbLines()) {
-    return 0; /* exception? */
+    return QString(); /* exception? */
   }
 
   fileMutex_.lock();

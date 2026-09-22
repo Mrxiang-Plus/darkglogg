@@ -21,7 +21,6 @@
 
 #include <QDataStream>
 #include <QSettings>
-#include <QTextCodec>
 
 #include "log.h"
 #include "savedpatterns.h"
@@ -30,7 +29,7 @@ const int SavedPatterns::SAVEDPATTERNS_VERSION = 1;
 const int SavedPatterns::maxNumberOfRecentPatterns = 50000;
 
 SavedPatterns::SavedPatterns() : savedPatterns_() {
-  qRegisterMetaTypeStreamOperators<SavedPatterns>("SavedPatterns");
+  qRegisterMetaType<SavedPatterns>("SavedPatterns");
 }
 
 void SavedPatterns::addRecent(const QString& text) {
@@ -81,7 +80,6 @@ void SavedPatterns::saveToStorage(QSettings& settings) const {
   // Remove everything in case the array is shorter than the previous one
   settings.remove("");
   settings.setValue("version", SAVEDPATTERNS_VERSION);
-  settings.setIniCodec(QTextCodec::codecForName("UTF-8"));
   settings.beginWriteArray("searchPattern");
   for (int i = 0; i < savedPatterns_.size(); ++i) {
     settings.setArrayIndex(i);

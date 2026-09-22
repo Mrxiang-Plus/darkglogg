@@ -358,7 +358,7 @@ void SharedFilterDialog::rebuildFilter(int tabIndex, QString key, QString patter
     filterEdit->setText(pattern);
     commentEdit = new FilterLineEdit();
     commentEdit->setFixedHeight(25);
-    if (comment != NULL)
+    if (!comment.isNull())
     {
         commentEdit->setText(comment);
     }

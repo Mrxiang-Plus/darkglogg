@@ -23,7 +23,6 @@
 #include "persistentpattern.h"
 
 #include <QStringList>
-#include <QTextCodec>
 #include <cassert>
 
 #include "log.h"
@@ -49,7 +48,6 @@ void PersistentPattern::migrateAndInit(QString filterGroup) {
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
                             filterGroup);
 
-  settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
   if (settings_->childKeys().count() == 0) {
     LOG(logWARNING) << "INI file empty, trying to import from registry";
     QSettings registry("glogg", "filterGroup");
@@ -61,7 +59,6 @@ void PersistentPattern::migrateAndInit(QString filterGroup) {
   // We use default Qt storage on proper OSes
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
                             filterGroup);
-  settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
   initialised_ = true;
 }

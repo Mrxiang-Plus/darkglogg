@@ -42,7 +42,7 @@ const QString QFNotification::REACHED_BOF =
 QuickFindWidget::QuickFindWidget(QWidget* parent) : QWidget(parent) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(6);
 
   title_ = new QLabel("Find");

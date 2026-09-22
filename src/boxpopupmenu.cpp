@@ -6,7 +6,9 @@
 
 BoxPopupMenu::BoxPopupMenu(QWidget *parent) : QComboBox(parent) {
   this->installEventFilter(this);
-  connect(this, QOverload<const QString &>::of(&QComboBox::highlighted),
+  // Qt 6 split the overloaded QComboBox::highlighted(QString) off into
+  // textHighlighted(); the int-only version is all that is left of the name.
+  connect(this, &QComboBox::textHighlighted,
           [=](const QString &text) {
             QStringList list = text.split('>');
             if (list.length() <= 1) {

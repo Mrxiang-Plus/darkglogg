@@ -21,7 +21,7 @@ WindowDragger::WindowDragger(QWidget *parent) : QWidget(parent) {
 
 void WindowDragger::mousePressEvent(QMouseEvent *event) {
   mousePressed = true;
-  mousePos = event->globalPos();
+  mousePos = event->globalPosition().toPoint();
 
   QWidget *parent = parentWidget();
   if (parent) parent = parent->parentWidget();
@@ -34,7 +34,7 @@ void WindowDragger::mouseMoveEvent(QMouseEvent *event) {
   if (parent) parent = parent->parentWidget();
 
   if (parent && mousePressed)
-    parent->move(wndPos + (event->globalPos() - mousePos));
+    parent->move(wndPos + (event->globalPosition().toPoint() - mousePos));
 }
 
 void WindowDragger::mouseReleaseEvent(QMouseEvent *event) {
@@ -45,7 +45,7 @@ void WindowDragger::mouseReleaseEvent(QMouseEvent *event) {
 void WindowDragger::paintEvent(QPaintEvent *event) {
   Q_UNUSED(event);
   QStyleOption styleOption;
-  styleOption.init(this);
+  styleOption.initFrom(this);
   QPainter painter(this);
   style()->drawPrimitive(QStyle::PE_Widget, &styleOption, &painter, this);
 }

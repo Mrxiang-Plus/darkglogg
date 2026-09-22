@@ -850,7 +850,7 @@ void CrawlerWidget::commentLineFromMain(qint64 line, QString& commentLine) {
   LOG(logERROR) << "path: " << QDir::currentPath().toStdString();
   process.setWorkingDirectory(path);
   QString command = path + "comment-logcat.bat";
-  process.startDetached(command);
+  process.startDetached(command, QStringList());
 #else
   bool ok;
   QString text =
@@ -912,8 +912,10 @@ void CrawlerWidget::applyConfiguration() {
   // Whatever font we use, we should NOT use kerning
   font.setKerning(false);
   font.setFixedPitch(true);
-#if QT_VERSION > 0x040700
+#if QT_VERSION >= 0x050700 && QT_VERSION < 0x060000
   // Necessary on systems doing subpixel positionning (e.g. Ubuntu 12.04)
+  // QFont::ForceIntegerMetrics left Qt in 6.0 (metrics are always floating
+  // point there), so this is Qt 5 only.
   font.setStyleStrategy(QFont::ForceIntegerMetrics);
 #endif
   logMainView->setFont(font);
@@ -1194,8 +1196,10 @@ void CrawlerWidget::setup() {
   auto config = Persistent<Configuration>("settings");
   QFont font = config->mainFont();
   // Whatever font we use, we should NOT use kerning
-#if QT_VERSION > 0x040700
+#if QT_VERSION >= 0x050700 && QT_VERSION < 0x060000
   // Necessary on systems doing subpixel positionning (e.g. Ubuntu 12.04)
+  // QFont::ForceIntegerMetrics left Qt in 6.0 (metrics are always floating
+  // point there), so this is Qt 5 only.
   font.setStyleStrategy(QFont::ForceIntegerMetrics);
 #endif
   font.setKerning(false);
@@ -1631,8 +1635,7 @@ void CrawlerWidget::replaceCurrentSearch(const QString& searchText) {
 
     // Set the pattern case insensitive if needed
     QRegularExpression::PatternOptions patternOptions =
-        QRegularExpression::UseUnicodePropertiesOption |
-        QRegularExpression::OptimizeOnFirstUsageOption;
+        QRegularExpression::UseUnicodePropertiesOption;
 
     if (ignoreCaseCheck->checkState() == Qt::Checked)
       patternOptions |= QRegularExpression::CaseInsensitiveOption;

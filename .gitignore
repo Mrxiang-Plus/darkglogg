@@ -7,7 +7,7 @@
 moc_*.cpp
 ui_*.h
 .*.sw?
-qrc_glogg.cpp
+qrc_*.cpp
 Makefile
 glogg
 glogg_tests
@@ -36,4 +36,24 @@ tests/build/
 
 # Qt-specific
 /.moc
+/.obj
+/.ui
 /.qmake.stash
+
+# Editor / IDE local state — not part of the project
+.vscode/
+.idea/
+.vs/
+*.user
+*.user.*
+*.autosave
+compile_commands.json
+.clangd/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime output (glogg -l writes glogg_<pid>.log)
+glogg_*.log

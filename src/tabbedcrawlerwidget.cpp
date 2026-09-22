@@ -85,7 +85,7 @@ void TabbedCrawlerWidget::mouseReleaseEvent(QMouseEvent *event) {
   mousePressed = false;
   LOG(logDEBUG) << "TabbedCrawlerWidget::mouseReleaseEvent";
 
-  if (event->button() == Qt::MidButton) {
+  if (event->button() == Qt::MiddleButton) {
     int tab = this->myTabBar_.tabAt(event->pos());
     if (-1 != tab) {
       emit tabCloseRequested(tab);
@@ -177,7 +177,7 @@ bool TabbedCrawlerWidget::getTabBarVisibility() {
 }
 void TabbedCrawlerWidget::mousePressEvent(QMouseEvent *event) {
   mousePressed = true;
-  mousePos = event->globalPos();
+  mousePos = event->globalPosition().toPoint();
 
   QWidget *parent = parentWidget();
   if (parent) parent = parent->parentWidget();
@@ -196,13 +196,13 @@ void TabbedCrawlerWidget::mouseMoveEvent(QMouseEvent *event) {
   if (parent) parent = parent->parentWidget();
 
   if (parent && mousePressed)
-    parent->move(wndPos + (event->globalPos() - mousePos));
+    parent->move(wndPos + (event->globalPosition().toPoint() - mousePos));
 }
 
 void TabbedCrawlerWidget::paintEvent(QPaintEvent *event) {
   Q_UNUSED(event);
   QStyleOption styleOption;
-  styleOption.init(this);
+  styleOption.initFrom(this);
   QPainter painter(this);
   style()->drawPrimitive(QStyle::PE_Widget, &styleOption, &painter, this);
 }

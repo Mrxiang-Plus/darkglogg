@@ -18,19 +18,28 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QCommandLineParser>
 #include <QFileInfo>
-#include <QTranslator>
 #include <QLocale>
+#include <QRegularExpression>
+#include <QTranslator>
 
 #include <memory>
-
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 
 #include <frqfilterset.h>
 #include <iomanip>
 #include <iostream>
-using namespace std;
+// Not `using namespace std;`: this file pulls in <windows.h> below, and with
+// C++17 a wholesale using-directive makes the SDK's `byte` typedef ambiguous
+// with std::byte. Pull in only what we use.
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::exception;
+using std::make_shared;
+using std::shared_ptr;
+using std::string;
+using std::vector;
 
 #ifdef _WIN32
 #include "unistd.h"
@@ -79,79 +88,86 @@ int main(int argc, char* argv[]) {
 
   TLogLevel logLevel = logWARNING;
 
+  // -d, -dd, ... -dddddddddd were distinct hidden options under
+  // Boost.program_options. Pull them out first so QCommandLineParser never
+  // sees them (it would treat -dd as -d -d).
+  int debugCount = 0;
+  QStringList arguments;
+  {
+    const QStringList allArguments = QCoreApplication::arguments();
+    // QCommandLineParser::parse() expects element 0 to be the program name
+    // and skips it, so keep it at the front of the list we hand over.
+    if (!allArguments.isEmpty()) arguments.append(allArguments.first());
+    static const QRegularExpression debugOption(
+        QStringLiteral("^--debug$|^-{1,2}d{1,10}$"));
+    for (const QString& argument : allArguments.mid(1)) {
+      if (debugOption.match(argument).hasMatch())
+        ++debugCount;
+      else
+        arguments.append(argument);
+    }
+  }
+
   try {
-    po::options_description desc("Usage: glogg [options] [files]");
-    desc.add_options()("help,h", "print out program usage (this message)")(
-        "version,v", "print glogg's version information")(
-        "multi,m",
-        "allow multiple instance of glogg to run simultaneously (use together "
-        "with -s)")(
-        "load-session,s",
-        "load the previous session (default when no file is passed)")(
-        "new-session,n",
-        "do not load the previous session (default when a file is passed)")
+    QCommandLineParser parser;
+    parser.setApplicationDescription(
+        QStringLiteral("Usage: glogg [options] [files]"));
+    parser.addHelpOption();
+    parser.addOption(QCommandLineOption(
+        {"v", "version"}, QStringLiteral("print glogg's version information")));
+    parser.addOption(QCommandLineOption(
+        {"m", "multi"},
+        QStringLiteral("allow multiple instance of glogg to run "
+                       "simultaneously (use together with -s)")));
+    parser.addOption(
+        QCommandLineOption({"s", "load-session"},
+                           QStringLiteral("load the previous session (default "
+                                          "when no file is passed)")));
+    parser.addOption(
+        QCommandLineOption({"n", "new-session"},
+                           QStringLiteral("do not load the previous session "
+                                          "(default when a file is passed)")));
 #ifdef _WIN32
-        ("log,l", "save the log to a file (Windows only)")
+    parser.addOption(QCommandLineOption(
+        {"l", "log"}, QStringLiteral("save the log to a file (Windows only)")));
 #endif
-            ("debug,d",
-             "output more debug (include multiple times for more verbosity "
-             "e.g. -dddd)");
-    po::options_description desc_hidden("Hidden options");
-    // For -dd, -ddd...
-    for (string s = "dd"; s.length() <= 10; s.append("d"))
-      desc_hidden.add_options()(s.c_str(), "debug");
+    parser.addOption(QCommandLineOption(
+        {"d", "debug"},
+        QStringLiteral("output more debug (include multiple times for more "
+                       "verbosity e.g. -dddd)")));
+    parser.addPositionalArgument("files",
+                                 QStringLiteral("log files to open"));
 
-    desc_hidden.add_options()("input-file", po::value<vector<string>>(),
-                              "input file");
+    if (!parser.parse(arguments)) {
+      cerr << "Option processing error: "
+           << parser.errorText().toStdString() << endl;
+      return 1;
+    }
 
-    po::options_description all_options("all options");
-    all_options.add(desc).add(desc_hidden);
-
-    po::positional_options_description positional;
-    positional.add("input-file", -1);
-
-    int command_line_style = (((po::command_line_style::unix_style ^
-                                po::command_line_style::allow_guessing) |
-                               po::command_line_style::allow_long_disguise) ^
-                              po::command_line_style::allow_sticky);
-
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv)
-                  .options(all_options)
-                  .positional(positional)
-                  .style(command_line_style)
-                  .run(),
-              vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-      desc.print(cout);
+    if (parser.isSet("help")) {
+      cout << parser.helpText().toStdString();
       return 0;
     }
 
-    if (vm.count("version")) {
+    if (parser.isSet("version")) {
       print_version();
       return 0;
     }
 
-    if (vm.count("debug")) logLevel = logINFO;
+    if (debugCount > 0) logLevel = (TLogLevel)(logWARNING + debugCount);
 
-    if (vm.count("multi")) multi_instance = true;
+    if (parser.isSet("multi")) multi_instance = true;
 
-    if (vm.count("new-session")) new_session = true;
+    if (parser.isSet("new-session")) new_session = true;
 
-    if (vm.count("load-session")) load_session = true;
+    if (parser.isSet("load-session")) load_session = true;
 
 #ifdef _WIN32
-    if (vm.count("log")) log_to_file = true;
+    if (parser.isSet("log")) log_to_file = true;
 #endif
 
-    for (string s = "dd"; s.length() <= 10; s.append("d"))
-      if (vm.count(s)) logLevel = (TLogLevel)(logWARNING + s.length());
-
-    if (vm.count("input-file")) {
-      filenames = vm["input-file"].as<vector<string>>();
-    }
+    for (const QString& file : parser.positionalArguments())
+      filenames.push_back(file.toStdString());
   } catch (exception& e) {
     cerr << "Option processing error: " << e.what() << endl;
     return 1;
@@ -246,9 +262,6 @@ int main(int argc, char* argv[]) {
   // glogg send us a file to open)
   AllowSetForegroundWindow(ASFW_ANY);
 #endif
-
-  // We support high-dpi (aka Retina) displays
-  app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
   // No icon in menus
   app.setAttribute(Qt::AA_DontShowIconsInMenus);

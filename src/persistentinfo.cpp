@@ -23,7 +23,6 @@
 #include "persistentinfo.h"
 
 #include <QStringList>
-#include <QTextCodec>
 #include <cassert>
 
 #include "log.h"
@@ -48,7 +47,6 @@ void PersistentInfo::migrateAndInit() {
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
                             "glogg");
 
-  settings_->setIniCodec(QTextCodec::codecForName("GB2312"));
   if (settings_->childKeys().count() == 0) {
     LOG(logWARNING) << "INI file empty, trying to import from registry";
     QSettings registry("glogg", "glogg");
@@ -60,7 +58,6 @@ void PersistentInfo::migrateAndInit() {
   // We use default Qt storage on proper OSes
   settings_ = new QSettings(QSettings::IniFormat, QSettings::UserScope, "glogg",
                             "glogg");
-  settings_->setIniCodec(QTextCodec::codecForName("UTF-8"));
 #endif
   initialised_ = true;
 }

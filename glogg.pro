@@ -12,10 +12,10 @@ QT += network core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += core widgets
 
-win32:Debug:CONFIG += console
+win32:CONFIG(debug, debug|release):CONFIG += console
 
 # Necessary when cross-compiling:
-win32:Release:QMAKE_LFLAGS += "-Wl,-subsystem,windows"
+win32:CONFIG(release, debug|release):QMAKE_LFLAGS += "-Wl,-subsystem,windows"
 
 # Input
 SOURCES += \
@@ -30,6 +30,7 @@ SOURCES += \
     src/data/logfiltereddataworkerthread.cpp \
     src/data/logdataworkerthread.cpp \
     src/data/compressedlinestorage.cpp \
+    src/data/textdecoder.cpp \
     src/mainwindow.cpp \
     src/crawlerwidget.cpp \
     src/abstractlogview.cpp \
@@ -85,6 +86,7 @@ HEADERS += \
     src/data/threadprivatestore.h \
     src/data/compressedlinestorage.h \
     src/data/linepositionarray.h \
+    src/data/textdecoder.h \
     src/frqfilterset.h \
     src/frqframe.h \
     src/mainwindow.h \
@@ -140,46 +142,7 @@ HEADERS += \
     src/version/versionmanager.h \
     src/thememanager.h
 
-//https://github.com/nickbnf/glogg/blob/master/release-osx.sh
-
-macx {
-    BOOST_PATH = ../boost_1_73_0
-}
-
-isEmpty(BOOST_PATH) {
-    message(Building using system dynamic Boost libraries)
-    macx {
-      # Path for brew installed libs
-      INCLUDEPATH += /usr/local/include
-      LIBS += -L/usr/local/lib -lboost_program_options-mt
-    }
-    else {
-      LIBS += -lboost_program_options
-    }
-}
-else {
-    !exists($$BOOST_PATH/libs/program_options/src) {
-        message("BOOST_PATH $$BOOST_PATH not found, falling back to system Boost")
-        BOOST_PATH =
-        LIBS += -lboost_program_options
-    }
-    !isEmpty(BOOST_PATH) {
-        message(Building using static Boost libraries at $$BOOST_PATH)
-
-        SOURCES += $$BOOST_PATH/libs/program_options/src/*.cpp
-
-        exists( $$BOOST_PATH/libs/smart_ptr/src/sp_collector.cpp ) {
-            message( "'old' version of Boost" )
-            SOURCES += $$BOOST_PATH/libs/smart_ptr/src/*.cpp
-        }
-        else {
-            message( "'new' version of Boost" )
-            SOURCES += $$BOOST_PATH/libs/smart_ptr/extras/src/*.cpp
-        }
-
-        INCLUDEPATH += $$BOOST_PATH
-    }
-}
+# See https://github.com/nickbnf/glogg/blob/master/release-osx.sh
 
 FORMS += src/optionsdialog.ui \
          src/frqframe.ui

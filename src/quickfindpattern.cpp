@@ -33,8 +33,7 @@ QuickFindPattern::QuickFindPattern(int type) : QObject(), regexp_() {
   type_ = type;
   active_ = true;
   QRegularExpression::PatternOptions options =
-      QRegularExpression::UseUnicodePropertiesOption |
-      QRegularExpression::OptimizeOnFirstUsageOption;
+      QRegularExpression::UseUnicodePropertiesOption;
 
   options |= QRegularExpression::CaseInsensitiveOption;
   regexp_.setPatternOptions(options);
@@ -143,8 +142,7 @@ void QuickFindPattern::changeSearchPattern(const QString& pattern) {
 void QuickFindPattern::changeMarkPattern(const QString& pattern,
                                          bool ignoreCase) {
   QRegularExpression::PatternOptions options =
-      QRegularExpression::UseUnicodePropertiesOption |
-      QRegularExpression::OptimizeOnFirstUsageOption;
+      QRegularExpression::UseUnicodePropertiesOption;
 
   if (ignoreCase) options |= QRegularExpression::CaseInsensitiveOption;
 
@@ -155,8 +153,7 @@ void QuickFindPattern::changeMarkPattern(const QString& pattern,
 void QuickFindPattern::changeSearchPattern(const QString& pattern,
                                            bool ignoreCase) {
   QRegularExpression::PatternOptions options =
-      QRegularExpression::UseUnicodePropertiesOption |
-      QRegularExpression::OptimizeOnFirstUsageOption;
+      QRegularExpression::UseUnicodePropertiesOption;
 
   if (ignoreCase) options |= QRegularExpression::CaseInsensitiveOption;
 
@@ -168,7 +165,7 @@ QVector<QStringList> splitTerms(const QStringList& source) {
   QVector<QStringList> result;
   result.reserve(source.count());
   for (auto src : source) {
-    result.append(src.split(QChar('*'), QString::SkipEmptyParts));
+    result.append(src.split(QChar('*'), Qt::SkipEmptyParts));
   }
   return result;
 }

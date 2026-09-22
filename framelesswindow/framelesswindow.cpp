@@ -14,7 +14,6 @@
 #include "framelesswindow/framelesswindow.h"
 #include <QApplication>
 #include <QComboBox>
-#include <QDesktopWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QLineEdit>
 
@@ -122,7 +121,7 @@ void FramelessWindow::setWindowIcon(const QIcon &ico) {
 void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
   if (bActive) {
     if (bNoState) {
-      layout()->setMargin(15);
+      layout()->setContentsMargins(15, 15, 15, 15);
       ui->windowTitlebar->setStyleSheet(QStringLiteral(
           "#windowTitlebar{border: 0px none palette(shadow); "
           "border-top-left-radius:5px; border-top-right-radius:5px; "
@@ -137,7 +136,7 @@ void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
       windowShadow->setOffset(0.0);
       ui->windowFrame->setGraphicsEffect(windowShadow);
     } else {
-      layout()->setMargin(0);
+      layout()->setContentsMargins(0, 0, 0, 0);
       ui->windowTitlebar->setStyleSheet(QStringLiteral(
           "#windowTitlebar{border: 0px none palette(shadow); "
           "border-top-left-radius:0px; border-top-right-radius:0px; "
@@ -151,7 +150,7 @@ void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
     }
   } else {
     if (bNoState) {
-      layout()->setMargin(15);
+      layout()->setContentsMargins(15, 15, 15, 15);
       ui->windowTitlebar->setStyleSheet(QStringLiteral(
           "#windowTitlebar{border: 0px none palette(shadow); "
           "border-top-left-radius:5px; border-top-right-radius:5px; "
@@ -163,7 +162,7 @@ void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
       if (oldShadow) delete oldShadow;
       QGraphicsDropShadowEffect *windowShadow = new QGraphicsDropShadowEffect;
     } else {
-      layout()->setMargin(0);
+      layout()->setContentsMargins(0, 0, 0, 0);
       ui->windowTitlebar->setStyleSheet(QStringLiteral(
           "#titlebarWidget{border: 0px none palette(shadow); "
           "border-top-left-radius:0px; border-top-right-radius:0px; "
@@ -217,7 +216,7 @@ void FramelessWindow::checkBorderDragging(QMouseEvent *event) {
     return;
   }
 
-  QPoint globalMousePos = event->globalPos();
+  QPoint globalMousePos = event->globalPosition().toPoint();
   if (m_bMousePressed) {
     const int MIN_SIZE = 50;
 
@@ -365,7 +364,7 @@ void FramelessWindow::mousePressEvent(QMouseEvent *event) {
   m_bMousePressed = true;
   m_StartGeometry = this->geometry();
 
-  QPoint globalMousePos = mapToGlobal(QPoint(event->x(), event->y()));
+  QPoint globalMousePos = mapToGlobal(event->position().toPoint());
 
   if (leftBorderHit(globalMousePos) && topBorderHit(globalMousePos)) {
     m_bDragTop = true;

@@ -25,8 +25,6 @@
 #include <QMetaType>
 #include <QRegularExpression>
 
-#include <boost/shared_ptr.hpp>
-
 #include "persistable.h"
 
 // Represents a filter, i.e. a regexp and the colors matching text

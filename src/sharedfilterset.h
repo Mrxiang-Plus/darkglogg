@@ -6,8 +6,6 @@
 #include <QMetaType>
 #include <QRegularExpression>
 
-#include <boost/shared_ptr.hpp>
-
 #include "persistable.h"
 
 

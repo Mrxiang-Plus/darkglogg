@@ -176,8 +176,8 @@ inline void LineDrawer::draw(QPainter& painter, int initialXPos,
   // For some reason on Qt 4.8.2 for Win, maxWidth() is wrong but the
   // following give the right result, not sure why:
   int fontWidth = 0;
-  if (!line.contains(QRegExp("[\\x4e00-\\x9fa5]+"))) {
-    fontWidth = fm.width(QChar('a'));
+  if (!line.contains(QRegularExpression("[\\x4e00-\\x9fa5]+"))) {
+    fontWidth = fm.horizontalAdvance(QChar('a'));
   }
 
   LOG(logERROR) << line.toStdString();
@@ -188,7 +188,7 @@ inline void LineDrawer::draw(QPainter& painter, int initialXPos,
     // Draw each chunk
     QString cutline = line.mid(chunk.start(), chunk.length());
     const int chunk_width =
-        fontWidth == 0 ? fm.width(cutline) : cutline.length() * fontWidth;
+        fontWidth == 0 ? fm.horizontalAdvance(cutline) : cutline.length() * fontWidth;
 
     if (xPos == initialXPos) {
       // First chunk, we extend the left background a bit,
@@ -339,13 +339,13 @@ void AbstractLogView::changeEvent(QEvent* changeEvent) {
 
 void AbstractLogView::mousePressEvent(QMouseEvent* mouseEvent) {
   if (mouseEvent->button() == Qt::LeftButton) {
-    int line = convertCoordToLine(mouseEvent->y());
+    int line = convertCoordToLine(mouseEvent->position().toPoint().y());
     if (mouseEvent->modifiers() & Qt::ShiftModifier) {
       selection_.selectRangeFromPrevious(line);
       emit updateLineNumber(line);
       update();
     } else {
-      if (mouseEvent->x() < bulletZoneWidthPx_) {
+      if (mouseEvent->position().toPoint().x() < bulletZoneWidthPx_) {
         // Mark a line if it is clicked in the left margin
         // (only if click and release in the same area)
         markingClickInitiated_ = true;
@@ -447,14 +447,15 @@ void AbstractLogView::mouseMoveEvent(QMouseEvent* mouseEvent) {
         autoScrollTimer_.start(100, this);
     }
   } else {
-    considerMouseHovering(mouseEvent->x(), mouseEvent->y());
+    considerMouseHovering(mouseEvent->position().toPoint().x(),
+                          mouseEvent->position().toPoint().y());
   }
 }
 
 void AbstractLogView::mouseReleaseEvent(QMouseEvent* mouseEvent) {
   if (markingClickInitiated_) {
     markingClickInitiated_ = false;
-    int line = convertCoordToLine(mouseEvent->y());
+    int line = convertCoordToLine(mouseEvent->position().toPoint().y());
     if (line == markingClickLine_) {
       // Invalidate our cache
       textAreaCache_.invalid_ = true;
@@ -1135,7 +1136,7 @@ void AbstractLogView::syncPatterns() {
 #ifdef _WIN32
   process->setWorkingDirectory(path);
   QString command = path + "sync-patterns.bat";
-  process->startDetached(command);
+  process->startDetached(command, QStringList());
 #else
 
   // catch data output
@@ -1194,9 +1195,9 @@ void AbstractLogView::comment() {
   QList<int> lines = selection_.getLines();
   if (lines.size() > 0) {
     QString selectLineString = logData->getLineString(lines[0]);
-    QRegExp rx(" //.*$");
-    rx.indexIn(selectLineString);
-    QString captured = rx.cap(0);
+    QRegularExpression rx(" //.*$");
+    QRegularExpressionMatch match = rx.match(selectLineString);
+    QString captured = match.captured(0);
     if (!captured.isEmpty()) {
       captured = captured.remove(" //");
     }
@@ -1252,7 +1253,7 @@ void AbstractLogView::updateDisplaySize() {
   charHeight_ = fm.height();
   // For some reason on Qt 4.8.2 for Win, maxWidth() is wrong but the
   // following give the right result, not sure why:
-  charWidth_ = fm.width(QChar('a'));
+  charWidth_ = fm.horizontalAdvance(QChar('a'));
 
   // Update the scroll bars
   updateScrollBars();
@@ -1380,12 +1381,12 @@ QPoint AbstractLogView::convertCoordToFilePos(const QPoint& pos) const {
   QFontMetrics fm = fontMetrics();
   // Determine column in screen space and convert it to file space
   int column = firstCol + (pos.x() - leftMarginPx_) / charWidth_;
-  if (lineString.contains(QRegExp("[\\x4e00-\\x9fa5]+"))) {
+  if (lineString.contains(QRegularExpression("[\\x4e00-\\x9fa5]+"))) {
     LOG(logERROR) << logData->getLineString(line).toStdString();
     int stringSize = lineString.size();
     for (int i = column < stringSize ? column : stringSize; i >= 0; i--) {
       const QString cutLine = lineString.mid(0, i);
-      if (fm.width(cutLine) <= (pos.x() - leftMarginPx_)) {
+      if (fm.horizontalAdvance(cutLine) <= (pos.x() - leftMarginPx_)) {
         column = i;
         break;
       }

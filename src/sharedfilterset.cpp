@@ -10,7 +10,6 @@ const int SharedFilterSet::SHAREDFILTERSET_VERSION = 1;
 QRegularExpression::PatternOptions getPatternOptions() {
   QRegularExpression::PatternOptions options =
       QRegularExpression::UseUnicodePropertiesOption |
-      QRegularExpression::OptimizeOnFirstUsageOption |
       QRegularExpression::CaseInsensitiveOption;
   return options;
 }
@@ -18,9 +17,9 @@ QRegularExpression::PatternOptions getPatternOptions() {
 SharedFilterSet::SharedFilterSet()
 {
 
-    qRegisterMetaTypeStreamOperators<SharedFilter>("SharedFilter");
-    qRegisterMetaTypeStreamOperators<SharedFilterSet>("SharedFilterSet");
-    qRegisterMetaTypeStreamOperators<SharedFilterSet::SharedFilterList>(
+    qRegisterMetaType<SharedFilter>("SharedFilter");
+    qRegisterMetaType<SharedFilterSet>("SharedFilterSet");
+    qRegisterMetaType<SharedFilterSet::SharedFilterList>(
         "SharedFilterSet::SharedFilterList");
 }
 
@@ -93,7 +92,7 @@ void SharedFilter::setFilterItem()
     filterItem_.append(regexp_.pattern());
     filterItem_.append(">");
     filterItem_.append(pattern_);
-    if (comment_ != NULL)
+    if (!comment_.isNull())
     {
         filterItem_.append(">");
         filterItem_.append(comment_);

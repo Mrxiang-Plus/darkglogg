@@ -125,7 +125,10 @@ LineNumber lookupLineNumber(Iterator begin, Iterator end, LineNumber lineNum) {
   return lineIndex;
 }
 
-#ifndef HAVE_MAKE_UNIQUE
+// Qt 6 forces C++17, which already provides std::make_unique. Adding a second
+// definition in namespace std makes every call ambiguous, so only supply the
+// polyfill for pre-C++14 toolchains.
+#if __cplusplus < 201402L
 #include <memory>
 
 namespace std {

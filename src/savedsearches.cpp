@@ -29,7 +29,7 @@ const int SavedSearches::SAVEDSEARCHES_VERSION = 1;
 const int SavedSearches::maxNumberOfRecentSearches = 300;
 
 SavedSearches::SavedSearches() : savedSearches_() {
-  qRegisterMetaTypeStreamOperators<SavedSearches>("SavedSearches");
+  qRegisterMetaType<SavedSearches>("SavedSearches");
 }
 
 void SavedSearches::addRecent(const QString& text) {

@@ -26,8 +26,6 @@
 
 #include "thememanager.h"
 
-#include <boost/shared_ptr.hpp>
-
 #include "log.h"
 #include "persistentinfo.h"
 
@@ -35,8 +33,7 @@ const int FrqFilterSet::FRQFILTERSET_VERSION = 1;
 
 QRegularExpression::PatternOptions getFilterPatternOptions(bool ignoreCase) {
   QRegularExpression::PatternOptions options =
-      QRegularExpression::UseUnicodePropertiesOption |
-      QRegularExpression::OptimizeOnFirstUsageOption;
+      QRegularExpression::UseUnicodePropertiesOption;
 
   if (ignoreCase) {
     options |= QRegularExpression::CaseInsensitiveOption;
@@ -181,9 +178,9 @@ QDataStream& operator>>(QDataStream& in, FrqFilter& object) {
 
 // Default constructor
 FrqFilterSet::FrqFilterSet() {
-  qRegisterMetaTypeStreamOperators<FrqFilter>("FrqFilter");
-  qRegisterMetaTypeStreamOperators<FrqFilterSet>("FrqFilterSet");
-  qRegisterMetaTypeStreamOperators<FrqFilterSet::FrqFilterList>(
+  qRegisterMetaType<FrqFilter>("FrqFilter");
+  qRegisterMetaType<FrqFilterSet>("FrqFilterSet");
+  qRegisterMetaType<FrqFilterSet::FrqFilterList>(
       "FrqFilterSet::FrqFilterList");
 }
 
